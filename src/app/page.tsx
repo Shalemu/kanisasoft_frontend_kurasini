@@ -52,8 +52,11 @@ export default function Home() {
       {/* Glowing, moving blurred parallax background */}
       <div
         ref={parallaxRef}
-        className="fixed inset-0 -z-10 bg-[url('/portal-bg-blur.jpg')] bg-cover bg-no-repeat opacity-40 transition-all duration-300"
-        style={{ backgroundPosition: '50% 50%' }}
+        className="fixed inset-0 -z-10 bg-cover bg-no-repeat opacity-40 transition-all duration-300"
+        style={{
+          backgroundImage: "url('/images/hero-worship.jpg')",
+          backgroundPosition: '50% 50%',
+        }}
       />
       {/* Decorative blurred circle overlays */}
       <div className="fixed -top-37.5 -left-37.5 w-87.5 h-87.5 rounded-full bg-pink-400 opacity-30 blur-3xl -z-10"></div>

@@ -12,6 +12,28 @@ const ReactApexChart = dynamic(() => import("react-apexcharts"), {
   ssr: false,
 });
 
+type ContributionReport = {
+  date?: string;
+  amount?: number | string;
+};
+
+function sumContributionsByMonth(reports: ContributionReport[]) {
+  const monthlyTotals = Array(12).fill(0);
+
+  reports.forEach((report) => {
+    if (!report.date) return;
+
+    const date = new Date(report.date);
+    const amount = Number(report.amount ?? 0);
+
+    if (Number.isNaN(date.getTime()) || Number.isNaN(amount)) return;
+
+    monthlyTotals[date.getMonth()] += amount;
+  });
+
+  return monthlyTotals;
+}
+
 export default function MonthlySadakaChart() {
   const [isOpen, setIsOpen] = useState(false);
   const [series, setSeries] = useState([
@@ -33,17 +55,15 @@ export default function MonthlySadakaChart() {
   useEffect(() => {
     async function fetchSadaka() {
       try {
-        const res = await apiFetch("/contributions/monthly"); 
-        // expected: { data: [120, 300, 150, ...] }
+        const res = await apiFetch("/contributions");
+        const reports = res?.reports ?? [];
 
-        if (res?.data) {
-          setSeries([
-            {
-              name: "Sadaka",
-              data: res.data,
-            },
-          ]);
-        }
+        setSeries([
+          {
+            name: "Sadaka",
+            data: sumContributionsByMonth(reports),
+          },
+        ]);
       } catch (err) {
         console.error("Failed to load sadaka chart", err);
       }

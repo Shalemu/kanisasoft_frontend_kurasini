@@ -9,6 +9,25 @@ import { apiFetch } from "@/lib/api";
 
 const Chart = dynamic(() => import("react-apexcharts"), { ssr: false });
 
+type EventRecord = {
+  date?: string;
+};
+
+function countEventsByMonth(events: EventRecord[]) {
+  const monthlyCounts = Array(12).fill(0);
+
+  events.forEach((event) => {
+    if (!event.date) return;
+
+    const date = new Date(event.date);
+    if (Number.isNaN(date.getTime())) return;
+
+    monthlyCounts[date.getMonth()] += 1;
+  });
+
+  return monthlyCounts;
+}
+
 export default function EventsStatisticsChart() {
   const datePickerRef = useRef<HTMLInputElement>(null);
 
@@ -28,19 +47,22 @@ export default function EventsStatisticsChart() {
   useEffect(() => {
     async function fetchEvents() {
       try {
-        const res = await apiFetch("/events/monthly");
+        const [upcomingRes, pastRes] = await Promise.all([
+          apiFetch("/events"),
+          apiFetch("/events/past"),
+        ]);
 
-        // expected backend:
-        // { data: [2, 5, 1, 0, 3, 7, ...] }
+        const events = [
+          ...(upcomingRes?.events ?? []),
+          ...(pastRes?.events ?? []),
+        ];
 
-        if (res?.data) {
-          setSeries([
-            {
-              name: "Matukio",
-              data: res.data,
-            },
-          ]);
-        }
+        setSeries([
+          {
+            name: "Matukio",
+            data: countEventsByMonth(events),
+          },
+        ]);
       } catch (err) {
         console.error("Failed to load events stats", err);
       }

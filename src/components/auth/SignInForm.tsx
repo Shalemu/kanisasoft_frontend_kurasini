@@ -9,6 +9,7 @@ import Link from "next/link";
 import React, { useState } from "react";
 import { useRouter } from "next/navigation";
 import { apiFetch } from "@/lib/api";
+import { markSessionActivity } from "@/lib/session";
 
 export default function SignInForm() {
   const router = useRouter();
@@ -76,9 +77,12 @@ export default function SignInForm() {
 
       localStorage.setItem("token", token);
       localStorage.setItem("user", JSON.stringify(user));
+      markSessionActivity();
 
       if (isChecked) {
         localStorage.setItem("keep_logged_in", "true");
+      } else {
+        localStorage.removeItem("keep_logged_in");
       }
 
       showMessage("Umeingia kikamilifu.", "success");
@@ -89,9 +93,12 @@ export default function SignInForm() {
         router.push("/dashboard");
       }, 300);
 
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error("LOGIN ERROR:", err);
-      showMessage(err.message || "Tatizo la mfumo. Jaribu tena.", "error");
+      showMessage(
+        err instanceof Error ? err.message : "Tatizo la mfumo. Jaribu tena.",
+        "error"
+      );
     } finally {
       setLoading(false);
     }
@@ -143,7 +150,7 @@ export default function SignInForm() {
                 type="text"
                 placeholder="Email au namba ya simu"
                 value={login}
-                onChange={(e: any) => setLogin(e.target.value)}
+                onChange={(e) => setLogin(e.target.value)}
                 className="bg-white/10 border-white/20 text-white placeholder:text-gray-400"
               />
             </div>
@@ -159,7 +166,7 @@ export default function SignInForm() {
                   type={showPassword ? "text" : "password"}
                   placeholder="Ingiza neno la siri"
                   value={password}
-                  onChange={(e: any) => setPassword(e.target.value)}
+                  onChange={(e) => setPassword(e.target.value)}
                   className="bg-white/10 border-white/20 text-white placeholder:text-gray-400"
                 />
 
