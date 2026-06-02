@@ -116,8 +116,8 @@ export default function OngezaTaarifaZaIbada() {
   };
 
   return (
-    <div className="bg-white p-6 shadow rounded-lg">
-      <h2 className="text-2xl font-bold mb-6">
+    <div className="rounded-lg border border-gray-200 bg-white p-6 text-gray-800 shadow dark:border-gray-800 dark:bg-white/[0.03] dark:text-white/90">
+      <h2 className="text-2xl font-bold mb-6 text-gray-800 dark:text-white/90">
         Ongeza Taarifa za Ibada
       </h2>
 
@@ -142,7 +142,7 @@ export default function OngezaTaarifaZaIbada() {
       dateRef.current?.showPicker?.();
       dateRef.current?.focus();
     }}
-    className="absolute right-3 top-10 text-gray-400 hover:text-gray-600"
+    className="absolute right-3 top-10 text-gray-400 hover:text-gray-600 dark:hover:text-gray-200"
   >
     <Calendar size={18} />
   </button>
@@ -155,7 +155,7 @@ export default function OngezaTaarifaZaIbada() {
             name="service_name"
             value={formData.service_name}
             onChange={handleChange}
-            className="w-full border p-2 rounded"
+            className="w-full rounded border border-gray-300 bg-white p-2 text-gray-800 dark:border-gray-700 dark:bg-gray-900 dark:text-white/90"
           >
             <option value="">Chagua Huduma</option>
             {serviceTypes.map((s) => (
@@ -286,7 +286,7 @@ export default function OngezaTaarifaZaIbada() {
         <div className="md:col-span-2">
      <button
         type="submit"
-        className="w-full bg-[#334155] text-white py-3 rounded"
+        className="w-full rounded bg-[#334155] py-3 text-white transition-colors hover:bg-[#1e293b] dark:bg-brand-600 dark:hover:bg-brand-700"
         >
         Hifadhi Taarifa
         </button>

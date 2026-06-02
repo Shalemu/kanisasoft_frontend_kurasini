@@ -92,12 +92,12 @@ export default function AssignGroupModal({
       <div className="fixed inset-0 bg-black/30" />
 
       <div className="fixed inset-0 flex items-center justify-center p-4">
-        <div className="bg-white p-6 rounded-lg w-full max-w-md">
-          <h2 className="font-bold mb-4">Chagua Makundi</h2>
+        <div className="bg-white p-6 rounded-lg w-full max-w-md text-gray-800 shadow-xl dark:bg-gray-900 dark:text-white/90">
+          <h2 className="font-bold mb-4 text-gray-800 dark:text-white/90">Chagua Makundi</h2>
 
           <div className="space-y-2 max-h-60 overflow-y-auto">
             {groups.map((g) => (
-              <label key={g.id} className="flex gap-2">
+              <label key={g.id} className="flex gap-2 text-gray-700 dark:text-gray-300">
                 <input
                   type="checkbox"
                   checked={selectedGroupIds.includes(g.id)}
@@ -117,7 +117,7 @@ export default function AssignGroupModal({
           </div>
 
           <div className="flex justify-end gap-2 mt-5">
-            <button onClick={onClose} className="border px-3 py-2 rounded">
+            <button onClick={onClose} className="border border-gray-300 px-3 py-2 rounded text-gray-700 hover:bg-gray-50 dark:border-gray-700 dark:text-gray-300 dark:hover:bg-white/[0.05]">
               Ghairi
             </button>
 

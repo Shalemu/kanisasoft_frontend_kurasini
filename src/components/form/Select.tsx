@@ -29,7 +29,7 @@ export default function Select({
 
       {/* Label */}
       {label && (
-        <label className="mb-2 block text-sm font-medium text-gray-800">
+        <label className="mb-2 block text-sm font-medium text-gray-800 dark:text-gray-200">
           {label}
         </label>
       )}
@@ -45,6 +45,8 @@ export default function Select({
 
           focus:border-blue-500 focus:ring-4 focus:ring-blue-100
           hover:border-gray-400
+          dark:border-gray-700 dark:bg-gray-900 dark:text-white/90
+          dark:focus:ring-blue-500/10 dark:hover:border-gray-600
 
           ${className}
         `}

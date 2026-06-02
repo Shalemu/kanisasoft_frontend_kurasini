@@ -192,6 +192,9 @@
   body {
     @apply relative font-normal font-outfit z-1 bg-gray-50;
   }
+  html.dark body {
+    @apply bg-gray-900 text-gray-300;
+  }
 }
 
 @utility menu-item {
@@ -751,4 +754,36 @@ span.flatpickr-weekday,
     0 1px 2px 0 rgba(16, 24, 40, 0.06);
   opacity: 0.8;
   cursor: grabbing; /* Changes the cursor to indicate dragging */
+}
+
+@layer base {
+  .dark input:not([type='checkbox']):not([type='radio']),
+  .dark select,
+  .dark textarea {
+    @apply border-gray-700 bg-gray-900 text-white/90 placeholder:text-gray-500;
+  }
+
+  .dark label {
+    @apply text-gray-200;
+  }
+
+  .dark option {
+    @apply bg-gray-900 text-white/90;
+  }
+
+  .dark table {
+    @apply text-gray-300;
+  }
+
+  .dark thead {
+    @apply bg-gray-800 text-gray-200;
+  }
+
+  .dark tbody tr {
+    @apply border-gray-800;
+  }
+
+  .dark tbody tr:hover {
+    @apply bg-white/[0.04];
+  }
 }

@@ -53,8 +53,8 @@ export default function AddEventModal({
 
   return (
     <div className="fixed inset-0 bg-black/40 flex items-center justify-center">
-      <div className="bg-white p-6 rounded-xl w-full max-w-md">
-        <h2 className="text-xl font-bold mb-4">Ongeza Tukio</h2>
+      <div className="bg-white p-6 rounded-xl w-full max-w-md text-gray-800 shadow-xl dark:bg-gray-900 dark:text-white/90">
+        <h2 className="text-xl font-bold mb-4 text-gray-800 dark:text-white/90">Ongeza Tukio</h2>
 
         <form onSubmit={handleSubmit} className="space-y-3">
           <input
@@ -63,7 +63,7 @@ export default function AddEventModal({
             onChange={(e) =>
               setForm({ ...form, title: e.target.value })
             }
-            className="border w-full p-2"
+            className="border border-gray-300 bg-white w-full p-2 text-gray-800 placeholder:text-gray-400 dark:border-gray-700 dark:bg-gray-800 dark:text-white/90 dark:placeholder:text-gray-500"
           />
 
           <input
@@ -72,7 +72,7 @@ export default function AddEventModal({
             onChange={(e) =>
               setForm({ ...form, date: e.target.value })
             }
-            className="border w-full p-2"
+            className="border border-gray-300 bg-white w-full p-2 text-gray-800 dark:border-gray-700 dark:bg-gray-800 dark:text-white/90"
           />
 
           <select
@@ -80,7 +80,7 @@ export default function AddEventModal({
             onChange={(e) =>
               setForm({ ...form, category: e.target.value })
             }
-            className="border w-full p-2"
+            className="border border-gray-300 bg-white w-full p-2 text-gray-800 dark:border-gray-700 dark:bg-gray-800 dark:text-white/90"
           >
             <option value="">Chagua Kundi</option>
             {groups.map((g: any) => (
@@ -95,7 +95,7 @@ export default function AddEventModal({
             onChange={(e) =>
               setForm({ ...form, description: e.target.value })
             }
-            className="border w-full p-2"
+            className="border border-gray-300 bg-white w-full p-2 text-gray-800 placeholder:text-gray-400 dark:border-gray-700 dark:bg-gray-800 dark:text-white/90 dark:placeholder:text-gray-500"
           />
 
           <button className="bg-green-600 text-white px-4 py-2 rounded w-full">

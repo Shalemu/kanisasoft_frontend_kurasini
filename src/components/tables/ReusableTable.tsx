@@ -28,11 +28,11 @@ export default function ReusableTable<T>({
   onRowClick,
 }: Props<T>) {
   return (
-    <div className="overflow-x-auto">
+    <div className="overflow-x-auto rounded-xl border border-gray-200 bg-white dark:border-gray-800 dark:bg-gray-900">
       <Table>
 
         {/* HEADER */}
-        <TableHeader className="bg-gray-800 text-white">
+        <TableHeader className="bg-gray-800 text-white dark:bg-gray-800 dark:text-gray-200">
   <TableRow>
     {columns.map((col) => (
       <TableCell
@@ -51,7 +51,7 @@ export default function ReusableTable<T>({
           {data.map((row: any) => (
             <TableRow
               key={row.id}
-              className="cursor-pointer hover:bg-gray-50"
+              className="cursor-pointer border-t border-gray-100 text-gray-700 hover:bg-gray-50 dark:border-gray-800 dark:text-gray-300 dark:hover:bg-white/[0.04]"
               onClick={() => onRowClick?.(row)}
             >
               {columns.map((col) => (

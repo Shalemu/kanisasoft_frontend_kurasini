@@ -68,7 +68,7 @@ export default function ViongoziPage() {
       render: (row: any) => (
         <div className="flex gap-1 flex-wrap">
           {row.roles?.map((r: string, i: number) => (
-            <span key={i} className="text-xs bg-green-100 px-2 py-1 rounded">
+            <span key={i} className="text-xs bg-green-100 px-2 py-1 rounded text-green-700 dark:bg-green-500/10 dark:text-green-300">
               {r}
             </span>
           ))}
@@ -93,23 +93,23 @@ export default function ViongoziPage() {
   ];
 
   return (
-    <div className="p-6 bg-gray-50">
+    <div className="p-6 bg-gray-50 text-gray-800 dark:bg-gray-900 dark:text-white/90">
 
-      <div className="bg-white p-5 rounded-xl shadow">
+      <div className="bg-white p-5 rounded-xl shadow dark:bg-white/[0.03]">
 
         {/* FILTERS */}
         <div className="flex gap-3 mb-4">
           <input
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            className="border p-2 rounded"
+            className="border border-gray-300 bg-white p-2 rounded text-gray-800 placeholder:text-gray-400 dark:border-gray-700 dark:bg-gray-900 dark:text-white/90 dark:placeholder:text-gray-500"
             placeholder="Tafuta..."
           />
 
           <select
             value={filterRole}
             onChange={(e) => setFilterRole(e.target.value)}
-            className="border p-2 rounded"
+            className="border border-gray-300 bg-white p-2 rounded text-gray-800 dark:border-gray-700 dark:bg-gray-900 dark:text-white/90"
           >
             <option value="Yote">Yote</option>
             {roles.map((r) => (
@@ -171,12 +171,12 @@ export default function ViongoziPage() {
       {/* EDIT MODAL */}
       {editId && (
         <div className="fixed inset-0 bg-black/40 flex items-center justify-center">
-          <div className="bg-white p-5 rounded w-96">
+          <div className="bg-white p-5 rounded w-96 text-gray-800 shadow-xl dark:bg-gray-900 dark:text-white/90">
 
-            <h2 className="font-bold mb-3">Hariri Nafasi</h2>
+            <h2 className="font-bold mb-3 text-gray-800 dark:text-white/90">Hariri Nafasi</h2>
 
             <select
-              className="w-full border p-2 rounded"
+              className="w-full border border-gray-300 bg-white p-2 rounded text-gray-800 dark:border-gray-700 dark:bg-gray-800 dark:text-white/90"
               onChange={(e) => updateLeaderRole(Number(e.target.value))}
             >
               <option>Chagua nafasi</option>

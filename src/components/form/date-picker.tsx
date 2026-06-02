@@ -65,6 +65,8 @@ export default function DatePicker({
             text-gray-900 shadow-sm outline-none transition
             placeholder:text-gray-400
             focus:border-blue-500 focus:ring-4 focus:ring-blue-100
+            dark:border-gray-700 dark:bg-gray-900 dark:text-white/90
+            dark:placeholder:text-gray-500 dark:focus:ring-blue-500/10
           "
         />
 

@@ -183,15 +183,15 @@ export default function SmsZilizotumwa() {
 
       {/* ================= STATS ================= */}
       <div className="grid grid-cols-2 gap-4">
-        <div className="border p-4 rounded-xl bg-blue-50">
+        <div className="border border-blue-100 p-4 rounded-xl bg-blue-50 text-gray-800 dark:border-blue-500/20 dark:bg-blue-500/10 dark:text-white/90">
           <FaEnvelopeOpenText className="text-blue-600" />
-          <p>Mwezi huu</p>
+          <p className="text-gray-600 dark:text-gray-300">Mwezi huu</p>
           <h2 className="text-2xl font-bold">{smsSentThisMonth}</h2>
         </div>
 
-        <div className="border p-4 rounded-xl bg-green-50">
+        <div className="border border-green-100 p-4 rounded-xl bg-green-50 text-gray-800 dark:border-green-500/20 dark:bg-green-500/10 dark:text-white/90">
           <FaEnvelopeOpenText className="text-green-600" />
-          <p>Jumla</p>
+          <p className="text-gray-600 dark:text-gray-300">Jumla</p>
           <h2 className="text-2xl font-bold">{smsSentAllTime}</h2>
         </div>
       </div>
@@ -204,13 +204,13 @@ export default function SmsZilizotumwa() {
           placeholder="Tafuta ujumbe..."
           value={search}
           onChange={(e) => setSearch(e.target.value)}
-          className="border p-2 rounded w-full md:w-1/3"
+          className="border border-gray-300 bg-white p-2 rounded w-full text-gray-800 placeholder:text-gray-400 dark:border-gray-700 dark:bg-gray-900 dark:text-white/90 dark:placeholder:text-gray-500"
         />
 
         <select
           value={statusFilter}
           onChange={(e) => setStatusFilter(e.target.value)}
-          className="border p-2 rounded"
+          className="border border-gray-300 bg-white p-2 rounded text-gray-800 dark:border-gray-700 dark:bg-gray-900 dark:text-white/90"
         >
           <option value="">Status zote</option>
           <option value="success">Imetumwa</option>
@@ -221,7 +221,7 @@ export default function SmsZilizotumwa() {
           type="date"
           value={dateFilter}
           onChange={(e) => setDateFilter(e.target.value)}
-          className="border p-2 rounded"
+          className="border border-gray-300 bg-white p-2 rounded text-gray-800 dark:border-gray-700 dark:bg-gray-900 dark:text-white/90"
         />
 
       </div>
@@ -255,11 +255,11 @@ export default function SmsZilizotumwa() {
       </div>
 
       {/* ================= TABLE ================= */}
-      <div className="overflow-x-auto border rounded-xl">
+      <div className="overflow-x-auto border border-gray-200 rounded-xl bg-white dark:border-gray-800 dark:bg-gray-900">
 
-        <table className="w-full text-sm">
+        <table className="w-full text-sm text-gray-700 dark:text-gray-300">
 
-          <thead className="bg-gray-100">
+          <thead className="bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-200">
             <tr>
 
               <th onClick={toggleAll} className="p-2 cursor-pointer">
@@ -281,7 +281,7 @@ export default function SmsZilizotumwa() {
 
           <tbody>
             {filteredLogs.map((log) => (
-              <tr key={log.id} className="border-t">
+              <tr key={log.id} className="border-t border-gray-200 hover:bg-gray-50 dark:border-gray-800 dark:hover:bg-white/[0.04]">
 
                 <td className="p-2">
                   <input

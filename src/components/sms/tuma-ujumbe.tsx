@@ -49,9 +49,9 @@ export default function TumaUjumbe() {
   };
 
   return (
-    <div className="max-w-2xl mx-auto space-y-4">
+    <div className="max-w-2xl mx-auto space-y-4 rounded-2xl border border-gray-200 bg-white p-5 text-gray-800 shadow-sm dark:border-gray-800 dark:bg-white/[0.03] dark:text-white/90">
 
-      <h1 className="text-xl font-bold flex items-center gap-2">
+      <h1 className="text-xl font-bold flex items-center gap-2 text-gray-800 dark:text-white/90">
         <FaSms className="text-blue-600" />
         Tuma Ujumbe
       </h1>
@@ -60,7 +60,7 @@ export default function TumaUjumbe() {
       <select
         value={receiverType}
         onChange={(e) => setReceiverType(e.target.value)}
-        className="w-full border p-2 rounded"
+        className="w-full border border-gray-300 bg-white p-2 rounded text-gray-800 dark:border-gray-700 dark:bg-gray-900 dark:text-white/90"
       >
         <option value="">-- Chagua --</option>
         <option value="all">Wote</option>
@@ -72,7 +72,7 @@ export default function TumaUjumbe() {
       <textarea
         value={message}
         onChange={(e) => setMessage(e.target.value)}
-        className="w-full border p-2 rounded"
+        className="w-full border border-gray-300 bg-white p-2 rounded text-gray-800 placeholder:text-gray-400 dark:border-gray-700 dark:bg-gray-900 dark:text-white/90 dark:placeholder:text-gray-500"
         rows={4}
         placeholder="Andika ujumbe..."
       />

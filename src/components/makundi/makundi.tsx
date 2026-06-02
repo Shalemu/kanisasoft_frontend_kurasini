@@ -169,11 +169,11 @@ export default function MakundiTab({
   };
 
   return (
-    <div className="min-h-screen bg-slate-50 px-4 md:px-8 py-8">
+    <div className="min-h-screen bg-slate-50 px-4 md:px-8 py-8 text-slate-800 dark:bg-gray-900 dark:text-white/90">
 
       {/* HEADER */}
       <div className="flex justify-between items-center mb-8">
-        <h1 className="text-2xl md:text-3xl font-bold flex items-center gap-2 text-slate-800">
+        <h1 className="text-2xl md:text-3xl font-bold flex items-center gap-2 text-slate-800 dark:text-white/90">
           <FaUsers className="text-blue-600" />
           Makundi ya Kanisa
         </h1>
@@ -193,7 +193,7 @@ export default function MakundiTab({
           value={searchQuery}
           onChange={handleSearch}
           placeholder="Tafuta..."
-          className="flex-1 border border-slate-200 px-4 py-2.5 rounded-xl focus:ring-2 focus:ring-blue-400 outline-none"
+          className="flex-1 border border-slate-200 bg-white px-4 py-2.5 rounded-xl text-slate-800 placeholder:text-slate-400 focus:ring-2 focus:ring-blue-400 outline-none dark:border-gray-700 dark:bg-gray-900 dark:text-white/90 dark:placeholder:text-gray-500"
         />
       </div>
 
@@ -211,19 +211,19 @@ export default function MakundiTab({
 
               {/* ICON */}
               <div className="flex justify-center mb-4">
-                <div className="w-14 h-14 bg-blue-50 rounded-2xl flex items-center justify-center">
+                <div className="w-14 h-14 bg-blue-50 rounded-2xl flex items-center justify-center dark:bg-blue-500/10">
                   <FaUsers className="text-blue-600 text-xl" />
                 </div>
               </div>
 
               {/* NAME */}
-              <h3 className="text-lg font-bold text-center text-slate-800">
+              <h3 className="text-lg font-bold text-center text-slate-800 dark:text-white/90">
                 {group.name}
               </h3>
 
               {/* LEADER */}
               {group.leader && (
-                <p className="text-xs text-center text-slate-500 mt-1">
+                <p className="text-xs text-center text-slate-500 mt-1 dark:text-gray-400">
                   {group.leader.full_name}
                 </p>
               )}
@@ -244,7 +244,7 @@ export default function MakundiTab({
               )}
 
               {/* ACTIONS */}
-              <div className="mt-5 pt-4 border-t flex justify-center gap-4">
+              <div className="mt-5 pt-4 border-t border-slate-200 flex justify-center gap-4 dark:border-gray-800">
                 <button
                   onClick={(e) => {
                     e.stopPropagation();
@@ -274,7 +274,7 @@ export default function MakundiTab({
       {/* MODAL */}
       <Dialog open={isOpen} onClose={() => setIsOpen(false)}>
         <div className="fixed inset-0 bg-black/40 flex items-center justify-center">
-          <div className="bg-white p-6 rounded-xl w-full max-w-sm space-y-4">
+          <div className="bg-white p-6 rounded-xl w-full max-w-sm space-y-4 text-slate-800 shadow-xl dark:bg-gray-900 dark:text-white/90">
 
             <h2 className="text-lg font-bold">
               {editingGroup ? 'Hariri Kundi' : 'Ongeza Kundi'}
@@ -286,7 +286,7 @@ export default function MakundiTab({
               onChange={(e) =>
                 setFormData({ ...formData, name: e.target.value })
               }
-              className="w-full border px-3 py-2 rounded"
+              className="w-full border border-slate-200 bg-white px-3 py-2 rounded text-slate-800 placeholder:text-slate-400 dark:border-gray-700 dark:bg-gray-800 dark:text-white/90 dark:placeholder:text-gray-500"
             />
 
             <input
@@ -298,7 +298,7 @@ export default function MakundiTab({
                   leader_membership_number: e.target.value,
                 })
               }
-              className="w-full border px-3 py-2 rounded"
+              className="w-full border border-slate-200 bg-white px-3 py-2 rounded text-slate-800 placeholder:text-slate-400 dark:border-gray-700 dark:bg-gray-800 dark:text-white/90 dark:placeholder:text-gray-500"
             />
 
             <input
@@ -310,11 +310,11 @@ export default function MakundiTab({
                   whatsapp_link: e.target.value,
                 })
               }
-              className="w-full border px-3 py-2 rounded"
+              className="w-full border border-slate-200 bg-white px-3 py-2 rounded text-slate-800 placeholder:text-slate-400 dark:border-gray-700 dark:bg-gray-800 dark:text-white/90 dark:placeholder:text-gray-500"
             />
 
             <div className="flex justify-end gap-2">
-              <button onClick={() => setIsOpen(false)}>Cancel</button>
+              <button onClick={() => setIsOpen(false)} className="text-slate-600 hover:text-slate-900 dark:text-gray-300 dark:hover:text-white">Cancel</button>
 
               <button
                 onClick={saveGroup}

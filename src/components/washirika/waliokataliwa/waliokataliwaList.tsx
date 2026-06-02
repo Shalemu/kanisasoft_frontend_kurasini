@@ -239,11 +239,11 @@ if (!loading && members.length === 0) {
 }
 
   return (
-    <div className="bg-white border rounded-xl shadow-sm overflow-hidden">
+    <div className="bg-white border border-gray-200 rounded-xl shadow-sm overflow-hidden dark:border-gray-800 dark:bg-gray-900">
       {/* HEADER */}
-<div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 px-6 py-4 border-b">
+<div className="flex flex-col gap-4 border-b border-gray-200 px-6 py-4 dark:border-gray-800 md:flex-row md:items-center md:justify-between">
   
-  <h2 className="text-lg font-bold">Waliokataliwa</h2>
+  <h2 className="text-lg font-bold text-gray-800 dark:text-white/90">Waliokataliwa</h2>
 
   <div className="flex flex-wrap gap-2">
 
@@ -288,7 +288,7 @@ if (!loading && members.length === 0) {
 
       {/* TABLE */}
       <div className="overflow-x-auto">
-        <table className="w-full text-sm">
+        <table className="w-full text-sm text-gray-700 dark:text-gray-300">
           <thead>
             <tr className="bg-slate-800 text-white">
               <th className="p-3">
@@ -314,19 +314,19 @@ if (!loading && members.length === 0) {
           <tbody>
             {loading ? (
               <tr>
-                <td colSpan={5} className="text-center py-6">
+                <td colSpan={5} className="text-center py-6 text-gray-500 dark:text-gray-400">
                   Inapakia...
                 </td>
               </tr>
             ) : paginatedMembers.length === 0 ? (
               <tr>
-                <td colSpan={5} className="text-center py-6">
+                <td colSpan={5} className="text-center py-6 text-gray-500 dark:text-gray-400">
                   Hakuna matokeo
                 </td>
               </tr>
             ) : (
               paginatedMembers.map((m) => (
-                <tr key={m.id} className="border-b hover:bg-gray-50">
+                <tr key={m.id} className="border-b border-gray-100 hover:bg-gray-50 dark:border-gray-800 dark:hover:bg-white/[0.04]">
                   <td className="p-3">
                     <input
                       type="checkbox"
@@ -337,7 +337,7 @@ if (!loading && members.length === 0) {
 
                   <td className="p-3 font-medium">
                     {m.full_name}
-                    <div className="text-xs text-gray-500">
+                    <div className="text-xs text-gray-500 dark:text-gray-400">
                       {m.membership_number || "—"}
                     </div>
                   </td>
@@ -356,7 +356,7 @@ if (!loading && members.length === 0) {
 
                        {/* Status */}
                 <td className="p-3">
-                <div className="flex items-center gap-2 text-yellow-600 font-bold">
+                <div className="flex items-center gap-2 text-yellow-600 font-bold dark:text-yellow-300">
                     <FaTimes />
                      {m.deactivation_reason || "—"}
                 </div>
@@ -369,11 +369,11 @@ if (!loading && members.length === 0) {
       </div>
 
       {/* PAGINATION */}
-      <div className="flex justify-between items-center px-4 py-3">
+      <div className="flex justify-between items-center px-4 py-3 text-gray-700 dark:text-gray-300">
         <button
           disabled={currentPage === 1}
           onClick={() => setCurrentPage((p) => p - 1)}
-          className="px-3 py-1 border rounded"
+          className="px-3 py-1 border border-gray-300 rounded disabled:opacity-50 dark:border-gray-700"
         >
           Prev
         </button>
@@ -385,7 +385,7 @@ if (!loading && members.length === 0) {
         <button
           disabled={currentPage === totalPages || totalPages === 0}
           onClick={() => setCurrentPage((p) => p + 1)}
-          className="px-3 py-1 border rounded"
+          className="px-3 py-1 border border-gray-300 rounded disabled:opacity-50 dark:border-gray-700"
         >
           Next
         </button>

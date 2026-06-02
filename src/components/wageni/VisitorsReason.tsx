@@ -36,7 +36,7 @@ export default function VisitorReasons({
       {items.map((item, index) => (
         <span
           key={index}
-          className="bg-blue-50 text-blue-700 border border-blue-100 text-xs px-2.5 py-1 rounded-lg font-medium"
+          className="bg-blue-50 text-blue-700 border border-blue-100 text-xs px-2.5 py-1 rounded-lg font-medium dark:border-blue-500/20 dark:bg-blue-500/10 dark:text-blue-300"
         >
           {item}
         </span>

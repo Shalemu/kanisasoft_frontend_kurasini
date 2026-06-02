@@ -194,20 +194,20 @@ export default function MatukioYaliyopita() {
   };
 
   return (
-    <div className="min-h-screen bg-slate-50 py-10 px-4 md:px-8">
+    <div className="min-h-screen bg-slate-50 py-10 px-4 text-slate-800 dark:bg-gray-900 dark:text-white/90 md:px-8">
 
       {/* HEADER */}
       <div className="mb-10">
         <div className="flex items-center gap-3 mb-2">
         <FaCalendarAlt className="text-3xl text-[#f0ce32]" />
-          <h2 className="text-3xl font-bold text-slate-800">
+          <h2 className="text-3xl font-bold text-slate-800 dark:text-white/90">
             Matukio Yaliyopita
           </h2>
         </div>
       </div>
 
       {/* SEARCH */}
-      <div className="bg-white rounded-2xl shadow-md p-4 mb-8 flex flex-col md:flex-row gap-4">
+      <div className="bg-white rounded-2xl shadow-md p-4 mb-8 flex flex-col gap-4 dark:bg-white/[0.03] md:flex-row">
         <div className="relative flex-1">
           <FaSearch className="absolute left-4 top-4 text-slate-400" />
           <input
@@ -215,14 +215,14 @@ export default function MatukioYaliyopita() {
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             placeholder="Tafuta tukio..."
-            className="w-full pl-11 pr-4 py-3 rounded-xl border"
+            className="w-full pl-11 pr-4 py-3 rounded-xl border border-gray-300 bg-white text-gray-800 placeholder:text-gray-400 dark:border-gray-700 dark:bg-gray-900 dark:text-white/90 dark:placeholder:text-gray-500"
           />
         </div>
 
         <select
           value={selectedCategory}
           onChange={(e) => setSelectedCategory(e.target.value)}
-          className="px-4 py-3 rounded-xl border md:w-64"
+          className="px-4 py-3 rounded-xl border border-gray-300 bg-white text-gray-800 dark:border-gray-700 dark:bg-gray-900 dark:text-white/90 md:w-64"
         >
           <option value="All">Aina zote</option>
           {groups.map((g) => (
@@ -237,7 +237,7 @@ export default function MatukioYaliyopita() {
       {isLoading ? (
         <LoadingSpinner />
       ) : filteredEvents.length === 0 ? (
-        <div className="bg-white p-10 text-center rounded-2xl">
+        <div className="bg-white p-10 text-center rounded-2xl text-gray-600 dark:bg-white/[0.03] dark:text-gray-300">
           Hakuna matukio yaliyopita.
         </div>
       ) : (
@@ -251,13 +251,13 @@ export default function MatukioYaliyopita() {
 
               <CardContent>
                 <div className="flex justify-between mb-4">
-                  <h3 className="font-bold">{event.title}</h3>
-                  <span className="text-xs bg-indigo-100 px-2 rounded">
+                  <h3 className="font-bold text-gray-800 dark:text-white/90">{event.title}</h3>
+                  <span className="text-xs bg-indigo-100 px-2 rounded text-indigo-700 dark:bg-indigo-500/10 dark:text-indigo-300">
                     {event.category}
                   </span>
                 </div>
 
-                <div className="space-y-2 text-sm">
+                <div className="space-y-2 text-sm text-gray-600 dark:text-gray-300">
                   <div className="flex gap-2">
                     <FaCalendarAlt />{' '}
                     {new Date(event.date).toLocaleDateString()}
@@ -279,21 +279,21 @@ export default function MatukioYaliyopita() {
                 <div className="mt-4 flex gap-2">
                   <button
                     onClick={() => openModal(event)}
-                    className="flex-1 border py-1 text-indigo-600"
+                    className="flex-1 border border-gray-200 py-1 text-indigo-600 hover:bg-indigo-50 dark:border-gray-700 dark:text-indigo-300 dark:hover:bg-indigo-500/10"
                   >
                     Angalia
                   </button>
 
                   <button
                     onClick={() => openModal(event, true)}
-                    className="flex-1 border py-1 text-yellow-600"
+                    className="flex-1 border border-gray-200 py-1 text-yellow-600 hover:bg-yellow-50 dark:border-gray-700 dark:text-yellow-300 dark:hover:bg-yellow-500/10"
                   >
                     Hariri
                   </button>
 
                   <button
                     onClick={() => handleDelete(event)}
-                    className="flex-1 border py-1 text-red-600"
+                    className="flex-1 border border-gray-200 py-1 text-red-600 hover:bg-red-50 dark:border-gray-700 dark:text-red-300 dark:hover:bg-red-500/10"
                   >
                     Futa
                   </button>
@@ -308,14 +308,14 @@ export default function MatukioYaliyopita() {
       <Dialog open={isModalOpen} onClose={closeModal}>
         {selectedEvent && (
           <div className="fixed inset-0 flex items-center justify-center bg-black/40">
-            <div className="bg-white p-6 rounded-lg w-full max-w-md">
+            <div className="bg-white p-6 rounded-lg w-full max-w-md text-gray-800 shadow-xl dark:bg-gray-900 dark:text-white/90">
               <h2 className="text-xl font-bold mb-4">
                 {selectedEvent.title}
               </h2>
 
               <p>{selectedEvent.description}</p>
 
-              <button onClick={closeModal} className="mt-4 border px-4 py-2">
+              <button onClick={closeModal} className="mt-4 border border-gray-300 px-4 py-2 text-gray-700 hover:bg-gray-50 dark:border-gray-700 dark:text-gray-300 dark:hover:bg-white/[0.05]">
                 Funga
               </button>
             </div>

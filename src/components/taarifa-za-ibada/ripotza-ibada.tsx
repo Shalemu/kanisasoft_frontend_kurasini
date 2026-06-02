@@ -119,14 +119,14 @@ export default function RipotzaIbada() {
   ];
 
   return (
-    <div className="bg-white rounded-xl shadow-md p-5 border border-gray-100">
+    <div className="rounded-xl border border-gray-200 bg-white p-5 text-gray-800 shadow-md dark:border-gray-800 dark:bg-white/[0.03] dark:text-white/90">
       
       {/* HEADER */}
       <div className="mb-4">
-        <h2 className="text-lg font-semibold text-gray-800">
+        <h2 className="text-lg font-semibold text-gray-800 dark:text-white/90">
           Ripoti ya Ibada
         </h2>
-        <p className="text-sm text-gray-500">
+        <p className="text-sm text-gray-500 dark:text-gray-400">
           Mahudhurio na Sadaka kwa kila mwezi
         </p>
       </div>

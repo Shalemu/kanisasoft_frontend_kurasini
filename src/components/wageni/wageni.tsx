@@ -82,7 +82,7 @@ export default function WageniPage() {
   };
 
   return (
-    <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5 md:p-6">
+    <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5 text-gray-800 dark:border-gray-800 dark:bg-white/[0.03] dark:text-white/90 md:p-6">
 
       {/* HEADER */}
       <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4 mb-6">
@@ -90,16 +90,16 @@ export default function WageniPage() {
         {/* LEFT */}
         <div className="flex items-center gap-3">
 
-          <div className="w-11 h-11 rounded-xl bg-blue-50 flex items-center justify-center">
+          <div className="w-11 h-11 rounded-xl bg-blue-50 flex items-center justify-center dark:bg-blue-500/10">
             <FaUsers className="text-blue-600 text-lg" />
           </div>
 
           <div>
-            <h2 className="text-xl md:text-2xl font-semibold text-gray-800">
+            <h2 className="text-xl md:text-2xl font-semibold text-gray-800 dark:text-white/90">
               Wageni Waliohudhuria
             </h2>
 
-            <p className="text-sm text-gray-500">
+            <p className="text-sm text-gray-500 dark:text-gray-400">
               Jumla ya Wageni:
               {' '}
               {totalVisitors}
@@ -165,7 +165,7 @@ export default function WageniPage() {
       {/* FILTERS */}
       <div className="flex flex-col md:flex-row gap-3 mb-6">
 
-        <div className="flex items-center border border-gray-200 bg-gray-50 rounded-xl px-3 py-2 w-full md:w-64">
+        <div className="flex items-center border border-gray-200 bg-gray-50 rounded-xl px-3 py-2 w-full dark:border-gray-700 dark:bg-gray-900 md:w-64">
           <FaCalendarAlt className="text-gray-400 mr-2" />
 
           <input
@@ -176,11 +176,11 @@ export default function WageniPage() {
                 e.target.value
               )
             }
-            className="bg-transparent outline-none w-full"
+            className="bg-transparent outline-none w-full text-gray-800 dark:text-white/90"
           />
         </div>
 
-        <div className="flex items-center border border-gray-200 bg-gray-50 rounded-xl px-3 py-2 flex-1">
+        <div className="flex items-center border border-gray-200 bg-gray-50 rounded-xl px-3 py-2 flex-1 dark:border-gray-700 dark:bg-gray-900">
 
           <FaSearch className="text-gray-400 mr-2" />
 
@@ -193,7 +193,7 @@ export default function WageniPage() {
                 e.target.value
               )
             }
-            className="bg-transparent outline-none w-full"
+            className="bg-transparent outline-none w-full text-gray-800 placeholder:text-gray-400 dark:text-white/90 dark:placeholder:text-gray-500"
           />
 
         </div>
@@ -234,23 +234,23 @@ export default function WageniPage() {
 
       {loading ? (
 
-        <div className="text-center py-10">
+        <div className="text-center py-10 text-gray-600 dark:text-gray-300">
           Inapakia...
         </div>
 
       ) : paginatedData.length === 0 ? (
 
-        <div className="text-center py-10">
+        <div className="text-center py-10 text-gray-600 dark:text-gray-300">
           Hakuna wageni waliopatikana
         </div>
 
       ) : (
 
-        <div className="overflow-x-auto border rounded-2xl border-gray-100">
+        <div className="overflow-x-auto border rounded-2xl border-gray-100 bg-white dark:border-gray-800 dark:bg-gray-900">
 
-          <table className="w-full text-sm">
+          <table className="w-full text-sm text-gray-700 dark:text-gray-300">
 
-            <thead className="bg-gray-50">
+            <thead className="bg-gray-50 text-gray-700 dark:bg-gray-800 dark:text-gray-200">
 
               <tr>
 
@@ -294,7 +294,7 @@ export default function WageniPage() {
 
                 <tr
                   key={v.id}
-                  className="border-b hover:bg-gray-50"
+                  className="border-b border-gray-100 hover:bg-gray-50 dark:border-gray-800 dark:hover:bg-white/[0.04]"
                 >
 
                   <td className="px-4 py-4">

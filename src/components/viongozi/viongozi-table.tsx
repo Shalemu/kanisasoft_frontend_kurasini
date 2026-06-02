@@ -11,7 +11,7 @@ export default function ViongoziTable({
   onRowClick,
 }: any) {
   return (
-    <div className="bg-white rounded-xl border shadow-sm overflow-hidden">
+    <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden dark:border-gray-800 dark:bg-gray-900">
 
       {/* TABLE WRAPPER */}
       <div className="overflow-x-auto">
@@ -19,7 +19,7 @@ export default function ViongoziTable({
         <table className="w-full text-sm">
 
           {/* HEADER */}
-          <thead className="bg-gray-100 text-gray-700">
+          <thead className="bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-200">
             <tr>
               <th className="p-3">
                 <input type="checkbox" onChange={toggleSelectAll} />
@@ -43,9 +43,9 @@ export default function ViongoziTable({
                   key={row.id}
                   onClick={() => row.user_id && onRowClick(row.user_id)}
                   className={`
-                    cursor-pointer border-t
-                    hover:bg-gray-50 transition
-                    ${isSelected ? 'bg-blue-50' : ''}
+                    cursor-pointer border-t border-gray-100 text-gray-700
+                    hover:bg-gray-50 transition dark:border-gray-800 dark:text-gray-300 dark:hover:bg-white/[0.04]
+                    ${isSelected ? 'bg-blue-50 dark:bg-blue-500/10' : ''}
                   `}
                 >
 
@@ -60,7 +60,7 @@ export default function ViongoziTable({
 
                   {/* NAME */}
                   <td className="p-3">
-                    <div className="font-medium text-gray-800">
+                    <div className="font-medium text-gray-800 dark:text-white/90">
                       {row.name}
                     </div>
                     <div className="text-xs text-gray-400">
@@ -69,7 +69,7 @@ export default function ViongoziTable({
                   </td>
 
                   {/* PHONE */}
-                  <td className="p-3 text-gray-700">
+                  <td className="p-3 text-gray-700 dark:text-gray-300">
                     {row.phone}
                   </td>
 
@@ -80,7 +80,7 @@ export default function ViongoziTable({
                         row.roles.map((r: string, i: number) => (
                           <span
                             key={i}
-                            className="text-xs bg-green-100 text-green-700 px-2 py-1 rounded-full"
+                            className="text-xs bg-green-100 text-green-700 px-2 py-1 rounded-full dark:bg-green-500/10 dark:text-green-300"
                           >
                             {r}
                           </span>

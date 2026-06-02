@@ -88,18 +88,18 @@ export default function LeaderModal({
 
       {/* MODAL */}
       <div className="fixed inset-0 flex items-center justify-center p-4">
-        <div className="bg-white w-full max-w-md rounded-lg p-6 shadow-lg">
+        <div className="bg-white w-full max-w-md rounded-lg p-6 shadow-lg text-gray-800 dark:bg-gray-900 dark:text-white/90">
 
-          <h2 className="text-lg font-bold mb-4">
+          <h2 className="text-lg font-bold mb-4 text-gray-800 dark:text-white/90">
             Ongeza Kiongozi
           </h2>
 
           {/* Selected member */}
-          <div className="mb-4 p-3 bg-gray-50 rounded">
+          <div className="mb-4 p-3 bg-gray-50 rounded dark:bg-white/[0.05]">
             <p className="font-medium">
               {selectedMember.full_name}
             </p>
-            <p className="text-sm text-gray-500">
+            <p className="text-sm text-gray-500 dark:text-gray-400">
               {selectedMember.phone || "—"}
             </p>
           </div>
@@ -111,7 +111,7 @@ export default function LeaderModal({
 
           <select
             multiple
-            className="w-full border rounded p-2 h-32 mb-4"
+            className="w-full border border-gray-300 bg-white rounded p-2 h-32 mb-4 text-gray-800 dark:border-gray-700 dark:bg-gray-800 dark:text-white/90"
             value={selectedRoleIds.map(String)}
             onChange={(e) => {
               const values = Array.from(
@@ -132,7 +132,7 @@ export default function LeaderModal({
           <div className="flex justify-end gap-2">
             <button
               onClick={closeModal}
-              className="px-4 py-2 border rounded"
+              className="px-4 py-2 border border-gray-300 rounded text-gray-700 hover:bg-gray-50 dark:border-gray-700 dark:text-gray-300 dark:hover:bg-white/[0.05]"
             >
               Ghairi
             </button>

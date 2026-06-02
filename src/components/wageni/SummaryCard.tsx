@@ -12,17 +12,17 @@ export default function SummaryCard({
   value,
 }: SummaryCardProps) {
   return (
-    <div className="bg-white border border-gray-100 rounded-2xl p-4 shadow-sm">
+    <div className="bg-white border border-gray-100 rounded-2xl p-4 shadow-sm dark:border-gray-800 dark:bg-white/[0.03]">
 
-      <div className="w-10 h-10 rounded-xl bg-blue-50 flex items-center justify-center mb-3">
+      <div className="w-10 h-10 rounded-xl bg-blue-50 flex items-center justify-center mb-3 dark:bg-blue-500/10">
         <FaCheckCircle className="text-blue-600 text-sm" />
       </div>
 
-      <p className="text-sm text-gray-500 mb-1">
+      <p className="text-sm text-gray-500 mb-1 dark:text-gray-400">
         {title}
       </p>
 
-      <h3 className="text-2xl font-bold text-gray-800">
+      <h3 className="text-2xl font-bold text-gray-800 dark:text-white/90">
         {value}
       </h3>
 

@@ -12,31 +12,35 @@ type ThemeContextType = {
 
 const ThemeContext = createContext<ThemeContextType | undefined>(undefined);
 
+const getInitialTheme = (): Theme => {
+  if (typeof window === "undefined") {
+    return "light";
+  }
+
+  const savedTheme = window.localStorage.getItem("theme");
+  if (savedTheme === "light" || savedTheme === "dark") {
+    return savedTheme;
+  }
+
+  return window.matchMedia("(prefers-color-scheme: dark)").matches
+    ? "dark"
+    : "light";
+};
+
+const applyTheme = (theme: Theme) => {
+  document.documentElement.classList.toggle("dark", theme === "dark");
+  document.documentElement.style.colorScheme = theme;
+};
+
 export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({
   children,
 }) => {
-  const [theme, setTheme] = useState<Theme>("light");
-  const [isInitialized, setIsInitialized] = useState(false);
+  const [theme, setTheme] = useState<Theme>(getInitialTheme);
 
   useEffect(() => {
-    // This code will only run on the client side
-    const savedTheme = localStorage.getItem("theme") as Theme | null;
-    const initialTheme = savedTheme || "light"; // Default to light theme
-
-    setTheme(initialTheme);
-    setIsInitialized(true);
-  }, []);
-
-  useEffect(() => {
-    if (isInitialized) {
-      localStorage.setItem("theme", theme);
-      if (theme === "dark") {
-        document.documentElement.classList.add("dark");
-      } else {
-        document.documentElement.classList.remove("dark");
-      }
-    }
-  }, [theme, isInitialized]);
+    applyTheme(theme);
+    localStorage.setItem("theme", theme);
+  }, [theme]);
 
   const toggleTheme = () => {
     setTheme((prevTheme) => (prevTheme === "light" ? "dark" : "light"));

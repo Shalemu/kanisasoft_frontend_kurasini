@@ -21,7 +21,7 @@ const ACTIVITY_EVENTS = [
 export default function InactivityLogout() {
   const router = useRouter();
   const pathname = usePathname();
-  const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const timeoutRef = useRef<number | null>(null);
 
   useEffect(() => {
     const logout = () => {

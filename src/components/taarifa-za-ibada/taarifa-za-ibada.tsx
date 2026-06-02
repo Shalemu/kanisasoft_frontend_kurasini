@@ -104,10 +104,10 @@ export default function TaarifaZaIbada() {
   };
 
   return (
-    <div className="bg-white p-4 rounded-xl shadow-md">
+    <div className="rounded-xl border border-gray-200 bg-white p-4 text-gray-800 shadow-md dark:border-gray-800 dark:bg-white/[0.03] dark:text-white/90">
 
       {/* TITLE */}
-      <h2 className="text-2xl font-bold mb-4">
+      <h2 className="text-2xl font-bold mb-4 text-gray-800 dark:text-white/90">
         Mahudhurio & Sadaka
       </h2>
 
@@ -119,14 +119,14 @@ export default function TaarifaZaIbada() {
           type="date"
           value={filterDate}
           onChange={(e) => setFilterDate(e.target.value)}
-          className="border px-3 py-2 rounded"
+          className="rounded border border-gray-300 bg-white px-3 py-2 text-gray-800 dark:border-gray-700 dark:bg-gray-900 dark:text-white/90"
         />
 
         {/* SERVICE */}
         <select
           value={filterService}
           onChange={(e) => setFilterService(e.target.value)}
-          className="border px-3 py-2 rounded"
+          className="rounded border border-gray-300 bg-white px-3 py-2 text-gray-800 dark:border-gray-700 dark:bg-gray-900 dark:text-white/90"
         >
           <option value="">Ibada Zote</option>
           <option value="Ibada ya kimataifa">Ibada ya kimataifa</option>
@@ -143,14 +143,14 @@ export default function TaarifaZaIbada() {
           placeholder="Tafuta huduma au mhubiri..."
           value={filterSearch}
           onChange={(e) => setFilterSearch(e.target.value)}
-          className="border px-3 py-2 rounded flex-1"
+          className="flex-1 rounded border border-gray-300 bg-white px-3 py-2 text-gray-800 placeholder:text-gray-400 dark:border-gray-700 dark:bg-gray-900 dark:text-white/90 dark:placeholder:text-gray-500"
         />
       </div>
 
       {/* SUMMARY */}
       <div className="flex gap-4 mb-6">
 
-        <div className="flex-1 border rounded p-4 flex flex-col items-center">
+        <div className="flex flex-1 flex-col items-center rounded border border-gray-200 p-4 dark:border-gray-800 dark:bg-white/[0.02]">
           <FaUsers className="text-xl text-green-600" />
           <p className="text-gray-500 text-sm">Jumla ya Washirika</p>
           <p className="text-xl font-bold">
@@ -158,7 +158,7 @@ export default function TaarifaZaIbada() {
           </p>
         </div>
 
-        <div className="flex-1 border rounded p-4 flex flex-col items-center">
+        <div className="flex flex-1 flex-col items-center rounded border border-gray-200 p-4 dark:border-gray-800 dark:bg-white/[0.02]">
           <FaMoneyBillWave className="text-xl text-blue-600" />
           <p className="text-gray-500 text-sm">Jumla ya Sadaka</p>
           <p className="text-xl font-bold">
@@ -169,8 +169,8 @@ export default function TaarifaZaIbada() {
       </div>
 
       {/* TABLE */}
-      <div className="overflow-x-auto">
-        <table className="w-full text-sm border">
+      <div className="overflow-x-auto rounded-xl border border-gray-200 dark:border-gray-800">
+        <table className="w-full text-sm">
 
           <thead className="bg-gray-800 text-white">
             <tr>
@@ -194,7 +194,7 @@ export default function TaarifaZaIbada() {
                 item.attendance_men;
 
               return (
-                <tr key={item.id} className="hover:bg-gray-50">
+                <tr key={item.id} className="border-t border-gray-100 hover:bg-gray-50 dark:border-gray-800 dark:hover:bg-white/[0.04]">
                   <td className="px-3 py-2">
                     {new Date(item.date).toLocaleDateString()}
                   </td>

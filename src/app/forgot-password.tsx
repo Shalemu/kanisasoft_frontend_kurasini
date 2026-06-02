@@ -42,7 +42,7 @@ export default function ForgotPasswordPage() {
         <title>Umesahau Neno la Siri | FPCT Kurasini</title>
       </Head>
 
-      <div className="min-h-screen flex items-center justify-center px-4 bg-white">
+      <div className="flex min-h-screen items-center justify-center bg-white px-4 dark:bg-gray-900">
         <div className="w-full max-w-md p-8 rounded-3xl shadow-2xl bg-gradient-to-br from-[#130728] via-[#211a45] to-[#253266] text-white">
           <h2 className="text-2xl font-bold mb-2 text-center">Umesahau Neno la Siri?</h2>
           <p className="text-gray-300 text-sm mb-6 text-center">

@@ -31,7 +31,7 @@ function Checkbox({
   onChange:()=>void;
 }) {
   return (
-    <label className="flex items-center gap-2 text-sm cursor-pointer">
+    <label className="flex items-center gap-2 text-sm cursor-pointer text-gray-700 dark:text-gray-300">
       <input
         type="checkbox"
         checked={checked}
@@ -99,9 +99,9 @@ export default function AddVisitorModal({
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
 
-      <div className="bg-white w-full max-w-2xl p-6 rounded-2xl shadow-xl">
+      <div className="bg-white w-full max-w-2xl p-6 rounded-2xl shadow-xl text-gray-800 dark:bg-gray-900 dark:text-white/90">
 
-        <h3 className="text-lg font-semibold mb-6">
+        <h3 className="text-lg font-semibold mb-6 text-gray-800 dark:text-white/90">
           Ongeza Taarifa za Mgeni
         </h3>
 
@@ -117,7 +117,7 @@ export default function AddVisitorModal({
                 full_name:e.target.value
               })
             }
-            className="border rounded-lg px-3 py-2"
+            className="border border-gray-300 bg-white rounded-lg px-3 py-2 text-gray-800 placeholder:text-gray-400 dark:border-gray-700 dark:bg-gray-800 dark:text-white/90 dark:placeholder:text-gray-500"
           />
 
           <input
@@ -130,7 +130,7 @@ export default function AddVisitorModal({
                 phone:e.target.value
               })
             }
-            className="border rounded-lg px-3 py-2"
+            className="border border-gray-300 bg-white rounded-lg px-3 py-2 text-gray-800 placeholder:text-gray-400 dark:border-gray-700 dark:bg-gray-800 dark:text-white/90 dark:placeholder:text-gray-500"
           />
 
           <input
@@ -143,7 +143,7 @@ export default function AddVisitorModal({
                 church_origin:e.target.value
               })
             }
-            className="border rounded-lg px-3 py-2"
+            className="border border-gray-300 bg-white rounded-lg px-3 py-2 text-gray-800 placeholder:text-gray-400 dark:border-gray-700 dark:bg-gray-800 dark:text-white/90 dark:placeholder:text-gray-500"
           />
 
           <input
@@ -155,7 +155,7 @@ export default function AddVisitorModal({
                 visit_date:e.target.value
               })
             }
-            className="border rounded-lg px-3 py-2"
+            className="border border-gray-300 bg-white rounded-lg px-3 py-2 text-gray-800 dark:border-gray-700 dark:bg-gray-800 dark:text-white/90"
           />
 
           <textarea
@@ -167,7 +167,7 @@ export default function AddVisitorModal({
                 other:e.target.value
               })
             }
-            className="border rounded-lg px-3 py-2 md:col-span-2"
+            className="border border-gray-300 bg-white rounded-lg px-3 py-2 text-gray-800 placeholder:text-gray-400 dark:border-gray-700 dark:bg-gray-800 dark:text-white/90 dark:placeholder:text-gray-500 md:col-span-2"
           />
 
           <div className="md:col-span-2 flex flex-wrap gap-4">
@@ -224,7 +224,7 @@ export default function AddVisitorModal({
 
           <button
             onClick={onClose}
-            className="px-4 py-2 rounded-lg border"
+            className="px-4 py-2 rounded-lg border border-gray-300 text-gray-700 hover:bg-gray-50 dark:border-gray-700 dark:text-gray-300 dark:hover:bg-white/[0.05]"
           >
             Ghairi
           </button>

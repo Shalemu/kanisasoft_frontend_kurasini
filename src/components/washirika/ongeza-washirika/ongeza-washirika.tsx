@@ -328,7 +328,7 @@ case 1:
   return (
     <>
       <div className="col-span-full">
-  <label className="block mb-2 text-sm font-medium text-gray-800">
+  <label className="block mb-2 text-sm font-medium text-gray-800 dark:text-gray-200">
     Tarehe ya Kuokoka *
   </label>
 
@@ -342,6 +342,7 @@ case 1:
       className="
         w-full rounded-xl border border-gray-300 bg-white px-4 py-3
         text-gray-900 shadow-sm outline-none transition
+        dark:border-gray-700 dark:bg-gray-900 dark:text-white/90
         focus:border-blue-500 focus:ring-4 focus:ring-blue-100
       "
     >
@@ -361,6 +362,7 @@ case 1:
       className="
         w-full rounded-xl border border-gray-300 bg-white px-4 py-3
         text-gray-900 shadow-sm outline-none transition
+        dark:border-gray-700 dark:bg-gray-900 dark:text-white/90
         focus:border-blue-500 focus:ring-4 focus:ring-blue-100
       "
     >
@@ -380,6 +382,7 @@ case 1:
       className="
         w-full rounded-xl border border-gray-300 bg-white px-4 py-3
         text-gray-900 shadow-sm outline-none transition
+        dark:border-gray-700 dark:bg-gray-900 dark:text-white/90
         focus:border-blue-500 focus:ring-4 focus:ring-blue-100
       "
     >
@@ -419,7 +422,7 @@ case 1:
 
       <div className="col-span-full">
 
-  <label className="block mb-2 text-sm font-medium text-gray-800">
+  <label className="block mb-2 text-sm font-medium text-gray-800 dark:text-gray-200">
     Tarehe ya Ubatizo *
   </label>
 
@@ -433,6 +436,7 @@ case 1:
       className="
         w-full rounded-xl border border-gray-300 bg-white px-4 py-3
         text-gray-900 shadow-sm outline-none transition
+        dark:border-gray-700 dark:bg-gray-900 dark:text-white/90
         focus:border-blue-500 focus:ring-4 focus:ring-blue-100
       "
     >
@@ -452,6 +456,7 @@ case 1:
       className="
         w-full rounded-xl border border-gray-300 bg-white px-4 py-3
         text-gray-900 shadow-sm outline-none transition
+        dark:border-gray-700 dark:bg-gray-900 dark:text-white/90
         focus:border-blue-500 focus:ring-4 focus:ring-blue-100
       "
     >
@@ -471,6 +476,7 @@ case 1:
       className="
         w-full rounded-xl border border-gray-300 bg-white px-4 py-3
         text-gray-900 shadow-sm outline-none transition
+        dark:border-gray-700 dark:bg-gray-900 dark:text-white/90
         focus:border-blue-500 focus:ring-4 focus:ring-blue-100
       "
     >
@@ -718,7 +724,7 @@ case 1:
       <title>Sajili Mshirika</title>
     </Head>
 
-    <div className="min-h-screen bg-gray-50 px-4 py-10">
+    <div className="min-h-screen bg-gray-50 px-4 py-10 text-gray-800 dark:bg-gray-900 dark:text-white/90">
 
       <div className="mx-auto max-w-6xl">
 
@@ -731,7 +737,7 @@ case 1:
   </div>
 
   {/* Title */}
-  <h1 className="text-3xl md:text-5xl font-bold tracking-tight text-gray-900">
+  <h1 className="text-3xl md:text-5xl font-bold tracking-tight text-gray-900 dark:text-white/90">
     Fomu ya Usajili wa Mshirika
   </h1>
 
@@ -741,17 +747,17 @@ case 1:
   </div>
 
   {/* Subtitle */}
-  <p className="mt-5 text-sm md:text-base text-gray-500 max-w-xl mx-auto leading-relaxed">
+  <p className="mt-5 text-sm md:text-base text-gray-500 max-w-xl mx-auto leading-relaxed dark:text-gray-400">
     Jaza taarifa zote muhimu ili kukamilisha usajili kwa usahihi na kuhifadhi taarifa zako vizuri kwenye mfumo.
   </p>
 
 </div>
 
         {/* Main Container */}
-        <div className="overflow-hidden rounded-4xl border border-gray-200 bg-white shadow-xl">
+        <div className="overflow-hidden rounded-4xl border border-gray-200 bg-white shadow-xl dark:border-gray-800 dark:bg-white/[0.03]">
 
           {/* Progress Tabs */}
-          <div className="border-b border-gray-100 px-6 py-6">
+          <div className="border-b border-gray-100 px-6 py-6 dark:border-gray-800">
 
             <div className="flex flex-wrap items-center justify-center gap-3">
 
@@ -764,7 +770,7 @@ case 1:
                     ${
                       activeTab === index
                         ? "bg-[#f0ce32] text-black shadow-lg"
-                        : "bg-gray-100 text-gray-600 hover:bg-gray-200"
+                        : "bg-gray-100 text-gray-600 hover:bg-gray-200 dark:bg-white/[0.06] dark:text-gray-300 dark:hover:bg-white/[0.1]"
                     }
                   `}
                 >

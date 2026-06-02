@@ -22,7 +22,7 @@ export default function AdminLayout({
     : "lg:ml-[90px]";
 
   return (
-    <div className="min-h-screen xl:flex">
+    <div className="min-h-screen bg-gray-50 text-gray-700 dark:bg-gray-900 dark:text-gray-300 xl:flex">
       <InactivityLogout />
       {/* Sidebar and Backdrop */}
       <AppSidebar />

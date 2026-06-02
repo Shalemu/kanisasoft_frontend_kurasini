@@ -1,8 +1,10 @@
+import type { ChangeEvent } from "react";
+
 interface Props {
   label: string;
   name: string;
   value: string;
-  onChange: any;
+  onChange: (event: ChangeEvent<HTMLInputElement>) => void;
   type?: string;
   required?: boolean;
   placeholder?: string;
@@ -21,7 +23,7 @@ export default function Field({
     <div className="w-full">
 
       {/* Label */}
-      <label className="mb-2 block text-sm font-medium text-gray-800">
+      <label className="mb-2 block text-sm font-medium text-gray-800 dark:text-gray-200">
         {label}
         {required && <span className="ml-1 text-red-500">*</span>}
       </label>
@@ -42,6 +44,9 @@ export default function Field({
 
           focus:border-blue-500 focus:ring-4 focus:ring-blue-100
           hover:border-gray-400
+          dark:border-gray-700 dark:bg-gray-900 dark:text-white/90
+          dark:placeholder:text-gray-500 dark:focus:ring-blue-500/10
+          dark:hover:border-gray-600
         "
       />
     </div>

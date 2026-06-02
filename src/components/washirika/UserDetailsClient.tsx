@@ -37,14 +37,14 @@ export default function UserDetailsClient({ user }: any) {
   };
 
   return (
-    <div className="min-h-screen bg-gray-100 p-4 md:p-8">
+    <div className="min-h-screen bg-gray-100 p-4 text-gray-800 dark:bg-gray-900 dark:text-white/90 md:p-8">
 
       {/* TOP BAR */}
       <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-6">
 
         <button
           onClick={() => router.back()}
-          className="inline-flex items-center gap-2 text-gray-600 hover:text-black transition"
+          className="inline-flex items-center gap-2 text-gray-600 hover:text-black transition dark:text-gray-300 dark:hover:text-white"
         >
           <ArrowLeft size={18} />
           Rudi
@@ -68,19 +68,19 @@ export default function UserDetailsClient({ user }: any) {
       </div>
 
       {/* PROFILE HEADER */}
-      <div className="bg-white rounded-3xl shadow-sm border border-gray-200 p-8 mb-6">
+      <div className="bg-white rounded-3xl shadow-sm border border-gray-200 p-8 mb-6 dark:border-gray-800 dark:bg-white/[0.03]">
         <div className="flex items-center gap-5">
 
-          <div className="h-20 w-20 rounded-full bg-blue-100 flex items-center justify-center text-blue-600 text-3xl font-bold">
+          <div className="h-20 w-20 rounded-full bg-blue-100 flex items-center justify-center text-blue-600 text-3xl font-bold dark:bg-blue-500/10 dark:text-blue-300">
             {user.full_name?.charAt(0)}
           </div>
 
           <div>
-            <h1 className="text-3xl font-bold text-gray-900">
+            <h1 className="text-3xl font-bold text-gray-900 dark:text-white/90">
               {user.full_name}
             </h1>
 
-            <p className="text-gray-500 mt-1">
+            <p className="text-gray-500 mt-1 dark:text-gray-400">
               {user.email || "Hakuna email"}
             </p>
 
@@ -161,14 +161,14 @@ function Section({
   children,
 }: any) {
   return (
-    <div className="bg-white rounded-3xl shadow-sm border border-gray-200 p-6 mb-6">
+    <div className="bg-white rounded-3xl shadow-sm border border-gray-200 p-6 mb-6 dark:border-gray-800 dark:bg-white/[0.03]">
 
       <div className="flex items-center gap-2 mb-5">
         <div className="text-blue-600">
           {icon}
         </div>
 
-        <h2 className="text-xl font-bold text-gray-900">
+        <h2 className="text-xl font-bold text-gray-900 dark:text-white/90">
           {title}
         </h2>
       </div>
@@ -182,12 +182,12 @@ function Section({
 
 function Info({ label, value }: any) {
   return (
-    <div className="rounded-2xl border border-gray-200 bg-gray-50 p-4">
-      <p className="text-sm text-gray-500">
+    <div className="rounded-2xl border border-gray-200 bg-gray-50 p-4 dark:border-gray-800 dark:bg-gray-900">
+      <p className="text-sm text-gray-500 dark:text-gray-400">
         {label}
       </p>
 
-      <p className="mt-1 font-semibold text-gray-900 wrap-break-word">
+      <p className="mt-1 font-semibold text-gray-900 wrap-break-word dark:text-white/90">
         {value || "—"}
       </p>
     </div>

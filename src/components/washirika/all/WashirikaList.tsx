@@ -376,45 +376,45 @@ const activeMembers = filteredMembers.filter(
     <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
       
       {/* TOTAL */}
-      <div className="bg-white border rounded-md shadow-sm p-4">
+      <div className="bg-white border border-gray-200 rounded-md shadow-sm p-4 dark:border-gray-800 dark:bg-white/[0.03]">
         <div className="flex justify-between items-center">
           <div>
-            <p className="text-sm text-gray-500">Jumla ya Washirika</p>
-            <h2 className="text-2xl font-bold mt-1">
+            <p className="text-sm text-gray-500 dark:text-gray-400">Jumla ya Washirika</p>
+            <h2 className="text-2xl font-bold mt-1 text-gray-800 dark:text-white/90">
               {loading ? "..." : totalMembers}
             </h2>
           </div>
-          <div className="w-12 h-12 bg-blue-50 flex items-center justify-center rounded">
+          <div className="w-12 h-12 bg-blue-50 text-blue-600 flex items-center justify-center rounded dark:bg-blue-500/10">
             <FaUsers />
           </div>
         </div>
       </div>
 
       {/* APPROVED */}
-      <div className="bg-white border rounded-md shadow-sm p-4">
+      <div className="bg-white border border-gray-200 rounded-md shadow-sm p-4 dark:border-gray-800 dark:bg-white/[0.03]">
         <div className="flex justify-between items-center">
           <div>
-            <p className="text-sm text-gray-500">Walioidhinishwa</p>
-            <h2 className="text-2xl font-bold mt-1">
+            <p className="text-sm text-gray-500 dark:text-gray-400">Walioidhinishwa</p>
+            <h2 className="text-2xl font-bold mt-1 text-gray-800 dark:text-white/90">
               {loading ? "..." : totalApproved}
             </h2>
           </div>
-          <div className="w-12 h-12 bg-green-50 flex items-center justify-center rounded">
+          <div className="w-12 h-12 bg-green-50 text-green-600 flex items-center justify-center rounded dark:bg-green-500/10">
             <FaUsers />
           </div>
         </div>
       </div>
 
       {/* PENDING */}
-      <div className="bg-white border rounded-md shadow-sm p-4">
+      <div className="bg-white border border-gray-200 rounded-md shadow-sm p-4 dark:border-gray-800 dark:bg-white/[0.03]">
         <div className="flex justify-between items-center">
           <div>
-            <p className="text-sm text-gray-500">Wanaosubiri</p>
-            <h2 className="text-2xl font-bold mt-1">
+            <p className="text-sm text-gray-500 dark:text-gray-400">Wanaosubiri</p>
+            <h2 className="text-2xl font-bold mt-1 text-gray-800 dark:text-white/90">
               {loading ? "..." : totalPending}
             </h2>
           </div>
-          <div className="w-12 h-12 bg-yellow-50 flex items-center justify-center rounded">
+          <div className="w-12 h-12 bg-yellow-50 text-yellow-600 flex items-center justify-center rounded dark:bg-yellow-500/10">
             <FaUsers />
           </div>
         </div>
@@ -424,8 +424,8 @@ const activeMembers = filteredMembers.filter(
 
         {/*  BULK ACTION BAR */}
     {selectedMembers.length > 0 && (
-      <div className="bg-white border border-blue-200 px-4 sm:px-6 py-3 rounded shadow-sm flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-        <p className="text-sm font-medium text-gray-600">
+      <div className="bg-white border border-blue-200 px-4 sm:px-6 py-3 rounded shadow-sm flex flex-col gap-3 dark:border-blue-500/20 dark:bg-blue-500/10 sm:flex-row sm:items-center sm:justify-between">
+        <p className="text-sm font-medium text-gray-600 dark:text-gray-200">
           {selectedMembers.length} washirika wamechaguliwa
         </p>
 
@@ -475,12 +475,12 @@ const activeMembers = filteredMembers.filter(
       </div>
     )}
 
-    <div className="bg-white border rounded-md shadow-sm overflow-hidden">
+    <div className="bg-white border border-gray-200 rounded-md shadow-sm overflow-hidden dark:border-gray-800 dark:bg-gray-900">
 
      {/* HEADER */}
-<div className="px-6 py-4 border-b flex flex-col md:flex-row md:items-center md:justify-between gap-3">
+<div className="px-6 py-4 border-b border-gray-200 flex flex-col gap-3 dark:border-gray-800 md:flex-row md:items-center md:justify-between">
   
-  <h2 className="text-xl font-bold">Orodha ya Washirika</h2>
+  <h2 className="text-xl font-bold text-gray-800 dark:text-white/90">Orodha ya Washirika</h2>
 
   <div className="flex gap-3">
     
@@ -503,7 +503,7 @@ const activeMembers = filteredMembers.filter(
 
       {/* TABLE */}
       <div className="overflow-x-auto">
-        <table className="w-full text-sm">
+        <table className="w-full text-sm text-gray-700 dark:text-gray-300">
           <thead>
             <tr className="bg-[#1e293b] text-white">
               <th className="px-4 py-3">
@@ -527,19 +527,19 @@ const activeMembers = filteredMembers.filter(
           <tbody>
             {loading ? (
               <tr>
-                <td colSpan={6} className="text-center py-6">
+                <td colSpan={6} className="text-center py-6 text-gray-500 dark:text-gray-400">
                   Inapakia...
                 </td>
               </tr>
             ) : paginatedMembers.length === 0 ? (
               <tr>
-                <td colSpan={6} className="text-center py-6">
+                <td colSpan={6} className="text-center py-6 text-gray-500 dark:text-gray-400">
                   Hakuna data
                 </td>
               </tr>
             ) : (
               paginatedMembers.map((m) => (
-                <tr key={m.id} className="border-b hover:bg-gray-50">
+                <tr key={m.id} className="border-b border-gray-100 hover:bg-gray-50 dark:border-gray-800 dark:hover:bg-white/[0.04]">
                   <td className="px-4 py-3">
                     <input
                       type="checkbox"
@@ -551,12 +551,12 @@ const activeMembers = filteredMembers.filter(
                <td className="px-4 py-3">
            <Link
             href={`/washirika/detail?id=${m.id}`}
-            className="font-medium text-gray-900 hover:text-blue-600 transition"
+            className="font-medium text-gray-900 hover:text-blue-600 transition dark:text-white/90 dark:hover:text-blue-400"
           >
             {m.full_name}
           </Link>
 
-              <div className="text-xs text-gray-500 mt-0.5">
+              <div className="text-xs text-gray-500 mt-0.5 dark:text-gray-400">
                 {m.membership_number || "—"}
               </div>
             </td>
@@ -574,14 +574,14 @@ const activeMembers = filteredMembers.filter(
                       <div className="flex gap-2">
                         <button
                           onClick={() => handleApprove(m.user_id)}
-                          className="text-green-600 border px-2 py-1 rounded"
+                          className="text-green-600 border border-green-200 px-2 py-1 rounded hover:bg-green-50 dark:border-green-500/30 dark:text-green-300 dark:hover:bg-green-500/10"
                         >
                           Idhinisha
                         </button>
 
                         <button
                           onClick={() => handleReject(m.user_id)}
-                          className="text-red-600 border px-2 py-1 rounded"
+                          className="text-red-600 border border-red-200 px-2 py-1 rounded hover:bg-red-50 dark:border-red-500/30 dark:text-red-300 dark:hover:bg-red-500/10"
                         >
                           Kataa
                         </button>
@@ -600,11 +600,11 @@ const activeMembers = filteredMembers.filter(
       </div>
 
       {/* PAGINATION */}
-      <div className="flex justify-between items-center p-4">
+      <div className="flex justify-between items-center p-4 text-gray-700 dark:text-gray-300">
         <button
           disabled={currentPage === 1}
           onClick={() => setCurrentPage((p) => p - 1)}
-          className="px-3 py-1 border rounded"
+          className="px-3 py-1 border border-gray-300 rounded disabled:opacity-50 dark:border-gray-700"
         >
           Prev
         </button>
@@ -616,7 +616,7 @@ const activeMembers = filteredMembers.filter(
         <button
           disabled={currentPage === totalPages}
           onClick={() => setCurrentPage((p) => p + 1)}
-          className="px-3 py-1 border rounded"
+          className="px-3 py-1 border border-gray-300 rounded disabled:opacity-50 dark:border-gray-700"
         >
           Next
         </button>
