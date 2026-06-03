@@ -3,8 +3,8 @@ import { Metadata } from "next";
 import { Suspense } from "react";
 
 export const metadata: Metadata = {
-  title: "Next.js SignIn Page | KanisaSoft Demo",
-  description: "",
+  title: "Reset Password | KanisaSoft Demo",
+  description: "Reset your password with KanisaSoft ",
   icons: {
     icon: "/logo.png",
   },

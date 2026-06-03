@@ -8,9 +8,8 @@ import RecentOrders from "@/components/user/RecentOrders";
 import DemographicCard from "@/components/user/DemographicCard";
 
 export const metadata: Metadata = {
-  title:
-    "",
-  description: "",
+  title: "Dashboard | KanisaSoft",
+  description: "KanisaSoft Dashboard - Manage your church activities efficiently with our comprehensive dashboard. Access key metrics, track events, and stay organized with ease.",
      icons: {
     icon: "/logo.png",
   },

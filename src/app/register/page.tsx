@@ -3,7 +3,7 @@ import { Metadata } from "next";
 import { Suspense } from "react";
 
 export const metadata: Metadata = {
-  title: "Form ya usajili | KanisaSoft Demo",
+  title: "Form ya usajili | KanisaSoft ",
   description: "Usajili wa washirika",
   icons: {
     icon: "/logo.png",

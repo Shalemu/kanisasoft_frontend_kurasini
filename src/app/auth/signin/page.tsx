@@ -2,8 +2,8 @@ import SignInForm from "@/components/auth/SignInForm";
 import { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: "N",
-  description: "",
+  title: "Sign In | KanisaSoft ",
+  description: "Sign in to your KanisaSoft account",
      icons: {
     icon: "/logo.png",
   },
