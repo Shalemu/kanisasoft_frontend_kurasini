@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useRef, useState, type ChangeEvent, type FormEvent } from 'react';
 import Swal from 'sweetalert2';
 import { apiFetch } from '@/lib/api';
 
@@ -8,7 +8,6 @@ import Label from '@/components/form/Label';
 import InputField from '@/components/form/input/InputField';
 import TextArea from '@/components/form/input/TextArea';
 import { Calendar } from "lucide-react";
-import { useRef } from "react";
 
 export default function OngezaTaarifaZaIbada() {
   const serviceTypes = [
@@ -37,10 +36,12 @@ export default function OngezaTaarifaZaIbada() {
   const dateRef = useRef<HTMLInputElement>(null);
 
 
- const handleChange = (e: any) => {
+ const handleChange = (
+    e: ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>
+  ) => {
     const { name, value } = e.target;
 
-    let cleanedValue: any = value;
+    let cleanedValue: string | number = value;
 
     const numericFields = [
       'attendance_children',
@@ -79,15 +80,31 @@ export default function OngezaTaarifaZaIbada() {
   };
 
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const getErrorMessage = (err: unknown) =>
+    err instanceof Error ? err.message : 'Tatizo la mtandao';
+
+  const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
 
     try {
-      const { total_attendance, ...body } = formData;
+      const { service_name } = formData;
 
       const res = await apiFetch('/service-events', {
         method: 'POST',
-        body,
+        body: {
+          date: formData.date,
+          preacher: formData.preacher,
+          preacher_description: formData.preacher_description,
+          message: formData.message,
+          attendance_children: formData.attendance_children,
+          attendance_women: formData.attendance_women,
+          attendance_men: formData.attendance_men,
+          total_offerings: formData.total_offerings,
+          leaders_on_duty: formData.leaders_on_duty,
+          duty_leader: formData.duty_leader,
+          service_name,
+          title: service_name,
+        },
       });
 
       if (res.status === 'success') {
@@ -110,8 +127,8 @@ export default function OngezaTaarifaZaIbada() {
       } else {
         Swal.fire('Error', res.message || 'Imeshindikana', 'error');
       }
-    } catch (err: any) {
-      Swal.fire('Error', err.message || 'Tatizo la mtandao', 'error');
+    } catch (err: unknown) {
+      Swal.fire('Error', getErrorMessage(err), 'error');
     }
   };
 

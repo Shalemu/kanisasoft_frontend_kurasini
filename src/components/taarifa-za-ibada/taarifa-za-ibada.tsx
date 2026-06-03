@@ -9,6 +9,7 @@ import { FaUsers, FaMoneyBillWave } from 'react-icons/fa';
 interface ServiceAttendance {
   id: number;
   date: string;
+  title?: string;
   service_name: string;
   preacher: string;
   attendance_children: number;
@@ -32,35 +33,37 @@ export default function TaarifaZaIbada() {
   const [filterService, setFilterService] = useState('');
   const [filterSearch, setFilterSearch] = useState('');
 
-  useEffect(() => {
-    fetchAttendance();
-  }, []);
+  const getServiceName = (item: ServiceAttendance) =>
+    item.service_name || item.title || '';
 
-  const fetchAttendance = async () => {
+  async function fetchAttendance() {
     setLoading(true);
     const res = await apiFetch('/service-events');
     if (res.status === 'success') {
       setAttendanceData(res.service_events || []);
     }
     setLoading(false);
-  };
+  }
 
-  // reset page on filter change
   useEffect(() => {
-    setCurrentPage(1);
-  }, [filterDate, filterService, filterSearch]);
+    void (async () => {
+      await fetchAttendance();
+    })();
+  }, []);
 
  
   const filteredData = attendanceData.filter(item => {
     const itemDate = item.date.slice(0, 10);
 
     const matchDate = filterDate ? itemDate === filterDate : true;
+    const serviceName = getServiceName(item);
+
     const matchService = filterService
-      ? item.service_name === filterService
+      ? serviceName === filterService
       : true;
 
     const matchSearch =
-      item.service_name.toLowerCase().includes(filterSearch.toLowerCase()) ||
+      serviceName.toLowerCase().includes(filterSearch.toLowerCase()) ||
       item.preacher.toLowerCase().includes(filterSearch.toLowerCase());
 
     return matchDate && matchService && matchSearch;
@@ -118,14 +121,20 @@ export default function TaarifaZaIbada() {
         <input
           type="date"
           value={filterDate}
-          onChange={(e) => setFilterDate(e.target.value)}
+          onChange={(e) => {
+            setFilterDate(e.target.value);
+            setCurrentPage(1);
+          }}
           className="rounded border border-gray-300 bg-white px-3 py-2 text-gray-800 dark:border-gray-700 dark:bg-gray-900 dark:text-white/90"
         />
 
         {/* SERVICE */}
         <select
           value={filterService}
-          onChange={(e) => setFilterService(e.target.value)}
+          onChange={(e) => {
+            setFilterService(e.target.value);
+            setCurrentPage(1);
+          }}
           className="rounded border border-gray-300 bg-white px-3 py-2 text-gray-800 dark:border-gray-700 dark:bg-gray-900 dark:text-white/90"
         >
           <option value="">Ibada Zote</option>
@@ -142,7 +151,10 @@ export default function TaarifaZaIbada() {
           type="text"
           placeholder="Tafuta huduma au mhubiri..."
           value={filterSearch}
-          onChange={(e) => setFilterSearch(e.target.value)}
+          onChange={(e) => {
+            setFilterSearch(e.target.value);
+            setCurrentPage(1);
+          }}
           className="flex-1 rounded border border-gray-300 bg-white px-3 py-2 text-gray-800 placeholder:text-gray-400 dark:border-gray-700 dark:bg-gray-900 dark:text-white/90 dark:placeholder:text-gray-500"
         />
       </div>
@@ -198,7 +210,7 @@ export default function TaarifaZaIbada() {
                   <td className="px-3 py-2">
                     {new Date(item.date).toLocaleDateString()}
                   </td>
-                  <td className="px-3 py-2">{item.service_name}</td>
+                  <td className="px-3 py-2">{getServiceName(item)}</td>
                   <td className="px-3 py-2">{item.preacher}</td>
                   <td className="px-3 py-2 text-center">{item.attendance_children}</td>
                   <td className="px-3 py-2 text-center">{item.attendance_women}</td>
