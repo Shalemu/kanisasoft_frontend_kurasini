@@ -3,10 +3,22 @@
 import { useState } from 'react';
 import Swal from 'sweetalert2';
 
+interface VisitorFormData {
+  full_name: string;
+  phone: string;
+  church_origin: string;
+  visit_date: string;
+  prayer: boolean;
+  salvation: boolean;
+  joining: boolean;
+  travel: boolean;
+  other: string;
+}
+
 interface Props {
   open: boolean;
   onClose: () => void;
-  onSubmit: (data: any) => Promise<void> | void;
+  onSubmit: (data: VisitorFormData) => Promise<void> | void;
 }
 
 const initialForm = {
@@ -20,6 +32,24 @@ const initialForm = {
   travel: false,
   other: '',
 };
+
+function toIsoDate(value: string | Date) {
+  if (value instanceof Date) {
+    return value.toISOString().slice(0, 10);
+  }
+
+  if (/^\d{4}-\d{2}-\d{2}$/.test(value)) {
+    return value;
+  }
+
+  const match = value.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/);
+  if (match) {
+    const [, month, day, year] = match;
+    return `${year}-${month.padStart(2, '0')}-${day.padStart(2, '0')}`;
+  }
+
+  return value;
+}
 
 function Checkbox({
   label,
@@ -70,7 +100,10 @@ export default function AddVisitorModal({
 
     try {
 
-  await onSubmit(form);
+  await onSubmit({
+    ...form,
+    visit_date: toIsoDate(form.visit_date),
+  });
 
   await Swal.fire({
     icon: 'success',
@@ -152,7 +185,7 @@ export default function AddVisitorModal({
             onChange={(e)=>
               setForm({
                 ...form,
-                visit_date:e.target.value
+                visit_date:toIsoDate(e.target.value)
               })
             }
             className="border border-gray-300 bg-white rounded-lg px-3 py-2 text-gray-800 dark:border-gray-700 dark:bg-gray-800 dark:text-white/90"

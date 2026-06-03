@@ -9,6 +9,24 @@ import InputField from '@/components/form/input/InputField';
 import TextArea from '@/components/form/input/TextArea';
 import { Calendar } from "lucide-react";
 
+function toIsoDate(value: string | Date) {
+  if (value instanceof Date) {
+    return value.toISOString().slice(0, 10);
+  }
+
+  if (/^\d{4}-\d{2}-\d{2}$/.test(value)) {
+    return value;
+  }
+
+  const match = value.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/);
+  if (match) {
+    const [, month, day, year] = match;
+    return `${year}-${month.padStart(2, '0')}-${day.padStart(2, '0')}`;
+  }
+
+  return value;
+}
+
 export default function OngezaTaarifaZaIbada() {
   const serviceTypes = [
     'Ibada ya kimataifa',
@@ -92,22 +110,21 @@ export default function OngezaTaarifaZaIbada() {
       const res = await apiFetch('/service-events', {
         method: 'POST',
         body: {
-          date: formData.date,
-          preacher: formData.preacher,
-          preacher_description: formData.preacher_description,
-          message: formData.message,
-          attendance_children: formData.attendance_children,
-          attendance_women: formData.attendance_women,
-          attendance_men: formData.attendance_men,
-          total_offerings: formData.total_offerings,
-          leaders_on_duty: formData.leaders_on_duty,
-          duty_leader: formData.duty_leader,
+          date: toIsoDate(formData.date),
           service_name,
           title: service_name,
+          preacher: formData.preacher,
+          preacher_description: formData.preacher_description,
+          leaders_on_duty: formData.leaders_on_duty,
+          attendance_children: Number(formData.attendance_children || 0),
+          attendance_women: Number(formData.attendance_women || 0),
+          attendance_men: Number(formData.attendance_men || 0),
+          total_offerings: Number(formData.total_offerings || 0),
+          message: formData.message,
         },
       });
 
-      if (res.status === 'success') {
+      if (res.service_event || res.status === 'success') {
         Swal.fire('Success', 'Taarifa imehifadhiwa!', 'success');
 
         setFormData({

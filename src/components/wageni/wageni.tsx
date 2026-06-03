@@ -25,6 +25,36 @@ import {
   exportVisitorsPDF,
 } from '@/util/visitorExport';
 
+interface VisitorFormData {
+  full_name: string;
+  phone: string;
+  church_origin: string;
+  visit_date: string;
+  prayer: boolean;
+  salvation: boolean;
+  joining: boolean;
+  travel: boolean;
+  other: string;
+}
+
+function toIsoDate(value: string | Date) {
+  if (value instanceof Date) {
+    return value.toISOString().slice(0, 10);
+  }
+
+  if (/^\d{4}-\d{2}-\d{2}$/.test(value)) {
+    return value;
+  }
+
+  const match = value.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/);
+  if (match) {
+    const [, month, day, year] = match;
+    return `${year}-${month.padStart(2, '0')}-${day.padStart(2, '0')}`;
+  }
+
+  return value;
+}
+
 export default function WageniPage() {
   const [showMessageModal, setShowMessageModal] =
     useState(false);
@@ -64,13 +94,14 @@ export default function WageniPage() {
     fetchVisitors,
   } = useVisitors();
 
-  const handleAddVisitor = async (
-    data: any
-  ) => {
+  const handleAddVisitor = async (data: VisitorFormData) => {
     try {
       await apiFetch('/guests', {
         method: 'POST',
-        body: JSON.stringify(data),
+        body: {
+          ...data,
+          visit_date: toIsoDate(data.visit_date),
+        },
       });
 
       await fetchVisitors();
@@ -171,11 +202,12 @@ export default function WageniPage() {
           <input
             type="date"
             value={filterDate}
-            onChange={(e) =>
+            onChange={(e) => {
               setFilterDate(
-                e.target.value
-              )
-            }
+                toIsoDate(e.target.value)
+              );
+              setCurrentPage(1);
+            }}
             className="bg-transparent outline-none w-full text-gray-800 dark:text-white/90"
           />
         </div>
@@ -188,11 +220,12 @@ export default function WageniPage() {
             type="text"
             placeholder="Tafuta jina, simu au kanisa..."
             value={search}
-            onChange={(e) =>
+            onChange={(e) => {
               setSearch(
                 e.target.value
-              )
-            }
+              );
+              setCurrentPage(1);
+            }}
             className="bg-transparent outline-none w-full text-gray-800 placeholder:text-gray-400 dark:text-white/90 dark:placeholder:text-gray-500"
           />
 

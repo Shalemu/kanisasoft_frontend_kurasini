@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { apiFetch } from '@/lib/api';
 
 interface Visitor {
@@ -17,9 +17,42 @@ interface Visitor {
   other:string;
 }
 
+interface VisitorSummary {
+  total_guests: number;
+  total_prayer: number;
+  total_salvation: number;
+  total_joining: number;
+  total_travel: number;
+}
+
+function toIsoDate(value: string | Date) {
+  if (value instanceof Date) {
+    return value.toISOString().slice(0, 10);
+  }
+
+  if (/^\d{4}-\d{2}-\d{2}$/.test(value)) {
+    return value;
+  }
+
+  const match = value.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/);
+  if (match) {
+    const [, month, day, year] = match;
+    return `${year}-${month.padStart(2, '0')}-${day.padStart(2, '0')}`;
+  }
+
+  return value;
+}
+
 export function useVisitors() {
   const [data,setData] = useState<Visitor[]>([]);
   const [loading,setLoading] = useState(false);
+  const [summary,setSummary] = useState<VisitorSummary>({
+    total_guests: 0,
+    total_prayer: 0,
+    total_salvation: 0,
+    total_joining: 0,
+    total_travel: 0,
+  });
 
   const today = new Date().toISOString().split('T')[0];
 
@@ -33,55 +66,56 @@ export function useVisitors() {
 
   const itemsPerPage = 10;
 
-  const fetchVisitors = async () => {
+  const fetchVisitors = useCallback(async () => {
     setLoading(true);
 
     try {
-      const res = await apiFetch('/guests');
+      const params = new URLSearchParams();
+      const isoDate = filterDate ? toIsoDate(filterDate) : '';
 
-      if(res?.guests){
-        setData(res.guests);
-      }
+      if (isoDate) params.set('date', isoDate);
+      if (search.trim()) params.set('search', search.trim());
+
+      const query = params.toString();
+      const res = await apiFetch(`/guests${query ? `?${query}` : ''}`);
+      const responseData = res?.data || {};
+
+      setData(responseData.guests || []);
+      setSelectedIds([]);
+      setSelectAll(false);
+      setSummary({
+        total_guests: Number(responseData.summary?.total_guests || 0),
+        total_prayer: Number(responseData.summary?.total_prayer || 0),
+        total_salvation: Number(responseData.summary?.total_salvation || 0),
+        total_joining: Number(responseData.summary?.total_joining || 0),
+        total_travel: Number(responseData.summary?.total_travel || 0),
+      });
     } catch(err){
       console.error(err);
+      setData([]);
+      setSummary({
+        total_guests: 0,
+        total_prayer: 0,
+        total_salvation: 0,
+        total_joining: 0,
+        total_travel: 0,
+      });
     } finally {
       setLoading(false);
     }
-  };
+  }, [filterDate, search]);
 
   useEffect(()=>{
-    fetchVisitors();
-  },[]);
-
-  const filtered = useMemo(()=>{
-    return data.filter((v)=>{
-      const matchDate =
-        filterDate
-        ? v.visit_date.slice(0,10)===filterDate
-        : true;
-
-      const matchSearch =
-        v.full_name.toLowerCase().includes(search.toLowerCase()) ||
-        v.phone.includes(search) ||
-        v.church_origin.toLowerCase().includes(search.toLowerCase());
-
-      return matchDate && matchSearch;
-    });
-  },[data,search,filterDate]);
-
-  const summary = useMemo(()=>({
-    totalVisitors: filtered.length,
-    totalPrayer: filtered.filter(v=>v.prayer).length,
-    totalSalvation: filtered.filter(v=>v.salvation).length,
-    totalJoining: filtered.filter(v=>v.joining).length,
-    totalTravel: filtered.filter(v=>v.travel).length,
-  }),[filtered]);
+    void (async () => {
+      await fetchVisitors();
+    })();
+  },[fetchVisitors]);
 
   const totalPages = Math.ceil(
-    filtered.length/itemsPerPage
+    data.length/itemsPerPage
   );
 
-  const paginatedData = filtered.slice(
+  const paginatedData = data.slice(
     (currentPage-1)*itemsPerPage,
     currentPage*itemsPerPage
   );
@@ -98,7 +132,7 @@ export function useVisitors() {
     if(selectAll){
       setSelectedIds([]);
     }else{
-      setSelectedIds(filtered.map(v=>v.id));
+      setSelectedIds(data.map(v=>v.id));
     }
 
     setSelectAll(!selectAll);
@@ -124,6 +158,10 @@ export function useVisitors() {
     handleSelectAll,
     selectedVisitors,
     fetchVisitors,
-    ...summary
+    totalVisitors: summary.total_guests,
+    totalPrayer: summary.total_prayer,
+    totalSalvation: summary.total_salvation,
+    totalJoining: summary.total_joining,
+    totalTravel: summary.total_travel,
   };
 }
