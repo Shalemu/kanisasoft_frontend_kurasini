@@ -10,8 +10,8 @@ import DemographicCard from "@/components/user/DemographicCard";
 
 export const metadata: Metadata = {
   title:
-    "Next.js E-commerce Dashboard | TailAdmin - Next.js Dashboard Template",
-  description: "This is Next.js Home for TailAdmin Dashboard Template",
+    " Dashboard | KanisaSoft - Church Management Software for Efficient Church Operations",
+  description: "Welcome to your KanisaSoft dashboard, where you can manage your church's operations efficiently. Access tools for member management, event planning, financial tracking, and more. Stay organized and connected with your congregation using our comprehensive church management software.",
 };
 
 export default function Ecommerce() {
