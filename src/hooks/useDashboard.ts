@@ -38,9 +38,8 @@ export function useDashboard() {
 
   async function fetchVisitors() {
     const res = await apiFetch("/guests");
-    if (res?.guests) {
-      setVisitorCount(res.guests.length);
-    }
+    const guests = res?.data?.guests ?? res?.guests ?? [];
+    setVisitorCount(Array.isArray(guests) ? guests.length : 0);
   }
 
   async function fetchLeaders() {

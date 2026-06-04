@@ -9,51 +9,24 @@ import {
   FaPlus,
   FaFilePdf,
   FaFileExcel,
+  FaEdit,
+  FaTrash,
 } from 'react-icons/fa';
+import Swal from 'sweetalert2';
 
 import Pagination from '@/components/tables/Pagination';
 import SendMessageModal from '@/components/modals/SendMessageModal';
 
 import { useVisitors } from '@/hooks/useVisitors';
-import VisitorReasons from './VisitorsReason';
 import SummaryCard from './SummaryCard';
-import AddVisitorModal from './AddVisitorsModel';
+import AddVisitorModal, { type VisitorFormData } from './AddVisitorsModel';
 import { apiFetch } from '@/lib/api';
+import type { Visitor } from '@/hooks/useVisitors';
 
 import {
   exportVisitorsExcel,
   exportVisitorsPDF,
 } from '@/util/visitorExport';
-
-interface VisitorFormData {
-  full_name: string;
-  phone: string;
-  church_origin: string;
-  visit_date: string;
-  prayer: boolean;
-  salvation: boolean;
-  joining: boolean;
-  travel: boolean;
-  other: string;
-}
-
-function toIsoDate(value: string | Date) {
-  if (value instanceof Date) {
-    return value.toISOString().slice(0, 10);
-  }
-
-  if (/^\d{4}-\d{2}-\d{2}$/.test(value)) {
-    return value;
-  }
-
-  const match = value.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/);
-  if (match) {
-    const [, month, day, year] = match;
-    return `${year}-${month.padStart(2, '0')}-${day.padStart(2, '0')}`;
-  }
-
-  return value;
-}
 
 export default function WageniPage() {
   const [showMessageModal, setShowMessageModal] =
@@ -61,6 +34,7 @@ export default function WageniPage() {
 
   const [showAddModal, setShowAddModal] =
     useState(false);
+  const [editingVisitor, setEditingVisitor] = useState<Visitor | null>(null);
 
   const {
     loading,
@@ -68,14 +42,18 @@ export default function WageniPage() {
     search,
     setSearch,
 
-    filterDate,
-    setFilterDate,
+    fromDate,
+    setFromDate,
+    toDate,
+    setToDate,
+    clearFilters,
 
     currentPage,
     setCurrentPage,
 
     totalPages,
     paginatedData,
+    filteredData,
 
     selectedIds,
     selectAll,
@@ -86,10 +64,8 @@ export default function WageniPage() {
     selectedVisitors,
 
     totalVisitors,
-    totalPrayer,
-    totalSalvation,
-    totalJoining,
-    totalTravel,
+    totalThisMonth,
+    totalLastMonth,
 
     fetchVisitors,
   } = useVisitors();
@@ -100,7 +76,10 @@ export default function WageniPage() {
         method: 'POST',
         body: {
           ...data,
-          visit_date: toIsoDate(data.visit_date),
+          prayer: false,
+          salvation: false,
+          joining: false,
+          travel: false,
         },
       });
 
@@ -109,6 +88,35 @@ export default function WageniPage() {
     } catch (error) {
       console.error(error);
       throw error;
+    }
+  };
+
+  const handleEditVisitor = async (data: VisitorFormData) => {
+    if (!editingVisitor) return;
+    await apiFetch(`/guests/${editingVisitor.id}`, {
+      method: 'PUT',
+      body: { ...data, prayer: false, salvation: false, joining: false, travel: false },
+    });
+    await fetchVisitors();
+    setEditingVisitor(null);
+  };
+
+  const handleDeleteVisitor = async (visitor: Visitor) => {
+    const result = await Swal.fire({
+      title: 'Futa mgeni?',
+      text: `Una uhakika unataka kufuta ${visitor.full_name}?`,
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonText: 'Futa',
+      cancelButtonText: 'Ghairi',
+    });
+    if (!result.isConfirmed) return;
+    try {
+      await apiFetch(`/guests/${visitor.id}`, { method: 'DELETE' });
+      await fetchVisitors();
+      await Swal.fire('Imefutwa', 'Taarifa za mgeni zimefutwa.', 'success');
+    } catch (error) {
+      await Swal.fire('Hitilafu', error instanceof Error ? error.message : 'Imeshindikana kufuta.', 'error');
     }
   };
 
@@ -145,7 +153,7 @@ export default function WageniPage() {
           <button
             onClick={() =>
               exportVisitorsExcel(
-                paginatedData
+                filteredData
               )
             }
             className="inline-flex items-center gap-2 bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2 rounded-lg font-medium transition"
@@ -157,7 +165,7 @@ export default function WageniPage() {
           <button
             onClick={() =>
               exportVisitorsPDF(
-                paginatedData
+                filteredData
               )
             }
             className="inline-flex items-center gap-2 bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg font-medium transition"
@@ -201,13 +209,26 @@ export default function WageniPage() {
 
           <input
             type="date"
-            value={filterDate}
+            value={fromDate}
             onChange={(e) => {
-              setFilterDate(
-                toIsoDate(e.target.value)
-              );
+              setFromDate(e.target.value);
               setCurrentPage(1);
             }}
+            aria-label="Kuanzia tarehe"
+            className="bg-transparent outline-none w-full text-gray-800 dark:text-white/90"
+          />
+        </div>
+
+        <div className="flex items-center border border-gray-200 bg-gray-50 rounded-xl px-3 py-2 w-full dark:border-gray-700 dark:bg-gray-900 md:w-64">
+          <FaCalendarAlt className="text-gray-400 mr-2" />
+          <input
+            type="date"
+            value={toDate}
+            onChange={(e) => {
+              setToDate(e.target.value);
+              setCurrentPage(1);
+            }}
+            aria-label="Mpaka tarehe"
             className="bg-transparent outline-none w-full text-gray-800 dark:text-white/90"
           />
         </div>
@@ -231,34 +252,27 @@ export default function WageniPage() {
 
         </div>
 
+        <button onClick={clearFilters} className="rounded-xl border border-gray-200 px-4 py-2 text-sm font-medium hover:bg-gray-50 dark:border-gray-700 dark:hover:bg-white/[0.05]">
+          Ondoa vichujio
+        </button>
       </div>
 
       {/* SUMMARY */}
-      <div className="grid grid-cols-2 md:grid-cols-5 gap-4 mb-6">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
 
         <SummaryCard
-          title="Jumla"
+          title="Jumla wageni wote"
           value={totalVisitors}
         />
 
         <SummaryCard
-          title="Maombi"
-          value={totalPrayer}
+          title="Wageni mwezi huu"
+          value={totalThisMonth}
         />
 
         <SummaryCard
-          title="Kuokoka"
-          value={totalSalvation}
-        />
-
-        <SummaryCard
-          title="Kujiunga"
-          value={totalJoining}
-        />
-
-        <SummaryCard
-          title="Safari"
-          value={totalTravel}
+          title="Wageni mwezi uliopita"
+          value={totalLastMonth}
         />
 
       </div>
@@ -314,7 +328,11 @@ export default function WageniPage() {
                 </th>
 
                 <th className="px-4 py-3 text-left">
-                  Sababu
+                  Maelezo
+                </th>
+
+                <th className="px-4 py-3 text-left">
+                  Hatua
                 </th>
 
               </tr>
@@ -363,7 +381,14 @@ export default function WageniPage() {
                   </td>
 
                   <td className="px-4 py-4">
-                    <VisitorReasons visitor={v}/>
+                    {v.other || '—'}
+                  </td>
+
+                  <td className="px-4 py-4">
+                    <div className="flex gap-2">
+                      <button onClick={() => setEditingVisitor(v)} className="rounded-lg border border-blue-200 p-2 text-blue-600 hover:bg-blue-50 dark:border-blue-500/30 dark:hover:bg-blue-500/10" aria-label={`Hariri ${v.full_name}`}><FaEdit /></button>
+                      <button onClick={() => handleDeleteVisitor(v)} className="rounded-lg border border-red-200 p-2 text-red-600 hover:bg-red-50 dark:border-red-500/30 dark:hover:bg-red-500/10" aria-label={`Futa ${v.full_name}`}><FaTrash /></button>
+                    </div>
                   </td>
 
                 </tr>
@@ -402,6 +427,7 @@ export default function WageniPage() {
       />
 
       <AddVisitorModal
+        key={showAddModal ? 'add-open' : 'add-closed'}
         open={showAddModal}
         onClose={() =>
           setShowAddModal(false)
@@ -409,6 +435,14 @@ export default function WageniPage() {
         onSubmit={
           handleAddVisitor
         }
+      />
+
+      <AddVisitorModal
+        key={editingVisitor?.id ?? 'edit-closed'}
+        open={Boolean(editingVisitor)}
+        visitor={editingVisitor}
+        onClose={() => setEditingVisitor(null)}
+        onSubmit={handleEditVisitor}
       />
 
     </div>

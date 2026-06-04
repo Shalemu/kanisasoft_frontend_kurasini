@@ -17,6 +17,8 @@ interface ServiceAttendance {
   attendance_men: number;
   total_offerings: number;
   leaders_on_duty?: string;
+  preacher_description?: string;
+  message?: string;
 }
 
 export default function TaarifaZaIbada() {
@@ -26,12 +28,11 @@ export default function TaarifaZaIbada() {
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 10;
 
-  const today = new Date().toISOString().split('T')[0];
-
-  // 🔥 FILTERS
-  const [filterDate, setFilterDate] = useState(today);
+  const [filterDate, setFilterDate] = useState('');
   const [filterService, setFilterService] = useState('');
   const [filterSearch, setFilterSearch] = useState('');
+  const [editingItem, setEditingItem] = useState<ServiceAttendance | null>(null);
+  const [saving, setSaving] = useState(false);
 
   const getServiceName = (item: ServiceAttendance) =>
     item.service_name || item.title || '';
@@ -102,8 +103,45 @@ export default function TaarifaZaIbada() {
 
     if (!confirm.isConfirmed) return;
 
-    await apiFetch(`/service-events/${id}`, { method: 'DELETE' });
-    fetchAttendance();
+    try {
+      await apiFetch(`/service-events/${id}`, { method: 'DELETE' });
+      await fetchAttendance();
+      await Swal.fire('Imefutwa', 'Taarifa imefutwa.', 'success');
+    } catch (error) {
+      await Swal.fire('Hitilafu', error instanceof Error ? error.message : 'Imeshindikana kufuta.', 'error');
+    }
+  };
+
+  const updateField = (name: keyof ServiceAttendance, value: string) => {
+    setEditingItem((current) => current ? { ...current, [name]: value } : current);
+  };
+
+  const handleUpdate = async () => {
+    if (!editingItem) return;
+
+    try {
+      setSaving(true);
+      await apiFetch(`/service-events/${editingItem.id}`, {
+        method: 'PUT',
+        body: {
+          ...editingItem,
+          date: editingItem.date.slice(0, 10),
+          title: getServiceName(editingItem),
+          service_name: getServiceName(editingItem),
+          attendance_children: Number(editingItem.attendance_children || 0),
+          attendance_women: Number(editingItem.attendance_women || 0),
+          attendance_men: Number(editingItem.attendance_men || 0),
+          total_offerings: Number(editingItem.total_offerings || 0),
+        },
+      });
+      setEditingItem(null);
+      await fetchAttendance();
+      await Swal.fire('Imefanikiwa', 'Taarifa za ibada zimehaririwa.', 'success');
+    } catch (error) {
+      await Swal.fire('Hitilafu', error instanceof Error ? error.message : 'Imeshindikana kuhifadhi.', 'error');
+    } finally {
+      setSaving(false);
+    }
   };
 
   return (
@@ -127,6 +165,20 @@ export default function TaarifaZaIbada() {
           }}
           className="rounded border border-gray-300 bg-white px-3 py-2 text-gray-800 dark:border-gray-700 dark:bg-gray-900 dark:text-white/90"
         />
+
+        {(filterDate || filterService || filterSearch) && (
+          <button
+            onClick={() => {
+              setFilterDate('');
+              setFilterService('');
+              setFilterSearch('');
+              setCurrentPage(1);
+            }}
+            className="rounded border border-gray-300 px-3 py-2 text-sm hover:bg-gray-50 dark:border-gray-700 dark:hover:bg-white/[0.04]"
+          >
+            Ondoa vichujio
+          </button>
+        )}
 
         {/* SERVICE */}
         <select
@@ -220,12 +272,10 @@ export default function TaarifaZaIbada() {
                     {Number(item.total_offerings).toLocaleString()}
                   </td>
                   <td className="px-3 py-2 text-center">
-                    <button
-                      onClick={() => handleDelete(item.id)}
-                      className="bg-red-500 text-white px-2 py-1 rounded text-xs"
-                    >
-                      Delete
-                    </button>
+                    <div className="flex justify-center gap-2">
+                      <button onClick={() => setEditingItem({ ...item, date: item.date.slice(0, 10) })} className="rounded bg-blue-600 px-2 py-1 text-xs text-white">Edit</button>
+                      <button onClick={() => handleDelete(item.id)} className="rounded bg-red-500 px-2 py-1 text-xs text-white">Delete</button>
+                    </div>
                   </td>
                 </tr>
               );
@@ -243,6 +293,29 @@ export default function TaarifaZaIbada() {
             totalPages={totalPages}
             onPageChange={setCurrentPage}
           />
+        </div>
+      )}
+
+      {editingItem && (
+        <div className="fixed inset-0 z-999999 flex items-center justify-center bg-black/50 p-4">
+          <div className="max-h-[90vh] w-full max-w-3xl overflow-y-auto rounded-2xl bg-white p-6 shadow-xl dark:bg-gray-900">
+            <h3 className="mb-5 text-xl font-bold">Hariri Taarifa za Ibada</h3>
+            <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+              <input className="rounded border border-gray-300 bg-white p-2 dark:border-gray-700 dark:bg-gray-800" type="date" value={editingItem.date} onChange={(e) => updateField('date', e.target.value)} />
+              <input className="rounded border border-gray-300 bg-white p-2 dark:border-gray-700 dark:bg-gray-800" placeholder="Aina ya ibada" value={getServiceName(editingItem)} onChange={(e) => updateField('service_name', e.target.value)} />
+              <input className="rounded border border-gray-300 bg-white p-2 dark:border-gray-700 dark:bg-gray-800" placeholder="Mhubiri" value={editingItem.preacher || ''} onChange={(e) => updateField('preacher', e.target.value)} />
+              <input className="rounded border border-gray-300 bg-white p-2 dark:border-gray-700 dark:bg-gray-800" placeholder="Kiongozi wa ibada" value={editingItem.leaders_on_duty || ''} onChange={(e) => updateField('leaders_on_duty', e.target.value)} />
+              <input className="rounded border border-gray-300 bg-white p-2 dark:border-gray-700 dark:bg-gray-800" type="number" placeholder="Watoto" value={editingItem.attendance_children} onChange={(e) => updateField('attendance_children', e.target.value)} />
+              <input className="rounded border border-gray-300 bg-white p-2 dark:border-gray-700 dark:bg-gray-800" type="number" placeholder="Wanawake" value={editingItem.attendance_women} onChange={(e) => updateField('attendance_women', e.target.value)} />
+              <input className="rounded border border-gray-300 bg-white p-2 dark:border-gray-700 dark:bg-gray-800" type="number" placeholder="Wanaume" value={editingItem.attendance_men} onChange={(e) => updateField('attendance_men', e.target.value)} />
+              <input className="rounded border border-gray-300 bg-white p-2 dark:border-gray-700 dark:bg-gray-800" type="number" placeholder="Sadaka" value={editingItem.total_offerings} onChange={(e) => updateField('total_offerings', e.target.value)} />
+              <textarea className="rounded border border-gray-300 bg-white p-2 dark:border-gray-700 dark:bg-gray-800 md:col-span-2" placeholder="Ujumbe" value={editingItem.message || ''} onChange={(e) => updateField('message', e.target.value)} />
+            </div>
+            <div className="mt-6 flex justify-end gap-3">
+              <button onClick={() => setEditingItem(null)} className="rounded border border-gray-300 px-4 py-2 dark:border-gray-700">Ghairi</button>
+              <button disabled={saving} onClick={handleUpdate} className="rounded bg-blue-600 px-4 py-2 text-white disabled:opacity-60">{saving ? 'Inahifadhi...' : 'Hifadhi Mabadiliko'}</button>
+            </div>
+          </div>
         </div>
       )}
 

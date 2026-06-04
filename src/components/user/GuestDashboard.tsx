@@ -42,7 +42,7 @@ export default function WageniCard() {
             fontWeight: "600",
             offsetY: -40,
             color: "#1D2939",
-            formatter: function (val) {
+            formatter: function () {
               return `${visitorCount}`;
             },
           },
@@ -86,12 +86,9 @@ export default function WageniCard() {
             />
           </div>
 
-          <span className="absolute left-1/2 top-full -translate-x-1/2 -translate-y-[95%] rounded-full bg-yellow-50 px-3 py-1 text-xs font-medium text-yellow-600 dark:bg-yellow-500/15 dark:text-yellow-400">
-            Live
-          </span>
         </div>
 
-        <p className="mx-auto mt-10 w-full max-w-95 text-center text-sm text-gray-500 sm:text-base">
+        <p className="mx-auto mt-4 w-full max-w-95 text-center text-sm text-gray-500 sm:text-base">
           Mfumo una wageni <b>{loading ? "..." : visitorCount}</b> waliorekodiwa.
         </p>
       </div>

@@ -7,10 +7,10 @@ interface Visitor {
   full_name: string;
   phone: string;
   church_origin: string;
-  prayer: boolean;
-  salvation: boolean;
-  joining: boolean;
-  travel: boolean;
+  prayer?: boolean;
+  salvation?: boolean;
+  joining?: boolean;
+  travel?: boolean;
   other: string;
 }
 
@@ -30,7 +30,8 @@ export const exportVisitorsExcel = (
   visitors: Visitor[]
 ) => {
 
-  const rows = visitors.map((v) => ({
+  const rows = visitors.map((v, index) => ({
+    '#': index + 1,
     Tarehe: new Date(
       v.visit_date
     ).toLocaleDateString(),
@@ -78,6 +79,7 @@ export const exportVisitorsPDF = (
     startY:25,
 
     head:[[
+      '#',
       'Tarehe',
       'Jina',
       'Simu',
@@ -85,7 +87,8 @@ export const exportVisitorsPDF = (
       'Sababu'
     ]],
 
-    body: visitors.map(v=>[
+    body: visitors.map((v, index)=>[
+      index + 1,
       new Date(
         v.visit_date
       ).toLocaleDateString(),

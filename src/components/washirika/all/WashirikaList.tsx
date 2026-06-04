@@ -173,11 +173,18 @@ const filteredMembers = useMemo(() => {
     return matchesSearch;
   });
 
-  // SORT: pending first
   const sorted = filtered.sort((a, b) => {
-    if (a.membership_status === "pending" && b.membership_status !== "pending") return -1;
-    if (a.membership_status !== "pending" && b.membership_status === "pending") return 1;
-    return 0;
+    const aNumber = a.membership_number?.trim();
+    const bNumber = b.membership_number?.trim();
+
+    if (!aNumber && !bNumber) return a.full_name.localeCompare(b.full_name);
+    if (!aNumber) return 1;
+    if (!bNumber) return -1;
+
+    return aNumber.localeCompare(bNumber, undefined, {
+      numeric: true,
+      sensitivity: "base",
+    });
   });
 
   return sorted;

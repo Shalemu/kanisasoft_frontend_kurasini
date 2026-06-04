@@ -14,6 +14,12 @@ export const useWashirikaExport = () => {
     Namba: m.membership_number || "—",
     Simu: m.phone || "—",
     Email: m.email || "—",
+    Jinsia: m.gender || "—",
+    "Tarehe ya Kuzaliwa": m.birth_date
+      ? new Date(m.birth_date).toLocaleDateString()
+      : "—",
+    "Hali ya Ndoa": m.marital_status || "—",
+    Elimu: m.education_level || "—",
     Zone: m.residential_zone || "—",
     Tarehe: new Date(m.created_at).toLocaleDateString(),
     Sababu: m.deactivation_reason || "—",
@@ -41,6 +47,9 @@ export const useWashirikaExport = () => {
     m.full_name,
     m.membership_number || "—",
     m.phone || "—",
+    m.gender || "—",
+    m.marital_status || "—",
+    m.education_level || "—",
     m.residential_zone || "—",
     m.deactivation_reason || "—",
     m.membership_status || "—",
@@ -48,7 +57,7 @@ export const useWashirikaExport = () => {
 
   autoTable(doc, {
     startY: 25,
-    head: [["#", "Jina", "Namba", "Simu", "Zone", "Sababu", "Status"]],
+    head: [["#", "Jina", "Namba", "Simu", "Jinsia", "Ndoa", "Elimu", "Zone", "Sababu", "Status"]],
     body: tableData,
   });
 

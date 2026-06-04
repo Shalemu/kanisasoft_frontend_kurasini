@@ -1,167 +1,90 @@
 'use client';
 
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { apiFetch } from '@/lib/api';
 
-interface Visitor {
-  id:number;
-  full_name:string;
-  phone:string;
-  email?:string;
-  church_origin:string;
-  visit_date:string;
-  prayer:boolean;
-  salvation:boolean;
-  joining:boolean;
-  travel:boolean;
-  other:string;
-}
-
-interface VisitorSummary {
-  total_guests: number;
-  total_prayer: number;
-  total_salvation: number;
-  total_joining: number;
-  total_travel: number;
-}
-
-function toIsoDate(value: string | Date) {
-  if (value instanceof Date) {
-    return value.toISOString().slice(0, 10);
-  }
-
-  if (/^\d{4}-\d{2}-\d{2}$/.test(value)) {
-    return value;
-  }
-
-  const match = value.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/);
-  if (match) {
-    const [, month, day, year] = match;
-    return `${year}-${month.padStart(2, '0')}-${day.padStart(2, '0')}`;
-  }
-
-  return value;
+export interface Visitor {
+  id: number;
+  full_name: string;
+  phone: string;
+  email?: string;
+  church_origin: string;
+  visit_date: string;
+  prayer?: boolean;
+  salvation?: boolean;
+  joining?: boolean;
+  travel?: boolean;
+  other: string;
 }
 
 export function useVisitors() {
-  const [data,setData] = useState<Visitor[]>([]);
-  const [loading,setLoading] = useState(false);
-  const [summary,setSummary] = useState<VisitorSummary>({
-    total_guests: 0,
-    total_prayer: 0,
-    total_salvation: 0,
-    total_joining: 0,
-    total_travel: 0,
-  });
-
-  const today = new Date().toISOString().split('T')[0];
-
-  const [search,setSearch] = useState('');
-  const [filterDate,setFilterDate] = useState(today);
-
-  const [selectedIds,setSelectedIds] = useState<number[]>([]);
-  const [selectAll,setSelectAll] = useState(false);
-
-  const [currentPage,setCurrentPage] = useState(1);
-
+  const [data, setData] = useState<Visitor[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [search, setSearch] = useState('');
+  const [fromDate, setFromDate] = useState('');
+  const [toDate, setToDate] = useState('');
+  const [selectedIds, setSelectedIds] = useState<number[]>([]);
+  const [selectAll, setSelectAll] = useState(false);
+  const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 10;
 
   const fetchVisitors = useCallback(async () => {
     setLoading(true);
-
     try {
-      const params = new URLSearchParams();
-      const isoDate = filterDate ? toIsoDate(filterDate) : '';
-
-      if (isoDate) params.set('date', isoDate);
-      if (search.trim()) params.set('search', search.trim());
-
-      const query = params.toString();
-      const res = await apiFetch(`/guests${query ? `?${query}` : ''}`);
-      const responseData = res?.data || {};
-
-      setData(responseData.guests || []);
+      const res = await apiFetch('/guests');
+      const guests = res?.data?.guests ?? res?.guests ?? [];
+      setData(Array.isArray(guests) ? guests : []);
       setSelectedIds([]);
       setSelectAll(false);
-      setSummary({
-        total_guests: Number(responseData.summary?.total_guests || 0),
-        total_prayer: Number(responseData.summary?.total_prayer || 0),
-        total_salvation: Number(responseData.summary?.total_salvation || 0),
-        total_joining: Number(responseData.summary?.total_joining || 0),
-        total_travel: Number(responseData.summary?.total_travel || 0),
-      });
-    } catch(err){
-      console.error(err);
+    } catch (error) {
+      console.error(error);
       setData([]);
-      setSummary({
-        total_guests: 0,
-        total_prayer: 0,
-        total_salvation: 0,
-        total_joining: 0,
-        total_travel: 0,
-      });
     } finally {
       setLoading(false);
     }
-  }, [filterDate, search]);
+  }, []);
 
-  useEffect(()=>{
-    void (async () => {
-      await fetchVisitors();
-    })();
-  },[fetchVisitors]);
+  useEffect(() => { void fetchVisitors(); }, [fetchVisitors]);
 
-  const totalPages = Math.ceil(
-    data.length/itemsPerPage
-  );
+  const filteredData = useMemo(() => {
+    const term = search.trim().toLowerCase();
+    return data.filter((visitor) => {
+      const date = visitor.visit_date?.slice(0, 10) || '';
+      const matchesSearch = !term || visitor.full_name?.toLowerCase().includes(term) || visitor.phone?.toLowerCase().includes(term) || visitor.church_origin?.toLowerCase().includes(term);
+      return matchesSearch && (!fromDate || date >= fromDate) && (!toDate || date <= toDate);
+    });
+  }, [data, fromDate, search, toDate]);
 
-  const paginatedData = data.slice(
-    (currentPage-1)*itemsPerPage,
-    currentPage*itemsPerPage
-  );
+  const now = new Date();
+  const previousMonth = new Date(now.getFullYear(), now.getMonth() - 1, 1);
+  const totalThisMonth = data.filter((visitor) => {
+    const date = new Date(visitor.visit_date);
+    return date.getMonth() === now.getMonth() && date.getFullYear() === now.getFullYear();
+  }).length;
+  const totalLastMonth = data.filter((visitor) => {
+    const date = new Date(visitor.visit_date);
+    return date.getMonth() === previousMonth.getMonth() && date.getFullYear() === previousMonth.getFullYear();
+  }).length;
 
-  const toggleSelect=(id:number)=>{
-    setSelectedIds(prev=>
-      prev.includes(id)
-      ? prev.filter(x=>x!==id)
-      : [...prev,id]
-    );
-  };
-
-  const handleSelectAll=()=>{
-    if(selectAll){
-      setSelectedIds([]);
-    }else{
-      setSelectedIds(data.map(v=>v.id));
-    }
-
+  const totalPages = Math.ceil(filteredData.length / itemsPerPage);
+  const paginatedData = filteredData.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
+  const toggleSelect = (id: number) => setSelectedIds((prev) => prev.includes(id) ? prev.filter((item) => item !== id) : [...prev, id]);
+  const handleSelectAll = () => {
+    setSelectedIds(selectAll ? [] : filteredData.map((visitor) => visitor.id));
     setSelectAll(!selectAll);
   };
-
-  const selectedVisitors=data.filter(v=>
-    selectedIds.includes(v.id)
-  );
+  const clearFilters = () => {
+    setSearch('');
+    setFromDate('');
+    setToDate('');
+    setCurrentPage(1);
+  };
 
   return {
-    loading,
-    search,
-    setSearch,
-    filterDate,
-    setFilterDate,
-    currentPage,
-    setCurrentPage,
-    totalPages,
-    paginatedData,
-    selectedIds,
-    selectAll,
-    toggleSelect,
-    handleSelectAll,
-    selectedVisitors,
-    fetchVisitors,
-    totalVisitors: summary.total_guests,
-    totalPrayer: summary.total_prayer,
-    totalSalvation: summary.total_salvation,
-    totalJoining: summary.total_joining,
-    totalTravel: summary.total_travel,
+    loading, search, setSearch, fromDate, setFromDate, toDate, setToDate, clearFilters,
+    currentPage, setCurrentPage, totalPages, paginatedData, filteredData, selectedIds,
+    selectAll, toggleSelect, handleSelectAll,
+    selectedVisitors: data.filter((visitor) => selectedIds.includes(visitor.id)),
+    fetchVisitors, totalVisitors: data.length, totalThisMonth, totalLastMonth,
   };
 }

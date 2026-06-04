@@ -38,9 +38,10 @@ const navItems: NavItem[] = [
     name: "Washirika",
     subItems: [
       { name: "Orodha ya Washirika", path: "/washirika", pro: false },
-        { name: "Waliopotea", path: "/washirika/waliopotea", pro: false },
-      { name: "Waliokataliwa", path: "/washirika/waliokataliwa", pro: false },
-      { name: "Ongeza Washirika", path: "/washirika/ongeza-washirika", pro: false },
+      { name: "Washirika Waliokataliwa", path: "/washirika/waliokataliwa", pro: false },
+      { name: "Washirika Waliopotea", path: "/washirika/waliopotea", pro: false },
+      { name: "Ndoa za Washirika", path: "/washirika/ndoa", pro: false },
+      { name: "Ripoti za Washirika", path: "/washirika/ripoti", pro: false },
     ],
   },
   {

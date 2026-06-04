@@ -24,6 +24,9 @@ interface Group {
   name: string;
   leader?: Leader | null;
   whatsapp_link?: string | null;
+  members?: unknown[];
+  members_count?: number;
+  member_count?: number;
 }
 
 export default function MakundiTab({
@@ -220,6 +223,9 @@ export default function MakundiTab({
               <h3 className="text-lg font-bold text-center text-slate-800 dark:text-white/90">
                 {group.name}
               </h3>
+              <p className="mt-1 text-center text-xs font-medium text-blue-600 dark:text-blue-300">
+                Washirika: {group.members_count ?? group.member_count ?? group.members?.length ?? 0}
+              </p>
 
               {/* LEADER */}
               {group.leader && (

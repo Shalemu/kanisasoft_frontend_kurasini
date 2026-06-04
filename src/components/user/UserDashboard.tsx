@@ -1,10 +1,7 @@
 "use client";
 
 import React from "react";
-import Badge from "../ui/badge/Badge";
 import {
-  ArrowDownIcon,
-  ArrowUpIcon,
   BoxIconLine,
   GroupIcon,
 } from "@/icons";
@@ -23,7 +20,7 @@ export const UserCard = () => {
           <GroupIcon className="text-gray-800 size-6 dark:text-white/90" />
         </div>
 
-        <div className="flex items-end justify-between mt-5">
+        <div className="mt-5">
           <div>
             <span className="text-sm text-gray-500 dark:text-gray-400">
               Idadi ya Washirika
@@ -34,10 +31,6 @@ export const UserCard = () => {
             </h4>
           </div>
 
-          <Badge color="success">
-            <ArrowUpIcon />
-            Live
-          </Badge>
         </div>
       </div>
 
@@ -48,7 +41,7 @@ export const UserCard = () => {
           <BoxIconLine className="text-gray-800 dark:text-white/90" />
         </div>
 
-        <div className="flex items-end justify-between mt-5">
+        <div className="mt-5">
           <div>
             <span className="text-sm text-gray-500 dark:text-gray-400">
               Idadi ya Makundi
@@ -59,10 +52,6 @@ export const UserCard = () => {
             </h4>
           </div>
 
-          <Badge color="error">
-            <ArrowDownIcon className="text-error-500" />
-            Live
-          </Badge>
         </div>
       </div>
 
@@ -73,7 +62,7 @@ export const UserCard = () => {
     <BoxIconLine className="text-gray-800 dark:text-white/90" />
   </div>
 
-  <div className="flex items-end justify-between mt-5">
+  <div className="mt-5">
     <div>
       <span className="text-sm text-gray-500 dark:text-gray-400">
         Idadi ya Wageni
@@ -84,10 +73,6 @@ export const UserCard = () => {
       </h4>
     </div>
 
-    <Badge color="success">
-      <ArrowUpIcon />
-      Live
-    </Badge>
   </div>
 </div>
     
@@ -98,7 +83,7 @@ export const UserCard = () => {
     <BoxIconLine className="text-gray-800 dark:text-white/90" />
   </div>
 
-  <div className="flex items-end justify-between mt-5">
+  <div className="mt-5">
     <div>
       <span className="text-sm text-gray-500 dark:text-gray-400">
         Idadi ya Viongozi
@@ -109,10 +94,6 @@ export const UserCard = () => {
       </h4>
     </div>
 
-    <Badge color="success">
-      <ArrowUpIcon />
-      Live
-    </Badge>
   </div>
 </div>
 
