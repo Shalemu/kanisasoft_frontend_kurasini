@@ -69,7 +69,7 @@ const navItems: NavItem[] = [
     icon: <PieChartIcon />,
     name: "Fedha",
     subItems: [
-      // { name: "Ongeza Mchango", path: "/basic-tables", pro: false },
+      { name: "Michango", path: "/fedha/michango", pro: false },
       // { name: "Ongeza Mali", path: "/basic-tables", pro: false },
       // { name: "Ripoti", path: "/basic-tables", pro: false },
     ],
