@@ -1,32 +1,56 @@
 "use client";
 
 import Head from "next/head";
-import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useMemberForm } from "@/hooks/useMemberForm";
 import Field from "@/components/form/field";
 import Select from "@/components/form/Select";
 import PasswordField from "@/components/form/PasswordField";
 import { Calendar } from "lucide-react";
-import { useRef, useState } from "react";
-import { Label } from "@headlessui/react";
+import { useEffect, useState } from "react";
 import DatePicker from "@/components/form/date-picker";
+import { apiFetch } from "@/lib/api";
 
 export default function OngezaMshirika() {
   const router = useRouter();
-  const dateRef = useRef<HTMLInputElement>(null);
-  const [open, setOpen] = useState(false);
+  const searchParams = useSearchParams();
+  const editId = searchParams.get("edit");
+  const [initialMember, setInitialMember] = useState<any>(null);
+  const [loadingMember, setLoadingMember] = useState(Boolean(editId));
+
+  useEffect(() => {
+    async function loadMember() {
+      if (!editId) {
+        setLoadingMember(false);
+        return;
+      }
+
+      try {
+        const data = await apiFetch(`/members/by-user/${editId}`);
+        setInitialMember(data.member ?? data.user ?? data.data?.member ?? null);
+      } finally {
+        setLoadingMember(false);
+      }
+    }
+
+    void loadMember();
+  }, [editId]);
   
   const {
     form,
     loading,
+    isEditMode,
     activeTab,
     setActiveTab,
     tabTitles,
     handleChange,
     handleNext,
     handleRegister,
-  } = useMemberForm(router);
+  } = useMemberForm(router, {
+    mode: editId ? "edit" : "create",
+    userId: editId,
+    initialData: initialMember,
+  });
 
     const currentYear = new Date().getFullYear();
   const years = Array.from({ length: currentYear - 1900 + 1 }, (_, i) => String(currentYear - i));
@@ -73,7 +97,7 @@ case 0:
       {/* Gender */}
 
       <div>
-        <label className="block mb-1 text-sm font-medium text-white">
+        <label className="block mb-1 text-sm font-medium text-gray-800 dark:text-gray-200">
           Jinsia *
         </label>
 
@@ -169,8 +193,8 @@ case 0:
       {/* Zone */}
 
       <div>
-        <label className="block mb-1 text-sm font-medium text-white">
-          Mtaa *
+        <label className="block mb-1 text-sm font-medium text-gray-800 dark:text-gray-200">
+          Kanda / Zone *
         </label>
 
     <Select
@@ -192,7 +216,7 @@ case 0:
       {/* Marital Status */}
 
       <div>
-        <label className="block mb-1 text-sm font-medium text-white">
+        <label className="block mb-1 text-sm font-medium text-gray-800 dark:text-gray-200">
           Hali ya Ndoa *
         </label>
 
@@ -276,24 +300,28 @@ options={[
         onChange={handleChange}
       />
 
-      <PasswordField
-        label="Neno la Siri *"
-        name="password"
-        value={form.password}
-        onChange={handleChange}
-      />
+      {!isEditMode && (
+        <>
+          <PasswordField
+            label="Neno la Siri *"
+            name="password"
+            value={form.password}
+            onChange={handleChange}
+          />
 
-      <PasswordField
-        label="Thibitisha Neno la Siri *"
-        name="passwordConfirmation"
-        value={form.passwordConfirmation}
-        onChange={handleChange}
-      />
+          <PasswordField
+            label="Thibitisha Neno la Siri *"
+            name="passwordConfirmation"
+            value={form.passwordConfirmation}
+            onChange={handleChange}
+          />
+        </>
+      )}
 
       {/* Disability */}
 
       <div>
-        <label className="block mb-1 text-sm font-medium text-white">
+        <label className="block mb-1 text-sm font-medium text-gray-800 dark:text-gray-200">
           Je, una ulemavu? *
         </label>
 
@@ -721,7 +749,7 @@ case 1:
   return (
   <>
     <Head>
-      <title>Sajili Mshirika</title>
+      <title>{isEditMode ? "Hariri Mshirika" : "Sajili Mshirika"}</title>
     </Head>
 
     <div className="min-h-screen bg-gray-50 px-4 py-10 text-gray-800 dark:bg-gray-900 dark:text-white/90">
@@ -738,7 +766,7 @@ case 1:
 
   {/* Title */}
   <h1 className="text-3xl md:text-5xl font-bold tracking-tight text-gray-900 dark:text-white/90">
-    Fomu ya Usajili wa Mshirika
+    {isEditMode ? "Hariri Taarifa za Mshirika" : "Fomu ya Usajili wa Mshirika"}
   </h1>
 
   {/* Accent line */}
@@ -748,7 +776,9 @@ case 1:
 
   {/* Subtitle */}
   <p className="mt-5 text-sm md:text-base text-gray-500 max-w-xl mx-auto leading-relaxed dark:text-gray-400">
-    Jaza taarifa zote muhimu ili kukamilisha usajili kwa usahihi na kuhifadhi taarifa zako vizuri kwenye mfumo.
+    {isEditMode
+      ? "Taarifa zilizopo zimejazwa tayari. Rekebisha sehemu zinazohitajika kisha hifadhi."
+      : "Jaza taarifa zote muhimu ili kukamilisha usajili kwa usahihi na kuhifadhi taarifa zako vizuri kwenye mfumo."}
   </p>
 
 </div>
@@ -787,6 +817,11 @@ case 1:
           {/* Form */}
           <div className="p-8 md:p-10">
 
+            {loadingMember ? (
+              <div className="py-12 text-center text-gray-500 dark:text-gray-400">
+                Inapakia taarifa za mshirika...
+              </div>
+            ) : (
             <form
               onSubmit={
                 activeTab === tabTitles.length - 1
@@ -804,13 +839,14 @@ case 1:
                   className="w-full rounded-2xl bg-[#f0ce32] py-4 text-base font-bold text-black shadow-lg transition-all duration-300 hover:-translate-y-1 hover:shadow-xl disabled:opacity-60"
                 >
                   {loading
-                    ? "Inasajili..."
+                    ? isEditMode ? "Inahifadhi..." : "Inasajili..."
                     : activeTab === tabTitles.length - 1
-                    ? "JISAJILI SASA"
+                    ? isEditMode ? "HIFADHI MABADILIKO" : "JISAJILI SASA"
                     : "ENDELEA"}
                 </button>
               </div>
             </form>
+            )}
           </div>
 
         </div>

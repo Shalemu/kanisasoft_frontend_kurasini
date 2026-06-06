@@ -12,25 +12,43 @@ import {
   GraduationCap,
   Church,
 } from "lucide-react";
+import Swal from "sweetalert2";
 
 export default function UserDetailsClient({ user }: any) {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
 
   const handleDelete = async () => {
-    const confirm = window.confirm("Unataka kufuta huyu mshirika?");
-    if (!confirm) return;
+    const result = await Swal.fire({
+      title: "Deactivate mshirika?",
+      text: `Una uhakika unataka kumtoa ${user.full_name}?`,
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonText: "Ndiyo, deactivate",
+      cancelButtonText: "Ghairi",
+      confirmButtonColor: "#d97706",
+    });
+
+    if (!result.isConfirmed) return;
 
     try {
       setLoading(true);
 
-      await apiFetch(`/users/${user.user_id}`, {
-        method: "DELETE",
+      await apiFetch(`/users/${user.user_id ?? user.id}/deactivate`, {
+        method: "POST",
+        body: { reason: "Deactivated by admin" },
       });
 
+      await Swal.fire("Imefanikiwa", "Mshirika ameondolewa kwenye hali ya active.", "success");
       router.push("/washirika");
+      router.refresh();
     } catch (err) {
       console.error(err);
+      await Swal.fire(
+        "Hitilafu",
+        err instanceof Error ? err.message : "Imeshindikana kumtoa mshirika.",
+        "error"
+      );
     } finally {
       setLoading(false);
     }
@@ -51,7 +69,10 @@ export default function UserDetailsClient({ user }: any) {
         </button>
 
         <div className="flex gap-3">
-          <button className="inline-flex items-center gap-2 rounded-xl bg-blue-600 px-5 py-2.5 text-white shadow hover:bg-blue-700 transition">
+          <button
+            onClick={() => router.push(`/washirika/ongeza-washirika?edit=${user.user_id ?? user.id}`)}
+            className="inline-flex items-center gap-2 rounded-xl bg-blue-600 px-5 py-2.5 text-white shadow hover:bg-blue-700 transition"
+          >
             <Pencil size={16} />
             Hariri
           </button>
@@ -62,7 +83,7 @@ export default function UserDetailsClient({ user }: any) {
             className="inline-flex items-center gap-2 rounded-xl bg-red-600 px-5 py-2.5 text-white shadow hover:bg-red-700 transition"
           >
             <Trash2 size={16} />
-            Futa
+            {loading ? "Inaondoa..." : "Futa"}
           </button>
         </div>
       </div>

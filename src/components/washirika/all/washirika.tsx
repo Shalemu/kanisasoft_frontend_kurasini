@@ -4,8 +4,10 @@ import WashirikaList from "./WashirikaList";
 import WashirikaCalendar from "./washirikaCalendar";
 import WashirikaFilters from "./WashirikaFilters";
 import { useState } from "react";
+import { useSearchParams } from "next/navigation";
 
 export default function Washirika() {
+  const searchParams = useSearchParams();
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedMonth, setSelectedMonth] = useState("");
   const [selectedGroup, setSelectedGroup] = useState("");
@@ -35,6 +37,7 @@ export default function Washirika() {
         selectedGroup={selectedGroup}
         fromDate={fromDate}
         toDate={toDate}
+        statusFilter={searchParams.get("status") ?? ""}
       />
 
     </div>

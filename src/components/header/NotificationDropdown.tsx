@@ -22,7 +22,7 @@ export default function NotificationDropdown() {
       try {
         const response = await apiFetch("/users");
         const users = response?.users ?? response?.data?.users ?? [];
-        setPendingUsers(users.filter((user: PendingUser) => user.role !== "mchungaji" && (user.membership_status === "pending" || user.role === null)));
+        setPendingUsers(users.filter((user: PendingUser) => user.role !== "mchungaji" && user.membership_status === "pending"));
       } catch (error) {
         console.error("Failed to load pending registrations", error);
       }
@@ -45,7 +45,7 @@ export default function NotificationDropdown() {
       <Dropdown isOpen={isOpen} onClose={() => setIsOpen(false)} className="absolute -right-[240px] mt-[17px] flex max-h-[480px] w-[350px] flex-col rounded-2xl border border-gray-200 bg-white p-3 shadow-theme-lg dark:border-gray-800 dark:bg-gray-dark sm:w-[361px] lg:right-0">
         <div className="mb-3 flex items-center justify-between border-b border-gray-100 pb-3 dark:border-gray-700">
           <div><h5 className="text-lg font-semibold text-gray-800 dark:text-gray-200">Usajili Mpya</h5><p className="text-xs text-gray-500">{pendingUsers.length} wanasubiri kuidhinishwa</p></div>
-          <Link onClick={() => setIsOpen(false)} href="/washirika" className="text-sm font-medium text-blue-600 hover:underline">Tazama wote</Link>
+          <Link onClick={() => setIsOpen(false)} href="/washirika?status=pending" className="text-sm font-medium text-blue-600 hover:underline">Tazama wote</Link>
         </div>
         <div className="overflow-y-auto">
           {pendingUsers.length === 0 ? <p className="p-5 text-center text-sm text-gray-500">Hakuna usajili unaosubiri.</p> : pendingUsers.map((user) => (

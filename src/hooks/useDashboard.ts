@@ -8,6 +8,8 @@ export function useDashboard() {
   const [groupsCount, setGroupsCount] = useState(0);
   const [visitorCount, setVisitorCount] = useState(0);
   const [leaderCount, setLeaderCount] = useState(0);
+  const [monthlyContributions, setMonthlyContributions] = useState(0);
+  const [totalContributions, setTotalContributions] = useState(0);
   const [loading, setLoading] = useState(true);
 
   const ACTIVE_STATUS = "active";
@@ -50,6 +52,51 @@ export function useDashboard() {
     }
   }
 
+  async function fetchContributions() {
+    const res = await apiFetch("/contributions");
+    const reports = res?.reports ?? res?.contributions ?? res?.data?.reports ?? [];
+    const now = new Date();
+
+    if (!Array.isArray(reports)) return;
+
+    const totals = reports.reduce(
+      (acc: { total: number; month: number }, contribution: any) => {
+        const amount = Number(
+          contribution.amount ??
+            contribution.total_amount ??
+            contribution.total ??
+            contribution.value ??
+            0
+        );
+        const date = new Date(
+          contribution.date ??
+            contribution.created_at ??
+            contribution.contribution_date ??
+            ""
+        );
+
+        if (!Number.isNaN(amount)) {
+          acc.total += amount;
+        }
+
+        if (
+          !Number.isNaN(amount) &&
+          !Number.isNaN(date.getTime()) &&
+          date.getMonth() === now.getMonth() &&
+          date.getFullYear() === now.getFullYear()
+        ) {
+          acc.month += amount;
+        }
+
+        return acc;
+      },
+      { total: 0, month: 0 }
+    );
+
+    setTotalContributions(totals.total);
+    setMonthlyContributions(totals.month);
+  }
+
   useEffect(() => {
     const load = async () => {
       setLoading(true);
@@ -59,6 +106,7 @@ export function useDashboard() {
         fetchGroups(),
         fetchVisitors(),
         fetchLeaders(),
+        fetchContributions(),
       ]);
 
       setLoading(false);
@@ -72,6 +120,8 @@ export function useDashboard() {
     groupsCount,
     visitorCount,
     leaderCount,
+    monthlyContributions,
+    totalContributions,
     loading,
   };
 }

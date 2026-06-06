@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Swal from "sweetalert2";
 import { apiFetch } from "@/lib/api";
 
@@ -142,10 +142,92 @@ export const getEmptyMemberForm = (): MemberFormData => ({
   nextOfKinPhone: "",
 });
 
+function splitDateParts(dateValue?: string | null) {
+  if (!dateValue) return { year: "", month: "", day: "" };
 
-export function useMemberForm(router: any) {
+  const date = new Date(dateValue);
+  if (Number.isNaN(date.getTime())) return { year: "", month: "", day: "" };
+
+  return {
+    year: String(date.getFullYear()),
+    month: String(date.getMonth() + 1),
+    day: String(date.getDate()),
+  };
+}
+
+function normalizeYesNo(value: unknown) {
+  if (value === true || value === 1 || value === "1" || value === "ndio") return "ndio";
+  if (value === false || value === 0 || value === "0" || value === "hapana") return "hapana";
+  return "";
+}
+
+export function mapMemberToForm(member: any): MemberFormData {
+  const conversion = splitDateParts(member.date_of_conversion);
+  const baptism = splitDateParts(member.baptism_date);
+
+  return {
+    ...getEmptyMemberForm(),
+    fullName: member.full_name ?? "",
+    gender: member.gender === "M" ? "Mwanaume" : member.gender === "F" ? "Mwanamke" : member.gender ?? "",
+    birthDate: member.birth_date?.slice?.(0, 10) ?? "",
+    birthRegion: member.birth_region ?? "",
+    birthDistrict: member.birth_district ?? member.birth_place ?? "",
+    birthWard: member.birth_ward ?? "",
+    birthStreet: member.birth_street ?? "",
+    birthPlace: member.birth_place ?? "",
+    residentialWard: member.residential_ward ?? "",
+    residentialStreet: member.residential_street ?? "",
+    residence: member.residence ?? "",
+    maritalStatus: member.marital_status ?? "",
+    marriageType: member.marriage_type ?? "",
+    spouseName: member.spouse_name ?? "",
+    childrenCount: String(member.children_count ?? member.number_of_children ?? ""),
+    zone: member.zone ?? member.residential_zone ?? "",
+    phone: member.phone ?? member.phone_number ?? "",
+    whatsappNumber: member.whatsapp_number ?? "",
+    email: member.email ?? "",
+    hasDisability: normalizeYesNo(member.has_disability),
+    disabilityDescription: member.disability_description ?? "",
+    conversionYear: String(member.conversion_year ?? conversion.year),
+    conversionMonth: String(member.conversion_month ?? conversion.month),
+    conversionDay: String(member.conversion_day ?? conversion.day),
+    churchOfConversion: member.church_of_conversion ?? "",
+    baptismYear: String(member.baptism_year ?? baptism.year),
+    baptismMonth: String(member.baptism_month ?? baptism.month),
+    baptismDay: String(member.baptism_day ?? baptism.day),
+    baptismPlace: member.baptism_place ?? "",
+    baptizerName: member.baptizer_name ?? "",
+    baptizerTitle: member.baptizer_title ?? "",
+    previousChurchStatus: member.previous_church_status ?? "",
+    tanguLini: member.tangu_lini ?? "",
+    kanisaUlipotoka: member.kanisa_ulipotoka ?? member.previous_church ?? "",
+    churchService: member.church_service ?? "",
+    participatesCommunion: normalizeYesNo(member.participates_communion),
+    serviceDuration: member.service_duration ?? "",
+    educationLevel: member.education_level ?? "",
+    profession: member.profession ?? "",
+    occupation: member.occupation ?? "",
+    workPlace: member.work_place ?? "",
+    workContact: member.work_contact ?? "",
+    livesAlone: normalizeYesNo(member.lives_alone),
+    livesWith: member.lives_with ?? "",
+    familyRole: member.family_role ?? "",
+    liveWithWho: member.live_with_who ?? member.lives_with ?? "",
+    nextOfKin: member.next_of_kin ?? "",
+    nextOfKinPhone: member.next_of_kin_phone ?? "",
+  };
+}
+
+type UseMemberFormOptions = {
+  mode?: "create" | "edit";
+  userId?: string | number | null;
+  initialData?: any;
+};
+
+export function useMemberForm(router: any, options: UseMemberFormOptions = {}) {
   const [loading, setLoading] = useState(false);
   const [activeTab, setActiveTab] = useState(0);
+  const isEditMode = options.mode === "edit";
 
   const tabTitles = [
     "Taarifa Binafsi",
@@ -158,6 +240,12 @@ export function useMemberForm(router: any) {
 
   
 const [form, setForm] = useState<MemberFormData>(getEmptyMemberForm());
+
+  useEffect(() => {
+    if (options.initialData) {
+      setForm(mapMemberToForm(options.initialData));
+    }
+  }, [options.initialData]);
   
 
   // =========================
@@ -213,10 +301,12 @@ const [form, setForm] = useState<MemberFormData>(getEmptyMemberForm());
       "zone",
       "maritalStatus",
       "phone",
-      "password",
-      "passwordConfirmation",
       "hasDisability",
     ];
+
+    if (!isEditMode) {
+      required.push("password", "passwordConfirmation");
+    }
 
     for (const key of required) {
       if (!form[key as keyof MemberFormData]) {
@@ -257,7 +347,7 @@ const [form, setForm] = useState<MemberFormData>(getEmptyMemberForm());
       return false;
     }
 
-    if (form.password !== form.passwordConfirmation) {
+    if (!isEditMode && form.password !== form.passwordConfirmation) {
       Swal.fire({
         title: "Tatizo",
         text: "Password hazifanani.",
@@ -410,9 +500,12 @@ const [form, setForm] = useState<MemberFormData>(getEmptyMemberForm());
 
       email: form.email,
 
-      password: form.password,
-      password_confirmation:
-        form.passwordConfirmation,
+      ...(isEditMode
+        ? {}
+        : {
+            password: form.password,
+            password_confirmation: form.passwordConfirmation,
+          }),
 
       has_disability:
         form.hasDisability === "ndio",
@@ -500,22 +593,26 @@ const [form, setForm] = useState<MemberFormData>(getEmptyMemberForm());
       setLoading(true);
 
       const response = await apiFetch(
-        "/register",
+        isEditMode ? `/users/${options.userId}` : "/register",
         {
-          method: "POST",
+          method: isEditMode ? "PUT" : "POST",
           body: JSON.stringify(payload),
         }
       );
 
    if (!response.error) {
   Swal.fire({
-    title: "Usajili umefanikiwa",
+    title: isEditMode ? "Taarifa zimehifadhiwa" : "Usajili umefanikiwa",
     icon: "success",
   });
 
-  // reset form instead of redirect
-setForm(getEmptyMemberForm());
-setActiveTab(0);
+  if (isEditMode) {
+    router.push(`/washirika/detail?id=${options.userId}`);
+    router.refresh?.();
+  } else {
+    setForm(getEmptyMemberForm());
+    setActiveTab(0);
+  }
 } else {
         Swal.fire({
           title: "Tatizo",
@@ -570,6 +667,7 @@ setActiveTab(0);
   return {
     form,
     loading,
+    isEditMode,
     activeTab,
     setActiveTab,
     tabTitles,

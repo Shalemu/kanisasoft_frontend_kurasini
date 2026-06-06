@@ -51,17 +51,18 @@ interface Props {
   selectedGroup?: string;
   fromDate?: string;
   toDate?: string;
+  statusFilter?: string;
 }
 
-export default function WashirikaList({ searchTerm }: Props) {
+export default function WashirikaList({ searchTerm, statusFilter = "" }: Props) {
   const [members, setMembers] = useState<User[]>([]);
   const [loading, setLoading] = useState(true);
+  const [sendingSms, setSendingSms] = useState(false);
 
   const [roles, setRoles] = useState<Role[]>([]); 
 
   const [selectedMembers, setSelectedMembers] = useState<number[]>([]);
   const [groupDialogOpen, setGroupDialogOpen] = useState(false);
-  const [selectedGroupIds, setSelectedGroupIds] = useState<number[]>([]);
   const [groups, setGroups] = useState<Group[]>([]);
 
   const [isLeaderModalOpen, setIsLeaderModalOpen] = useState(false);
@@ -169,8 +170,9 @@ const filteredMembers = useMemo(() => {
     const matchesSearch =
       m.full_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
       m.phone?.includes(searchTerm);
+    const matchesStatus = !statusFilter || m.membership_status === statusFilter;
 
-    return matchesSearch;
+    return matchesSearch && matchesStatus;
   });
 
   const sorted = filtered.sort((a, b) => {
@@ -188,7 +190,7 @@ const filteredMembers = useMemo(() => {
   });
 
   return sorted;
-}, [members, searchTerm]);
+}, [members, searchTerm, statusFilter]);
 
   // PAGINATION
   const totalPages = Math.ceil(filteredMembers.length / rowsPerPage);
@@ -232,9 +234,13 @@ const toggleSelectAll = () => {
   }
 };
 
+  const activePaginatedMembers = paginatedMembers.filter(
+    (member) => member.membership_status === MEMBERSHIP_STATUS.ACTIVE
+  );
+
   const allSelected =
-    paginatedMembers.length > 0 &&
-    selectedMembers.length === paginatedMembers.length;
+    activePaginatedMembers.length > 0 &&
+    activePaginatedMembers.every((member) => selectedMembers.includes(member.id));
 
   // APPROVE
   const handleApprove = async (userId: number) => {
@@ -276,8 +282,65 @@ const isAdminSelected = selectedMembers.some((memberId) => {
 const handleDeactivate = () => {
   if (isAdminSelected) return;
 
+  if (selectedMembers.length === 0) {
+    Swal.fire("Tahadhari", "Chagua mshirika kwanza", "warning");
+    return;
+  }
+
   setActionType("deactivate");
   setReasonModalOpen(true);
+};
+
+const handleSendSms = async () => {
+  const recipients = members.filter((member) => selectedMembers.includes(member.id));
+
+  if (recipients.length === 0) {
+    Swal.fire("Tahadhari", "Chagua mshirika kwanza", "warning");
+    return;
+  }
+
+  const result = await Swal.fire({
+    title: "Tuma SMS",
+    input: "textarea",
+    inputPlaceholder: "Andika ujumbe...",
+    showCancelButton: true,
+    confirmButtonText: "Tuma",
+    cancelButtonText: "Ghairi",
+    confirmButtonColor: "#2563eb",
+    inputValidator: (value) => (!value?.trim() ? "Andika ujumbe kwanza" : null),
+  });
+
+  if (!result.isConfirmed || !result.value?.trim()) return;
+
+  setSendingSms(true);
+
+  try {
+    const response = await apiFetch("/send-sms", {
+      method: "POST",
+      body: {
+        type: "members",
+        receiver: recipients.map((member) => member.id).join(","),
+        member_ids: recipients.map((member) => member.id),
+        phones: recipients.map((member) => member.phone).filter(Boolean),
+        message: result.value.trim(),
+      },
+    });
+
+    if (response?.status === "success" || !response?.error) {
+      Swal.fire("Imefanikiwa", "SMS imetumwa kwa washirika waliochaguliwa.", "success");
+      setSelectedMembers([]);
+    } else {
+      Swal.fire("Hitilafu", response?.message || "Imeshindikana kutuma SMS.", "error");
+    }
+  } catch (error) {
+    Swal.fire(
+      "Hitilafu",
+      error instanceof Error ? error.message : "Imeshindikana kutuma SMS.",
+      "error"
+    );
+  } finally {
+    setSendingSms(false);
+  }
 };
 
 
@@ -313,12 +376,24 @@ const handleConfirmReason = async (reason: string) => {
     }
 
     if (actionType === "deactivate") {
+      const confirm = await Swal.fire({
+        title: "Deactivate washirika?",
+        text: `${selectedMembers.length} washirika wataondolewa kwenye hali ya active.`,
+        icon: "warning",
+        showCancelButton: true,
+        confirmButtonText: "Ndiyo, deactivate",
+        cancelButtonText: "Ghairi",
+        confirmButtonColor: "#d97706",
+      });
+
+      if (!confirm.isConfirmed) return;
+
       let successCount = 0;
 
       for (const id of selectedMembers) {
-        const response = await apiFetch(`/users/${id}/reject`, {
+        const response = await apiFetch(`/users/${id}/deactivate`, {
           method: "POST",
-          body: JSON.stringify({ reason, status }),
+          body: { reason, status },
         });
 
         if (response.status === "success") {
@@ -340,7 +415,7 @@ const handleConfirmReason = async (reason: string) => {
 
       Swal.fire({
         title: "Imefanikiwa",
-        text: `${successCount} washirika wameondolewa`,
+        text: `${successCount} washirika wameondolewa kwenye hali ya active`,
         icon: "success",
         confirmButtonColor: "#f0ce32",
       });
@@ -466,14 +541,19 @@ const activeMembers = filteredMembers.filter(
           </button>
 
           {/* SMS */}
-          <button className="bg-indigo-600 text-white px-4 py-2 rounded flex items-center gap-2">
-            <FaSms /> Tuma SMS
+          <button
+            onClick={handleSendSms}
+            disabled={sendingSms}
+            className="bg-indigo-600 text-white px-4 py-2 rounded flex items-center gap-2 disabled:cursor-not-allowed disabled:opacity-60"
+          >
+            <FaSms /> {sendingSms ? "Inatuma..." : "Tuma SMS"}
           </button>
 
           {/* Deactivate */}
           <button
             onClick={handleDeactivate}
-            className="bg-yellow-500 text-white px-4 py-2 rounded flex items-center gap-2"
+            disabled={isAdminSelected}
+            className="bg-yellow-500 text-white px-4 py-2 rounded flex items-center gap-2 disabled:cursor-not-allowed disabled:opacity-60"
           >
             Deactivate
           </button>
@@ -516,10 +596,7 @@ const activeMembers = filteredMembers.filter(
               <th className="px-4 py-3">
               <input
                 type="checkbox"
-                checked={
-                  paginatedMembers.length > 0 &&
-                  selectedMembers.length === paginatedMembers.length
-                }
+                checked={allSelected}
                 onChange={toggleSelectAll}
               />
               </th>

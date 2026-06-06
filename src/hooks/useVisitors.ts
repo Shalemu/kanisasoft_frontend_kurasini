@@ -31,7 +31,11 @@ export function useVisitors() {
   const fetchVisitors = useCallback(async () => {
     setLoading(true);
     try {
-      const res = await apiFetch('/guests');
+      const params = new URLSearchParams();
+      if (fromDate) params.set('start_date', fromDate);
+      if (toDate) params.set('end_date', toDate);
+      const query = params.toString();
+      const res = await apiFetch(`/guests${query ? `?${query}` : ''}`);
       const guests = res?.data?.guests ?? res?.guests ?? [];
       setData(Array.isArray(guests) ? guests : []);
       setSelectedIds([]);
@@ -42,7 +46,7 @@ export function useVisitors() {
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [fromDate, toDate]);
 
   useEffect(() => { void fetchVisitors(); }, [fetchVisitors]);
 

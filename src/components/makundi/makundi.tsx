@@ -13,10 +13,12 @@ import {
 import { Dialog } from '@headlessui/react';
 import Swal from 'sweetalert2';
 import { Card, CardContent } from '@/components/ui/card';
+import { apiFetch } from '@/lib/api';
 
 interface Leader {
   full_name: string;
   membership_number: string;
+  phone?: string | null;
 }
 
 interface Group {
@@ -29,14 +31,24 @@ interface Group {
   member_count?: number;
 }
 
-export default function MakundiTab({
-  onGroupSelect,
-}: {
-  onGroupSelect: (groupId: number) => void;
-}) {
+interface GroupDetails extends Group {
+  description?: string | null;
+  leaders?: Leader[];
+  members?: {
+    id: number;
+    full_name: string;
+    membership_number?: string | null;
+    phone?: string | null;
+  }[];
+}
+
+export default function MakundiTab() {
   const [groups, setGroups] = useState<Group[]>([]);
   const [filteredGroups, setFilteredGroups] = useState<Group[]>([]);
   const [isOpen, setIsOpen] = useState(false);
+  const [detailsOpen, setDetailsOpen] = useState(false);
+  const [selectedGroupDetails, setSelectedGroupDetails] = useState<GroupDetails | null>(null);
+  const [detailsLoading, setDetailsLoading] = useState(false);
   const [editingGroup, setEditingGroup] = useState<Group | null>(null);
   const [loading, setLoading] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
@@ -53,19 +65,32 @@ export default function MakundiTab({
 
   const fetchGroups = async () => {
     try {
-      const res = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/groups`, {
-        headers: {
-          Authorization: `Bearer ${localStorage.getItem('token')}`,
-        },
-      });
-      const data = await res.json();
+      const data = await apiFetch('/groups');
 
       if (data.status === 'success') {
+        setGroups(data.groups);
+        setFilteredGroups(data.groups);
+      } else if (Array.isArray(data.groups)) {
         setGroups(data.groups);
         setFilteredGroups(data.groups);
       }
     } catch (err) {
       Swal.fire('Hitilafu', 'Imeshindikana kupata makundi.', 'error');
+    }
+  };
+
+  const openGroupDetails = async (group: Group) => {
+    setDetailsOpen(true);
+    setDetailsLoading(true);
+    setSelectedGroupDetails(group as GroupDetails);
+
+    try {
+      const data = await apiFetch(`/groups/${group.id}`);
+      setSelectedGroupDetails(data.group ?? data.data?.group ?? data);
+    } catch (error) {
+      Swal.fire('Hitilafu', 'Imeshindikana kupata taarifa za kundi.', 'error');
+    } finally {
+      setDetailsLoading(false);
     }
   };
 
@@ -107,24 +132,13 @@ export default function MakundiTab({
     setLoading(true);
 
     try {
-      const url = editingGroup
-        ? `${process.env.NEXT_PUBLIC_API_BASE_URL}/groups/${editingGroup.id}`
-        : `${process.env.NEXT_PUBLIC_API_BASE_URL}/groups`;
-
       const method = editingGroup ? 'PUT' : 'POST';
-
-      const res = await fetch(url, {
+      const data = await apiFetch(editingGroup ? `/groups/${editingGroup.id}` : '/groups', {
         method,
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${localStorage.getItem('token')}`,
-        },
-        body: JSON.stringify(formData),
+        body: formData,
       });
 
-      const data = await res.json();
-
-      if (res.ok) {
+      if (data.status === 'success' || !data.error) {
         fetchGroups();
         setIsOpen(false);
         Swal.fire('Imefanikiwa!', 'Kundi limehifadhiwa.', 'success');
@@ -148,23 +162,11 @@ export default function MakundiTab({
       if (!result.isConfirmed) return;
 
       try {
-        const res = await fetch(
-          `${process.env.NEXT_PUBLIC_API_BASE_URL}/groups/${id}`,
-          {
-            method: 'DELETE',
-            headers: {
-              Authorization: `Bearer ${localStorage.getItem('token')}`,
-            },
-          }
-        );
+        await apiFetch(`/groups/${id}`, { method: 'DELETE' });
 
-        if (res.ok) {
-          setGroups((prev) => prev.filter((g) => g.id !== id));
-          setFilteredGroups((prev) => prev.filter((g) => g.id !== id));
-          Swal.fire('Imefutwa!', '', 'success');
-        } else {
-          Swal.fire('Hitilafu', 'Imeshindikana kufuta.', 'error');
-        }
+        setGroups((prev) => prev.filter((g) => g.id !== id));
+        setFilteredGroups((prev) => prev.filter((g) => g.id !== id));
+        Swal.fire('Imefutwa!', '', 'success');
       } catch {
         Swal.fire('Hitilafu', 'Imeshindikana kufuta.', 'error');
       }
@@ -205,7 +207,7 @@ export default function MakundiTab({
         {filteredGroups.map((group) => (
           <Card
             key={group.id}
-            onClick={() => onGroupSelect(group.id)}
+            onClick={() => openGroupDetails(group)}
             className="group cursor-pointer hover:shadow-xl hover:-translate-y-1 transition-all duration-300 overflow-hidden"
           >
             <div className="h-1 bg-gradient-to-r from-blue-500 via-indigo-500 to-purple-500" />
@@ -333,6 +335,95 @@ export default function MakundiTab({
           </div>
         </div>
       </Dialog>
+
+      <Dialog open={detailsOpen} onClose={() => setDetailsOpen(false)}>
+        <div className="fixed inset-0 z-50 bg-black/40 flex items-center justify-center p-4">
+          <div className="max-h-[90vh] w-full max-w-3xl overflow-y-auto rounded-2xl bg-white p-6 text-slate-800 shadow-xl dark:bg-gray-900 dark:text-white/90">
+            <div className="mb-5 flex items-start justify-between gap-4">
+              <div>
+                <h2 className="text-2xl font-bold">{selectedGroupDetails?.name ?? 'Kundi'}</h2>
+                <p className="mt-1 text-sm text-slate-500 dark:text-gray-400">
+                  {selectedGroupDetails?.description || 'Taarifa za kundi na washirika wake'}
+                </p>
+              </div>
+              <button onClick={() => setDetailsOpen(false)} className="rounded-lg border border-slate-200 px-3 py-1 text-sm dark:border-gray-700">
+                Funga
+              </button>
+            </div>
+
+            {detailsLoading ? (
+              <div className="py-10 text-center text-slate-500">Inapakia taarifa za kundi...</div>
+            ) : (
+              <>
+                <div className="mb-5 grid grid-cols-1 gap-3 sm:grid-cols-3">
+                  <DetailSummary title="Jumla ya Washirika" value={selectedGroupDetails?.members_count ?? selectedGroupDetails?.member_count ?? selectedGroupDetails?.members?.length ?? 0} />
+                  <DetailSummary title="Viongozi" value={selectedGroupDetails?.leaders?.length ?? (selectedGroupDetails?.leader ? 1 : 0)} />
+                  <DetailSummary title="WhatsApp" value={selectedGroupDetails?.whatsapp_link ? 'Ipo' : 'Hakuna'} />
+                </div>
+
+                <div className="mb-5 rounded-xl border border-slate-200 p-4 dark:border-gray-800">
+                  <h3 className="mb-3 font-semibold">Viongozi wa Kundi</h3>
+                  {selectedGroupDetails?.leaders?.length ? (
+                    <div className="grid gap-2 sm:grid-cols-2">
+                      {selectedGroupDetails.leaders.map((leader) => (
+                        <div key={`${leader.membership_number}-${leader.full_name}`} className="rounded-lg bg-slate-50 p-3 dark:bg-gray-800">
+                          <p className="font-medium">{leader.full_name}</p>
+                          <p className="text-xs text-slate-500">{leader.membership_number || leader.phone || '—'}</p>
+                        </div>
+                      ))}
+                    </div>
+                  ) : selectedGroupDetails?.leader ? (
+                    <div className="rounded-lg bg-slate-50 p-3 dark:bg-gray-800">
+                      <p className="font-medium">{selectedGroupDetails.leader.full_name}</p>
+                      <p className="text-xs text-slate-500">{selectedGroupDetails.leader.membership_number || '—'}</p>
+                    </div>
+                  ) : (
+                    <p className="text-sm text-slate-500">Hakuna kiongozi aliyesajiliwa.</p>
+                  )}
+                </div>
+
+                <div className="overflow-x-auto rounded-xl border border-slate-200 dark:border-gray-800">
+                  <table className="w-full text-sm">
+                    <thead className="bg-slate-100 text-left dark:bg-gray-800">
+                      <tr>
+                        <th className="px-4 py-3">#</th>
+                        <th className="px-4 py-3">Jina</th>
+                        <th className="px-4 py-3">Namba</th>
+                        <th className="px-4 py-3">Simu</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {selectedGroupDetails?.members?.length ? (
+                        selectedGroupDetails.members.map((member, index) => (
+                          <tr key={member.id} className="border-t border-slate-100 dark:border-gray-800">
+                            <td className="px-4 py-3">{index + 1}</td>
+                            <td className="px-4 py-3 font-medium">{member.full_name}</td>
+                            <td className="px-4 py-3">{member.membership_number || '—'}</td>
+                            <td className="px-4 py-3">{member.phone || '—'}</td>
+                          </tr>
+                        ))
+                      ) : (
+                        <tr>
+                          <td colSpan={4} className="px-4 py-8 text-center text-slate-500">Hakuna washirika kwenye kundi hili.</td>
+                        </tr>
+                      )}
+                    </tbody>
+                  </table>
+                </div>
+              </>
+            )}
+          </div>
+        </div>
+      </Dialog>
+    </div>
+  );
+}
+
+function DetailSummary({ title, value }: { title: string; value: string | number }) {
+  return (
+    <div className="rounded-xl border border-slate-200 bg-slate-50 p-4 dark:border-gray-800 dark:bg-gray-800">
+      <p className="text-xs font-medium uppercase text-slate-500 dark:text-gray-400">{title}</p>
+      <p className="mt-2 text-xl font-bold">{value}</p>
     </div>
   );
 }
