@@ -1,7 +1,6 @@
-import Calendar from "@/components/washirika/all/washirika";
 import PageBreadcrumb from "@/components/common/PageBreadCrumb";
 import { Metadata } from "next";
-import React from "react";
+import React, { Suspense } from "react";
 import Washirika from "@/components/washirika/all/washirika";
 
 export const metadata: Metadata = {
@@ -14,7 +13,9 @@ export default function page() {
   return (
     <div>
       <PageBreadcrumb pageTitle="Washirika" />
-      <Washirika />
+      <Suspense fallback={<div className="p-6">Inapakia...</div>}>
+        <Washirika />
+      </Suspense>
     </div>
   );
 }

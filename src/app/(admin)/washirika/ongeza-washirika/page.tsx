@@ -1,6 +1,7 @@
 import { Metadata } from "next";
 import PageBreadcrumb from "@/components/common/PageBreadCrumb";
 import OngezaWashirika from "@/components/washirika/ongeza-washirika/ongeza-washirika";
+import { Suspense } from "react";
 
 export const metadata: Metadata = {
   title: "Ongeza Washirika",
@@ -19,7 +20,9 @@ export default function Page() {
 
       {/* Main Content */}
       <div className="max-w-7xl mx-auto">
-        <OngezaWashirika />
+        <Suspense fallback={<div className="p-6">Inapakia...</div>}>
+          <OngezaWashirika />
+        </Suspense>
       </div>
 
     </div>
