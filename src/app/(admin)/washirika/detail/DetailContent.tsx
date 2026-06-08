@@ -15,8 +15,24 @@ export default function DetailContent() {
   useEffect(() => {
     const fetchUser = async () => {
       try {
-        const data = await apiFetch(`/members/by-user/${id}`);
-        setUser(data.member);
+        try {
+          const data = await apiFetch(`/members/by-user/${id}`);
+          setUser(data.member);
+          return;
+        } catch {
+          const data = await apiFetch("/users");
+          const foundUser = data?.users?.find((user: any) => {
+            const requestedId = Number(id);
+
+            return (
+              user.id === requestedId ||
+              user.user_id === requestedId ||
+              user.member_id === requestedId
+            );
+          });
+
+          setUser(foundUser ?? null);
+        }
       } catch (error) {
         console.error(error);
       } finally {

@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useEffect, useState } from "react";
-import { apiFetch } from "@/lib/api";
+import { ApiAuthError, apiFetch } from "@/lib/api";
 import { Dropdown } from "../ui/dropdown/Dropdown";
 
 interface PendingUser {
@@ -24,6 +24,8 @@ export default function NotificationDropdown() {
         const users = response?.users ?? response?.data?.users ?? [];
         setPendingUsers(users.filter((user: PendingUser) => user.role !== "mchungaji" && user.membership_status === "pending"));
       } catch (error) {
+        if (error instanceof ApiAuthError) return;
+
         console.error("Failed to load pending registrations", error);
       }
     }

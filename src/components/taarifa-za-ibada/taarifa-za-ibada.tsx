@@ -38,12 +38,17 @@ export default function TaarifaZaIbada() {
     item.service_name || item.title || '';
 
   async function fetchAttendance() {
-    setLoading(true);
-    const res = await apiFetch('/service-events');
-    if (res.status === 'success') {
-      setAttendanceData(res.service_events || []);
+    try {
+      setLoading(true);
+      const res = await apiFetch('/service-events');
+      if (res.status === 'success') {
+        setAttendanceData(res.service_events || []);
+      }
+    } catch (error) {
+      console.error('Failed to load taarifa za ibada', error);
+    } finally {
+      setLoading(false);
     }
-    setLoading(false);
   }
 
   useEffect(() => {

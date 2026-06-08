@@ -100,11 +100,11 @@ const navItems: NavItem[] = [
 const othersItems: NavItem[] = [
   {
     icon: <CalenderIcon />,
-    name: "Matukio",
+    name: "Matangazo & Matukio",
     subItems: [
-      { name: "Matukio Yaliyopo", path: "/matukio", pro: false },
+      { name: "Matangazo & Matukio", path: "/matukio", pro: false },
       //  { name: "matukio", path: "/matukio", pro: false },
-      { name: "Matukio yaliyopita", path: "/matukio/matukio-yaliyopita", pro: false },
+      { name: "Matangazo & Matukio yaliyopita", path: "/matukio/matukio-yaliyopita", pro: false },
      
     ],
   },

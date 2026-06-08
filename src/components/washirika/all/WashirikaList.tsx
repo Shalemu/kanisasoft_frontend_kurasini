@@ -27,6 +27,7 @@ interface Group {
 interface User {
   id: number;
   user_id: number;
+  member_id?: number | null;
   full_name: string;
     email: string | null;  
   residential_zone: string;
@@ -135,8 +136,9 @@ const fetchGroups = async () => {
       const data = await apiFetch("/users");
 
       const users: User[] = data.users.map((u: any) => ({
-        id: u.id,
-        user_id: u.id,
+        id: u.user_id ?? u.id,
+        user_id: u.user_id ?? u.id,
+        member_id: u.member_id ?? null,
         full_name: u.full_name,
         email: u.email ?? null,
         residential_zone: u.residential_zone ?? "",
@@ -291,7 +293,18 @@ const handleDeactivate = () => {
   setReasonModalOpen(true);
 };
 
+const getMemberId = async (userId: number) => {
+  const user = members.find((member) => member.id === userId);
+
+  if (user?.member_id) return user.member_id;
+
+  const data = await apiFetch(`/members/by-user/${userId}`);
+  return data?.member?.id ?? data?.member?.member_id;
+};
+
 const handleSendSms = async () => {
+  if (sendingSms) return;
+
   const recipients = members.filter((member) => selectedMembers.includes(member.id));
 
   if (recipients.length === 0) {
@@ -315,15 +328,32 @@ const handleSendSms = async () => {
   setSendingSms(true);
 
   try {
+    const message = result.value.trim();
+    const memberIds = (
+      await Promise.all(recipients.map((member) => getMemberId(member.id)))
+    ).filter(Boolean);
+
+    if (memberIds.length !== recipients.length) {
+      Swal.fire("Hitilafu", "Baadhi ya washirika hawajapatikana.", "error");
+      return;
+    }
+
+    const payload =
+      memberIds.length === 1
+        ? {
+            type: "mshiriki",
+            member_id: memberIds[0],
+            message,
+          }
+        : {
+            type: "members",
+            member_ids: memberIds,
+            message,
+          };
+
     const response = await apiFetch("/send-sms", {
       method: "POST",
-      body: {
-        type: "members",
-        receiver: recipients.map((member) => member.id).join(","),
-        member_ids: recipients.map((member) => member.id),
-        phones: recipients.map((member) => member.phone).filter(Boolean),
-        message: result.value.trim(),
-      },
+      body: payload,
     });
 
     if (response?.status === "success" || !response?.error) {
@@ -342,7 +372,6 @@ const handleSendSms = async () => {
     setSendingSms(false);
   }
 };
-
 
 const handleConfirmReason = async (reason: string) => {
   if (!selectedActionUser && actionType === "reject") return;
@@ -391,7 +420,14 @@ const handleConfirmReason = async (reason: string) => {
       let successCount = 0;
 
       for (const id of selectedMembers) {
-        const response = await apiFetch(`/users/${id}/deactivate`, {
+        const memberId = await getMemberId(id);
+
+        if (!memberId) {
+          console.warn("Missing member id for user:", id);
+          continue;
+        }
+
+        const response = await apiFetch(`/members/${memberId}/deactivate`, {
           method: "POST",
           body: { reason, status },
         });

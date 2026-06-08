@@ -16,18 +16,38 @@ export default function OngezaMshirika() {
   const searchParams = useSearchParams();
   const editId = searchParams.get("edit");
   const [initialMember, setInitialMember] = useState<any>(null);
+  const [resolvedEditUserId, setResolvedEditUserId] = useState<string | null>(editId);
   const [loadingMember, setLoadingMember] = useState(Boolean(editId));
 
   useEffect(() => {
     async function loadMember() {
       if (!editId) {
+        setResolvedEditUserId(null);
         setLoadingMember(false);
         return;
       }
 
       try {
-        const data = await apiFetch(`/members/by-user/${editId}`);
-        setInitialMember(data.member ?? data.user ?? data.data?.member ?? null);
+        try {
+          const data = await apiFetch(`/members/by-user/${editId}`);
+          const member = data.member ?? data.user ?? data.data?.member ?? null;
+
+          setInitialMember(member);
+          setResolvedEditUserId(String(member?.user_id ?? editId));
+          return;
+        } catch {
+          const requestedId = Number(editId);
+          const data = await apiFetch("/users");
+          const user = data?.users?.find(
+            (item: any) =>
+              item.id === requestedId ||
+              item.user_id === requestedId ||
+              item.member_id === requestedId
+          );
+
+          setInitialMember(user ?? null);
+          setResolvedEditUserId(user ? String(user.user_id ?? user.id) : editId);
+        }
       } finally {
         setLoadingMember(false);
       }
@@ -48,7 +68,7 @@ export default function OngezaMshirika() {
     handleRegister,
   } = useMemberForm(router, {
     mode: editId ? "edit" : "create",
-    userId: editId,
+    userId: resolvedEditUserId ?? editId,
     initialData: initialMember,
   });
 

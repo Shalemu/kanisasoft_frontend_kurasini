@@ -34,7 +34,9 @@ export default function UserDetailsClient({ user }: any) {
     try {
       setLoading(true);
 
-      await apiFetch(`/users/${user.user_id ?? user.id}/deactivate`, {
+      const memberId = user.member_id ?? user.id;
+
+      await apiFetch(`/members/${memberId}/deactivate`, {
         method: "POST",
         body: { reason: "Deactivated by admin" },
       });

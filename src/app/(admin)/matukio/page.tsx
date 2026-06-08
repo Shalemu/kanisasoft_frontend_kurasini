@@ -4,8 +4,8 @@ import Matukio from "@/components/matukio/matukio-yaliyopo/matukio";
 
 
 export const metadata: Metadata = {
-  title: "Matukio",
-  description: "Matukio Yaliyopo",
+  title: "Matangazo & Matukio",
+  description: "Matangazo & Matukio",
      icons: {
     icon: "/logo.png",
   },
@@ -16,7 +16,7 @@ export default function Page() {
     <div className="space-y-6">
       
       {/* Breadcrumb */}
-      <PageBreadcrumb pageTitle="Matukio yaliyopo" />
+      <PageBreadcrumb pageTitle="Matangazo & Matukio" />
 
       {/* Main Content */}
       <div className="max-w-7xl mx-auto">

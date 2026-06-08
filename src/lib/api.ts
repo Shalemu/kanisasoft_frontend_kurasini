@@ -1,6 +1,25 @@
 // lib/api.ts
+import { clearSession } from "./session";
+
 export interface ApiOptions extends RequestInit {
   body?: any; // allow object for JSON payloads
+}
+
+export class ApiAuthError extends Error {
+  constructor(message = "Unauthenticated.") {
+    super(message);
+    this.name = "ApiAuthError";
+  }
+}
+
+function isAuthError(response: Response, data: any) {
+  const message = String(data?.message || "").toLowerCase();
+
+  return (
+    [401, 403, 419].includes(response.status) ||
+    message.includes("unauthenticated") ||
+    message.includes("unauthorized")
+  );
 }
 
 export async function apiFetch(endpoint: string, options: ApiOptions = {}) {
@@ -53,6 +72,16 @@ export async function apiFetch(endpoint: string, options: ApiOptions = {}) {
   const data = isJson ? await response.json() : {};
 
   if (!response.ok) {
+    if (isAuthError(response, data)) {
+      clearSession();
+
+      if (typeof window !== "undefined" && !window.location.pathname.includes("/login")) {
+        window.location.replace("/login");
+      }
+
+      throw new ApiAuthError(data?.message || "Unauthenticated.");
+    }
+
     throw new Error(
       data?.message || `Request failed with status ${response.status}`
     );
