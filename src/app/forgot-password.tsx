@@ -39,7 +39,7 @@ export default function ForgotPasswordPage() {
   return (
     <>
       <Head>
-        <title>Umesahau Neno la Siri | FPCT Kurasini</title>
+        <title>Umesahau Neno la Siri | RGCM-Kanisasoft</title>
       </Head>
 
       <div className="flex min-h-screen items-center justify-center bg-white px-4 dark:bg-gray-900">

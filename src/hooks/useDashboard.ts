@@ -99,17 +99,25 @@ export function useDashboard() {
 
   useEffect(() => {
     const load = async () => {
-      setLoading(true);
+      try {
+        setLoading(true);
 
-      await Promise.all([
-        fetchMembers(),
-        fetchGroups(),
-        fetchVisitors(),
-        fetchLeaders(),
-        fetchContributions(),
-      ]);
+        const results = await Promise.allSettled([
+          fetchMembers(),
+          fetchGroups(),
+          fetchVisitors(),
+          fetchLeaders(),
+          fetchContributions(),
+        ]);
 
-      setLoading(false);
+        results.forEach((result) => {
+          if (result.status === "rejected") {
+            console.error("Failed to load dashboard metric", result.reason);
+          }
+        });
+      } finally {
+        setLoading(false);
+      }
     };
 
     load();

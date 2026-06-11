@@ -12,6 +12,16 @@ export class ApiAuthError extends Error {
   }
 }
 
+const GET_CACHE_TTL_MS = 10_000;
+const getRequestCache = new Map<
+  string,
+  {
+    expiresAt: number;
+    data?: any;
+    promise?: Promise<any>;
+  }
+>();
+
 function isAuthError(response: Response, data: any) {
   const message = String(data?.message || "").toLowerCase();
 
@@ -59,33 +69,74 @@ export async function apiFetch(endpoint: string, options: ApiOptions = {}) {
       ? JSON.stringify(options.body)
       : options.body;
 
-  const response = await fetch(`${baseUrl}${endpoint}`, {
-    ...options,
-    headers,
-    body,
-  });
+  const method = (options.method ?? "GET").toUpperCase();
+  const canUseGetCache = method === "GET" && !body && !options.signal;
+  const cacheKey = `${token ?? "guest"}:${endpoint}`;
+  const cached = canUseGetCache ? getRequestCache.get(cacheKey) : undefined;
 
-  const isJson = response.headers
-    .get("content-type")
-    ?.includes("application/json");
-
-  const data = isJson ? await response.json() : {};
-
-  if (!response.ok) {
-    if (isAuthError(response, data)) {
-      clearSession();
-
-      if (typeof window !== "undefined" && !window.location.pathname.includes("/login")) {
-        window.location.replace("/login");
-      }
-
-      throw new ApiAuthError(data?.message || "Unauthenticated.");
-    }
-
-    throw new Error(
-      data?.message || `Request failed with status ${response.status}`
-    );
+  if (cached?.promise) {
+    return cached.promise;
   }
 
-  return data;
+  if (cached?.data !== undefined && cached.expiresAt > Date.now()) {
+    return cached.data;
+  }
+
+  const requestPromise = (async () => {
+    const response = await fetch(`${baseUrl}${endpoint}`, {
+      ...options,
+      headers,
+      body,
+    });
+
+    const isJson = response.headers
+      .get("content-type")
+      ?.includes("application/json");
+
+    const data = isJson ? await response.json() : {};
+
+    if (!response.ok) {
+      if (isAuthError(response, data)) {
+        clearSession();
+
+        if (typeof window !== "undefined" && !window.location.pathname.includes("/login")) {
+          window.location.replace("/login");
+        }
+
+        throw new ApiAuthError(data?.message || "Unauthenticated.");
+      }
+
+      throw new Error(
+        data?.message || `Request failed with status ${response.status}`
+      );
+    }
+
+    return data;
+  })();
+
+  if (canUseGetCache) {
+    getRequestCache.set(cacheKey, {
+      expiresAt: Date.now() + GET_CACHE_TTL_MS,
+      promise: requestPromise,
+    });
+  }
+
+  try {
+    const data = await requestPromise;
+
+    if (canUseGetCache) {
+      getRequestCache.set(cacheKey, {
+        expiresAt: Date.now() + GET_CACHE_TTL_MS,
+        data,
+      });
+    }
+
+    return data;
+  } catch (error) {
+    if (canUseGetCache) {
+      getRequestCache.delete(cacheKey);
+    }
+
+    throw error;
+  }
 }

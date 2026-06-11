@@ -1,8 +1,9 @@
 "use client";
-import React, { useEffect, useRef, useState,useCallback } from "react";
+import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { usePathname } from "next/navigation";
+import { Quote } from "lucide-react";
 import { useSidebar } from "../context/SidebarContext";
 import {
   BoxCubeIcon,
@@ -18,6 +19,7 @@ import {
   UserCircleIcon,
 } from "../icons/index";
 import SidebarWidget from "./SidebarWidget";
+import { useAuthUser } from "@/hooks/useAuthUser";
 
 type NavItem = {
   name: string;
@@ -95,6 +97,11 @@ const navItems: NavItem[] = [
       // { name: "SMS zilizotumwa", path: "/error-404", pro: false },
     ],
   },
+  {
+    icon: <Quote />,
+    name: "Neno la Siku",
+    path: "/neno-la-siku",
+  },
 ];
 
 const othersItems: NavItem[] = [
@@ -121,6 +128,17 @@ const othersItems: NavItem[] = [
 const AppSidebar: React.FC = () => {
   const { isExpanded, isMobileOpen, isHovered, setIsHovered } = useSidebar();
   const pathname = usePathname();
+  const user = useAuthUser();
+  const canManageDailyWords = ["admin", "mchungaji"].includes(
+    String(user?.role ?? "").toLowerCase()
+  );
+  const visibleNavItems = useMemo(
+    () =>
+      canManageDailyWords
+        ? navItems
+        : navItems.filter((item) => item.path !== "/neno-la-siku"),
+    [canManageDailyWords]
+  );
 
   const renderMenuItems = (
   navItems: NavItem[],
@@ -267,7 +285,7 @@ const AppSidebar: React.FC = () => {
     // Check if the current path matches any submenu item
     let submenuMatched = false;
     ["main", "others"].forEach((menuType) => {
-      const items = menuType === "main" ? navItems : othersItems;
+      const items = menuType === "main" ? visibleNavItems : othersItems;
       items.forEach((nav, index) => {
         if (nav.subItems) {
           nav.subItems.forEach((subItem) => {
@@ -287,7 +305,7 @@ const AppSidebar: React.FC = () => {
     if (!submenuMatched) {
       setOpenSubmenu(null);
     }
-  }, [pathname,isActive]);
+  }, [pathname,isActive, visibleNavItems]);
 
   useEffect(() => {
     // Set the height of the submenu items when the submenu is opened
@@ -375,7 +393,7 @@ const AppSidebar: React.FC = () => {
                   <HorizontaLDots />
                 )}
               </h2>
-              {renderMenuItems(navItems, "main")}
+              {renderMenuItems(visibleNavItems, "main")}
             </div>
 
             <div className="">

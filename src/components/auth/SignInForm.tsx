@@ -191,7 +191,7 @@ export default function SignInForm() {
               </label>
 
               <Link href="/forget-password" className="text-sm text-[#f0ce32] hover:underline">
-                Umesahau?
+                Umesahau neno la siri?
               </Link>
             </div>
 
@@ -214,6 +214,9 @@ export default function SignInForm() {
                 Jisajili hapa
               </Link>
             </p>
+            <Link href="/" className="text-sm font-medium text-[#f0ce32] hover:underline">
+              ← Rudi Nyumbani
+            </Link>
           </div>
 
         </div>
