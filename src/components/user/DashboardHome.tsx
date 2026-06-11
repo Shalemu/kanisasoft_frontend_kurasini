@@ -17,9 +17,7 @@ import {
 } from "lucide-react";
 import { apiFetch } from "@/lib/api";
 import { useDashboard } from "@/hooks/useDashboard";
-import { useAuthUser } from "@/hooks/useAuthUser";
 import DailyWordCard from "@/components/daily-words/DailyWordCard";
-import DailyWordStatsCard from "@/components/daily-words/DailyWordStatsCard";
 
 type AudienceGroup = {
   id: number;
@@ -145,7 +143,6 @@ function MetricCard({
 }
 
 export default function DashboardHome() {
-  const user = useAuthUser();
   const {
     totalMembers,
     groupsCount,
@@ -194,12 +191,10 @@ export default function DashboardHome() {
   const sideEvents = upcomingEvents
     .filter((event) => event.id !== featuredEvent?.id)
     .slice(0, 5);
-  const canManageDailyWords = ["admin", "mchungaji"].includes(
-    String(user?.role ?? "").toLowerCase()
-  );
-
   return (
     <div className="space-y-6">
+      <DailyWordCard />
+
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-5">
         <MetricCard
           title="Idadi ya Washirika"
@@ -232,15 +227,6 @@ export default function DashboardHome() {
           loading={loading}
           helper={`Jumla: TZS ${totalContributions.toLocaleString()}`}
         />
-      </div>
-
-      <div
-        className={`grid grid-cols-1 gap-4 ${
-          canManageDailyWords ? "xl:grid-cols-2" : ""
-        }`}
-      >
-        <DailyWordCard canManage={canManageDailyWords} />
-        {canManageDailyWords ? <DailyWordStatsCard /> : null}
       </div>
 
       <section className="space-y-4">
