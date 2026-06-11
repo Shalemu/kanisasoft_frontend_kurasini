@@ -37,8 +37,6 @@ export default function SignInForm() {
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    console.log("LOGIN CLICKED");
-
     if (!login || !password) {
       showMessage("Tafadhali jaza taarifa zote.", "warning");
       return;
@@ -54,9 +52,16 @@ export default function SignInForm() {
           login,
           password,
         },
+        throwOnError: false,
       });
 
-      console.log("LOGIN RESPONSE:", data);
+      if (data?.ok === false) {
+        showMessage(
+          data?.message || "Email/Simu au neno la siri si sahihi",
+          "error"
+        );
+        return;
+      }
 
       const { token, user } = data;
 
@@ -87,14 +92,12 @@ export default function SignInForm() {
 
       showMessage("Umeingia kikamilifu.", "success");
 
-      console.log("INAPAKIA REDIRECT...");
-
       setTimeout(() => {
         router.push("/dashboard");
       }, 300);
 
     } catch (err: unknown) {
-      console.error("LOGIN ERROR:", err);
+      console.error("Unexpected login error:", err);
       showMessage(
         err instanceof Error ? err.message : "Tatizo la mfumo. Jaribu tena.",
         "error"

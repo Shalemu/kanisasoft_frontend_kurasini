@@ -9,8 +9,6 @@ import React, { useState, useEffect, useRef } from "react";
 import { useAuthUser } from "@/hooks/useAuthUser";
 
 const AppHeader: React.FC = () => {
-  const [isApplicationMenuOpen, setApplicationMenuOpen] = useState(false);
-
   const { isMobileOpen, toggleSidebar, toggleMobileSidebar } = useSidebar();
 
 
@@ -22,10 +20,6 @@ const AppHeader: React.FC = () => {
     } else {
       toggleMobileSidebar();
     }
-  };
-
-  const toggleApplicationMenu = () => {
-    setApplicationMenuOpen(!isApplicationMenuOpen);
   };
 
   const inputRef = useRef<HTMLInputElement>(null);
@@ -57,9 +51,23 @@ const AppHeader: React.FC = () => {
             {isMobileOpen ? "X" : "☰"}
           </button>
 
-          <Link href="/" className="lg:hidden">
-            <Image width={154} height={32} src="./images/logo/logo.svg" alt="Logo" />
+          <Link
+            href="/"
+            className="flex h-10 items-center rounded-lg bg-[#1e293b] px-3 py-1.5 shadow-sm ring-1 ring-slate-700/40 lg:hidden"
+          >
+            <Image
+              width={150}
+              height={38}
+              src="/images/logo/logo.png"
+              alt="KanisaSoft Logo"
+              priority
+              className="h-7 w-auto object-contain"
+            />
           </Link>
+
+          <div className="lg:hidden">
+            <ThemeToggleButton />
+          </div>
 
           {/* SEARCH */}
           <div className="hidden lg:block">
@@ -77,11 +85,7 @@ const AppHeader: React.FC = () => {
         </div>
 
         {/* RIGHT SECTION */}
-        <div
-          className={`${
-            isApplicationMenuOpen ? "flex" : "hidden"
-          } items-center justify-between w-full gap-4 px-5 py-4 lg:flex lg:justify-end lg:px-0`}
-        >
+        <div className="hidden items-center justify-between w-full gap-4 px-5 py-4 lg:flex lg:justify-end lg:px-0">
 
           <ThemeToggleButton />
           <NotificationDropdown />

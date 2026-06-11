@@ -3,6 +3,7 @@ import { clearSession } from "./session";
 
 export interface ApiOptions extends RequestInit {
   body?: any; // allow object for JSON payloads
+  throwOnError?: boolean;
 }
 
 export class ApiAuthError extends Error {
@@ -37,6 +38,7 @@ export async function apiFetch(endpoint: string, options: ApiOptions = {}) {
 
   if (!baseUrl) throw new Error('API base URL is not defined!');
 
+  const { throwOnError = true, ...requestOptions } = options;
  
   const token =
     typeof window !== "undefined"
@@ -45,16 +47,16 @@ export async function apiFetch(endpoint: string, options: ApiOptions = {}) {
 
   const customHeaders: Record<string, string> = {};
 
-  if (options.headers instanceof Headers) {
-    options.headers.forEach((value, key) => {
+  if (requestOptions.headers instanceof Headers) {
+    requestOptions.headers.forEach((value, key) => {
       customHeaders[key] = value;
     });
-  } else if (Array.isArray(options.headers)) {
-    options.headers.forEach(([key, value]) => {
+  } else if (Array.isArray(requestOptions.headers)) {
+    requestOptions.headers.forEach(([key, value]) => {
       customHeaders[key] = value;
     });
-  } else if (options.headers) {
-    Object.assign(customHeaders, options.headers);
+  } else if (requestOptions.headers) {
+    Object.assign(customHeaders, requestOptions.headers);
   }
 
   const headers: Record<string, string> = {
@@ -65,12 +67,12 @@ export async function apiFetch(endpoint: string, options: ApiOptions = {}) {
   };
 
   const body =
-    options.body && typeof options.body !== "string"
-      ? JSON.stringify(options.body)
-      : options.body;
+    requestOptions.body && typeof requestOptions.body !== "string"
+      ? JSON.stringify(requestOptions.body)
+      : requestOptions.body;
 
-  const method = (options.method ?? "GET").toUpperCase();
-  const canUseGetCache = method === "GET" && !body && !options.signal;
+  const method = (requestOptions.method ?? "GET").toUpperCase();
+  const canUseGetCache = method === "GET" && !body && !requestOptions.signal;
   const cacheKey = `${token ?? "guest"}:${endpoint}`;
   const cached = canUseGetCache ? getRequestCache.get(cacheKey) : undefined;
 
@@ -84,7 +86,7 @@ export async function apiFetch(endpoint: string, options: ApiOptions = {}) {
 
   const requestPromise = (async () => {
     const response = await fetch(`${baseUrl}${endpoint}`, {
-      ...options,
+      ...requestOptions,
       headers,
       body,
     });
@@ -96,6 +98,14 @@ export async function apiFetch(endpoint: string, options: ApiOptions = {}) {
     const data = isJson ? await response.json() : {};
 
     if (!response.ok) {
+      if (!throwOnError) {
+        return {
+          ...data,
+          ok: false,
+          status: response.status,
+        };
+      }
+
       if (isAuthError(response, data)) {
         clearSession();
 

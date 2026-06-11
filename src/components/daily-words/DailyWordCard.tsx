@@ -89,7 +89,7 @@ export default function DailyWordCard() {
             <p className="mt-3 text-sm font-semibold text-amber-700 dark:text-amber-200">
               {dailyWord.scripture_reference}
             </p>
-            <p className="mt-3 line-clamp-2 text-sm leading-6 text-gray-600 dark:text-slate-200">
+            <p className="mt-3 text-sm leading-6 text-gray-600 dark:text-slate-200">
               {dailyWord.explanation}
             </p>
           </div>
