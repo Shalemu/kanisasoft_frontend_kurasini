@@ -2,7 +2,6 @@
 
 import { useEffect, useState } from 'react';
 import {
-  FaPlus,
   FaUsers,
   FaSearch,
   FaEdit,
@@ -108,16 +107,6 @@ export default function MakundiTab() {
     setFilteredGroups(filtered);
   };
 
-  const openAddDialog = () => {
-    setEditingGroup(null);
-    setFormData({
-      name: '',
-      leader_membership_number: '',
-      whatsapp_link: '',
-    });
-    setIsOpen(true);
-  };
-
   const openEditDialog = (group: Group) => {
     setEditingGroup(group);
     setFormData({
@@ -132,9 +121,10 @@ export default function MakundiTab() {
     setLoading(true);
 
     try {
-      const method = editingGroup ? 'PUT' : 'POST';
-      const data = await apiFetch(editingGroup ? `/groups/${editingGroup.id}` : '/groups', {
-        method,
+      if (!editingGroup) return;
+
+      const data = await apiFetch(`/groups/${editingGroup.id}`, {
+        method: 'PUT',
         body: formData,
       });
 
@@ -182,13 +172,6 @@ export default function MakundiTab() {
           <FaUsers className="text-blue-600" />
           Makundi ya Kanisa
         </h1>
-
-        <button
-          onClick={openAddDialog}
-          className="bg-blue-600 text-white px-5 py-2.5 rounded-xl flex items-center gap-2 hover:bg-blue-500 transition shadow-sm"
-        >
-          <FaPlus /> Ongeza
-        </button>
       </div>
 
       {/* SEARCH */}
@@ -285,7 +268,7 @@ export default function MakundiTab() {
           <div className="bg-white p-6 rounded-xl w-full max-w-sm space-y-4 text-slate-800 shadow-xl dark:bg-gray-900 dark:text-white/90">
 
             <h2 className="text-lg font-bold">
-              {editingGroup ? 'Hariri Kundi' : 'Ongeza Kundi'}
+              Hariri Kundi
             </h2>
 
             <input
