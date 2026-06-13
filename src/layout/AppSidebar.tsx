@@ -92,8 +92,10 @@ const navItems: NavItem[] = [
     icon: <PageIcon />,
     name: "SMS",
     subItems: [
-      { name: "SMS zilizotumwa", path: "/sms", pro: false },
-      { name: "Tuma ujumbe", path: "/sms/tuma-ujumbe", pro: false },
+
+      { name: "Tuma Ujumbe", path: "/sms/tuma-ujumbe", pro: false },
+      { name: "Ripoti ya Ujumbe", path: "/sms", pro: false },
+    
       // { name: "SMS zilizotumwa", path: "/error-404", pro: false },
     ],
   },
