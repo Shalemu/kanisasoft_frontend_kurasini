@@ -65,7 +65,7 @@ export default function SmsZilizotumwa() {
     }
   };
 
-  // ================= NORMALIZERS =================
+
   const normalizePhone = (phone: string) => {
     if (!phone) return '';
     return phone.replace(/^255/, '0');
@@ -75,7 +75,7 @@ export default function SmsZilizotumwa() {
     return (status || '').toLowerCase();
   };
 
-  // ================= FILTERS (FIXED) =================
+
   const filteredLogs = useMemo(() => {
     const searchValue = search.toLowerCase().trim();
     const statusValue = statusFilter.toLowerCase();
@@ -107,7 +107,7 @@ export default function SmsZilizotumwa() {
     });
   }, [logs, search, statusFilter, dateFilter]);
 
-  // ================= PAGINATION =================
+
   const totalPages = Math.ceil(filteredLogs.length / PAGE_SIZE);
 
   const paginatedLogs = useMemo(() => {
@@ -173,7 +173,7 @@ const toggleAll = () => {
     );
   };
 
-  // ================= EXPORT =================
+
   const exportPDF = () => {
     const doc = new jsPDF();
 
