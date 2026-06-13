@@ -8,6 +8,37 @@ import Swal from "sweetalert2";
 import { apiFetch } from "@/lib/api";
 import { Eye, EyeOff } from "lucide-react";
 
+const PASSWORD_RULE_MESSAGE =
+  "Password mpya lazima iwe na angalau herufi 6, ikijumuisha herufi, namba na alama maalum.";
+
+function isStrongPassword(password: string) {
+  return (
+    password.length >= 6 &&
+    /[A-Za-z]/.test(password) &&
+    /\d/.test(password) &&
+    /[^A-Za-z0-9]/.test(password)
+  );
+}
+
+function getChangePasswordErrorMessage(error: any) {
+  const backendMessage =
+    error?.response?.data?.message ||
+    error?.message ||
+    "Server error imetokea";
+
+  const normalizedMessage = String(backendMessage).toLowerCase();
+
+  if (
+    normalizedMessage.includes("password ya sasa si sahihi") ||
+    normalizedMessage.includes("current password") ||
+    normalizedMessage.includes("old password")
+  ) {
+    return "Password ya sasa si sahihi. Tafadhali ingiza password yako ya sasa kwa usahihi.";
+  }
+
+  return backendMessage;
+}
+
 export default function ChangePasswordPage() {
   const [form, setForm] = useState({
     current_password: "",
@@ -20,6 +51,7 @@ export default function ChangePasswordPage() {
     new: false,
     confirm: false,
   });
+  const [loading, setLoading] = useState(false);
 
   const handleChange = (key: string, value: string) => {
     setForm((prev) => ({
@@ -36,64 +68,64 @@ export default function ChangePasswordPage() {
   };
 
   const handleSubmit = async () => {
-  // Required fields
-  if (!form.current_password.trim()) {
-    Swal.fire("Tahadhari", "Tafadhali ingiza password ya sasa", "warning");
-    return;
-  }
+    if (loading) {
+      return;
+    }
 
-  if (!form.new_password.trim()) {
-    Swal.fire("Tahadhari", "Tafadhali ingiza password mpya", "warning");
-    return;
-  }
+    // Required fields
+    if (!form.current_password.trim()) {
+      Swal.fire("Tahadhari", "Tafadhali ingiza password ya sasa", "warning");
+      return;
+    }
 
-  if (!form.confirm_password.trim()) {
-    Swal.fire("Tahadhari", "Tafadhali thibitisha password mpya", "warning");
-    return;
-  }
+    if (!form.new_password.trim()) {
+      Swal.fire("Tahadhari", "Tafadhali ingiza password mpya", "warning");
+      return;
+    }
 
-  // Minimum length
-  if (form.new_password.length < 6) {
-    Swal.fire(
-      "Tahadhari",
-      "Password mpya lazima iwe na angalau herufi 6",
-      "warning"
-    );
-    return;
-  }
+    if (!form.confirm_password.trim()) {
+      Swal.fire("Tahadhari", "Tafadhali thibitisha password mpya", "warning");
+      return;
+    }
 
-  // Same password check
-  if (form.current_password === form.new_password) {
-    Swal.fire(
-      "Tahadhari",
-      "Password mpya haiwezi kufanana na password ya sasa",
-      "warning"
-    );
-    return;
-  }
+    // Password strength
+    if (!isStrongPassword(form.new_password)) {
+      Swal.fire("Tahadhari", PASSWORD_RULE_MESSAGE, "warning");
+      return;
+    }
 
-  // Confirm password check
-  if (form.new_password !== form.confirm_password) {
-    Swal.fire("Hitilafu", "Nywila hazifanani", "error");
-    return;
-  }
+    // Same password check
+    if (form.current_password === form.new_password) {
+      Swal.fire(
+        "Tahadhari",
+        "Password mpya haiwezi kufanana na password ya sasa",
+        "warning"
+      );
+      return;
+    }
 
-  try {
-    const res = await apiFetch("/user/change-password", {
-      method: "POST",
-      body: JSON.stringify({
-        current_password: form.current_password,
-        new_password: form.new_password,
-        new_password_confirmation: form.confirm_password,
-      }),
-    });
+    // Confirm password check
+    if (form.new_password !== form.confirm_password) {
+      Swal.fire("Hitilafu", "Nywila hazifanani", "error");
+      return;
+    }
 
-    console.log("Response:", res);
+    try {
+      setLoading(true);
 
-    if (res.status === "success") {
+      const res = await apiFetch("/user/change-password", {
+        method: "POST",
+        body: JSON.stringify({
+          current_password: form.current_password,
+          new_password: form.new_password,
+          new_password_confirmation: form.confirm_password,
+        }),
+      });
+
       await Swal.fire(
         "Mafanikio",
-        "Password imebadilishwa kikamilifu. Tafadhali ingia tena.",
+        res?.message ||
+          "Password imebadilishwa kikamilifu. Tafadhali ingia tena.",
         "success"
       );
 
@@ -102,27 +134,12 @@ export default function ChangePasswordPage() {
       window.location.href = "/login";
 
       return;
+    } catch (err: any) {
+      Swal.fire("Hitilafu", getChangePasswordErrorMessage(err), "error");
+    } finally {
+      setLoading(false);
     }
-
-    Swal.fire(
-      "Hitilafu",
-      res.message || "Imeshindikana kubadilisha password",
-      "error"
-    );
-  } catch (err: any) {
-    console.error(err);
-
-    let message = "Server error imetokea";
-
-    if (err?.response?.data?.message) {
-      message = err.response.data.message;
-    } else if (err?.message) {
-      message = err.message;
-    }
-
-    Swal.fire("Hitilafu", message, "error");
-  }
-};
+  };
   return (
     <div className="p-6 lg:p-10">
       <div className="border border-gray-200 dark:border-gray-800 rounded-2xl p-6 lg:p-10 bg-white dark:bg-gray-900">
@@ -167,8 +184,9 @@ export default function ChangePasswordPage() {
               variant="custom"
               className="bg-[#1e293b] hover:bg-[#0f172a] text-white"
               onClick={handleSubmit}
+              disabled={loading}
             >
-              Sasisha Password
+              {loading ? "Inasasisha..." : "Sasisha Password"}
             </Button>
           </div>
         </div>
