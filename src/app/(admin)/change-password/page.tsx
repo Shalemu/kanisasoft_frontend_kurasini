@@ -36,50 +36,96 @@ export default function ChangePasswordPage() {
   };
 
   const handleSubmit = async () => {
-    if (form.new_password !== form.confirm_password) {
-      Swal.fire("Hitilafu", "Nywila hazifanani", "error");
+  // Required fields
+  if (!form.current_password.trim()) {
+    Swal.fire("Tahadhari", "Tafadhali ingiza password ya sasa", "warning");
+    return;
+  }
+
+  if (!form.new_password.trim()) {
+    Swal.fire("Tahadhari", "Tafadhali ingiza password mpya", "warning");
+    return;
+  }
+
+  if (!form.confirm_password.trim()) {
+    Swal.fire("Tahadhari", "Tafadhali thibitisha password mpya", "warning");
+    return;
+  }
+
+  // Minimum length
+  if (form.new_password.length < 6) {
+    Swal.fire(
+      "Tahadhari",
+      "Password mpya lazima iwe na angalau herufi 6",
+      "warning"
+    );
+    return;
+  }
+
+  // Same password check
+  if (form.current_password === form.new_password) {
+    Swal.fire(
+      "Tahadhari",
+      "Password mpya haiwezi kufanana na password ya sasa",
+      "warning"
+    );
+    return;
+  }
+
+  // Confirm password check
+  if (form.new_password !== form.confirm_password) {
+    Swal.fire("Hitilafu", "Nywila hazifanani", "error");
+    return;
+  }
+
+  try {
+    const res = await apiFetch("/user/change-password", {
+      method: "POST",
+      body: JSON.stringify({
+        current_password: form.current_password,
+        new_password: form.new_password,
+        new_password_confirmation: form.confirm_password,
+      }),
+    });
+
+    console.log("Response:", res);
+
+    if (res.status === "success") {
+      await Swal.fire(
+        "Mafanikio",
+        "Password imebadilishwa kikamilifu. Tafadhali ingia tena.",
+        "success"
+      );
+
+      localStorage.removeItem("token");
+      localStorage.removeItem("user");
+      window.location.href = "/login";
+
       return;
     }
 
-    try {
-      const res = await apiFetch("/user/change-password", {
-        method: "POST",
-        body: JSON.stringify({
-          current_password: form.current_password,
-          new_password: form.new_password,
-          new_password_confirmation: form.confirm_password,
-        }),
-      });
+    Swal.fire(
+      "Hitilafu",
+      res.message || "Imeshindikana kubadilisha password",
+      "error"
+    );
+  } catch (err: any) {
+    console.error(err);
 
-      if (res.status === "success") {
-      Swal.fire(
-        "Mafanikio",
-        "Password imebadilishwa kikamilifu",
-        "success"
-      ).then(() => {
-       
-        localStorage.removeItem("token");
-        localStorage.removeItem("user");
-        window.location.href = "/login";
-      });
+    let message = "Server error imetokea";
 
-      setForm({
-        current_password: "",
-        new_password: "",
-        confirm_password: "",
-      });
-    } else {
-        Swal.fire("Hitilafu", "Imeshindikana kubadilisha password", "error");
-      }
-    } catch (err) {
-      Swal.fire("Hitilafu", "Server error imetokea", "error");
+    if (err?.response?.data?.message) {
+      message = err.response.data.message;
+    } else if (err?.message) {
+      message = err.message;
     }
-  };
 
+    Swal.fire("Hitilafu", message, "error");
+  }
+};
   return (
     <div className="p-6 lg:p-10">
       <div className="border border-gray-200 dark:border-gray-800 rounded-2xl p-6 lg:p-10 bg-white dark:bg-gray-900">
-
         <h2 className="text-xl font-semibold text-gray-800 dark:text-white">
           Badilisha Password
         </h2>
@@ -89,7 +135,6 @@ export default function ChangePasswordPage() {
         </p>
 
         <div className="mt-6 space-y-5">
-
           <PasswordInput
             label="Password ya Sasa"
             value={form.current_password}
@@ -116,22 +161,21 @@ export default function ChangePasswordPage() {
             onToggle={() => toggleVisibility("confirm")}
             onChange={(val) => handleChange("confirm_password", val)}
           />
-          <div className="flex justify-end">
-        <Button
-          variant="custom"
-          className="bg-[#1e293b] hover:bg-[#0f172a] text-white"
-        >
-          Sasisha Password
-        </Button>
-          </div>
 
+          <div className="flex justify-end">
+            <Button
+              variant="custom"
+              className="bg-[#1e293b] hover:bg-[#0f172a] text-white"
+              onClick={handleSubmit}
+            >
+              Sasisha Password
+            </Button>
+          </div>
         </div>
       </div>
     </div>
   );
 }
-
-
 
 type PasswordInputProps = {
   label: string;
@@ -161,7 +205,6 @@ function PasswordInput({
           placeholder={placeholder}
           onChange={(e: any) => onChange(e.target.value)}
           className="pr-10"
-    
         />
 
         <button
