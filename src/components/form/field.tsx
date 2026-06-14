@@ -1,4 +1,4 @@
-import type { ChangeEvent } from "react";
+import type { ChangeEvent, InputHTMLAttributes } from "react";
 
 interface Props {
   label: string;
@@ -8,6 +8,9 @@ interface Props {
   type?: string;
   required?: boolean;
   placeholder?: string;
+  maxLength?: number;
+  inputMode?: InputHTMLAttributes<HTMLInputElement>["inputMode"];
+  pattern?: string;
 }
 
 export default function Field({
@@ -18,6 +21,9 @@ export default function Field({
   type = "text",
   required,
   placeholder,
+  maxLength,
+  inputMode,
+  pattern,
 }: Props) {
   return (
     <div className="w-full">
@@ -37,6 +43,9 @@ export default function Field({
         autoComplete="off"
         placeholder={placeholder}
         required={required}
+        maxLength={maxLength}
+        inputMode={inputMode}
+        pattern={pattern}
         className="
           w-full rounded-xl border border-gray-300 bg-white px-4 py-3
           text-gray-900 placeholder:text-gray-500

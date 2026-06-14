@@ -13,6 +13,20 @@ export class ApiAuthError extends Error {
   }
 }
 
+export class ApiRequestError extends Error {
+  status: number;
+  errors?: Record<string, string[]>;
+  data: any;
+
+  constructor(message: string, status: number, data: any) {
+    super(message);
+    this.name = "ApiRequestError";
+    this.status = status;
+    this.errors = data?.errors;
+    this.data = data;
+  }
+}
+
 const GET_CACHE_TTL_MS = 10_000;
 const getRequestCache = new Map<
   string,
@@ -122,8 +136,10 @@ export async function apiFetch(endpoint: string, options: ApiOptions = {}) {
         throw new ApiAuthError(data?.message || "Unauthenticated.");
       }
 
-      throw new Error(
-        data?.message || `Request failed with status ${response.status}`
+      throw new ApiRequestError(
+        data?.message || `Request failed with status ${response.status}`,
+        response.status,
+        data
       );
     }
 

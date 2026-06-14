@@ -93,6 +93,9 @@ const handleDateChange = (dates: Date[]) => {
   } as any);
 };
 
+const getPhoneMaxLength = (value: string) =>
+  value.startsWith("255") || value === "2" || value === "25" ? 12 : 10;
+
 
   // TAB CONTENT
 
@@ -301,15 +304,23 @@ options={[
       <Field
         label="Namba ya Simu *"
         name="phone"
+        type="tel"
         value={form.phone}
         onChange={handleChange}
+        inputMode="numeric"
+        pattern="[0-9]*"
+        maxLength={getPhoneMaxLength(form.phone)}
       />
 
       <Field
         label="Namba ya WhatsApp"
         name="whatsappNumber"
+        type="tel"
         value={form.whatsappNumber}
         onChange={handleChange}
+        inputMode="numeric"
+        pattern="[0-9]*"
+        maxLength={getPhoneMaxLength(form.whatsappNumber)}
       />
 
       <Field

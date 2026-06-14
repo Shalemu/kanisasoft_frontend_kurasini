@@ -39,6 +39,39 @@ interface GroupDetails extends Group {
     membership_number?: string | null;
     phone?: string | null;
   }[];
+  statistics?: Record<string, string | number | null>;
+  stats?: Record<string, string | number | null>;
+  total_members?: number;
+  group?: {
+    members_count?: number;
+  };
+}
+
+function normalizeGroupDetails(response: any, fallback: Group): GroupDetails {
+  const group = response?.group ?? response?.data?.group ?? response?.data ?? response ?? {};
+  const members = response?.members ?? group?.members ?? [];
+  const statistics = response?.statistics ?? response?.stats ?? group?.statistics ?? group?.stats;
+
+  return {
+    ...fallback,
+    ...group,
+    members: Array.isArray(members) ? members : [],
+    statistics,
+    stats: statistics,
+    total_members: response?.total_members ?? group?.total_members,
+    group: response?.group ?? group?.group,
+  };
+}
+
+function getGroupTotalMembers(group: GroupDetails | null) {
+  return (
+    group?.total_members ??
+    group?.group?.members_count ??
+    group?.members_count ??
+    group?.member_count ??
+    group?.members?.length ??
+    0
+  );
 }
 
 export default function MakundiTab() {
@@ -85,7 +118,7 @@ export default function MakundiTab() {
 
     try {
       const data = await apiFetch(`/groups/${group.id}`);
-      setSelectedGroupDetails(data.group ?? data.data?.group ?? data);
+      setSelectedGroupDetails(normalizeGroupDetails(data, group));
     } catch (error) {
       Swal.fire('Hitilafu', 'Imeshindikana kupata taarifa za kundi.', 'error');
     } finally {
@@ -339,10 +372,18 @@ export default function MakundiTab() {
             ) : (
               <>
                 <div className="mb-5 grid grid-cols-1 gap-3 sm:grid-cols-3">
-                  <DetailSummary title="Jumla ya Washirika" value={selectedGroupDetails?.members_count ?? selectedGroupDetails?.member_count ?? selectedGroupDetails?.members?.length ?? 0} />
+                  <DetailSummary title="Jumla ya Washirika" value={getGroupTotalMembers(selectedGroupDetails)} />
                   <DetailSummary title="Viongozi" value={selectedGroupDetails?.leaders?.length ?? (selectedGroupDetails?.leader ? 1 : 0)} />
                   <DetailSummary title="WhatsApp" value={selectedGroupDetails?.whatsapp_link ? 'Ipo' : 'Hakuna'} />
                 </div>
+
+                {Object.entries(selectedGroupDetails?.statistics ?? selectedGroupDetails?.stats ?? {}).length > 0 && (
+                  <div className="mb-5 grid grid-cols-1 gap-3 sm:grid-cols-3">
+                    {Object.entries(selectedGroupDetails?.statistics ?? selectedGroupDetails?.stats ?? {}).map(([key, value]) => (
+                      <DetailSummary key={key} title={key.replaceAll('_', ' ')} value={value ?? '—'} />
+                    ))}
+                  </div>
+                )}
 
                 <div className="mb-5 rounded-xl border border-slate-200 p-4 dark:border-gray-800">
                   <h3 className="mb-3 font-semibold">Viongozi wa Kundi</h3>

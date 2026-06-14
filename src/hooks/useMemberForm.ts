@@ -161,6 +161,22 @@ function normalizeYesNo(value: unknown) {
   return "";
 }
 
+function isValidTanzaniaPhone(value: string) {
+  return /^0\d{9}$/.test(value) || /^255\d{9}$/.test(value);
+}
+
+function getFieldError(errors: unknown, keys: string[]) {
+  if (!errors || typeof errors !== "object") return "";
+
+  for (const key of keys) {
+    const value = (errors as Record<string, unknown>)[key];
+    if (Array.isArray(value) && value[0]) return String(value[0]);
+    if (typeof value === "string") return value;
+  }
+
+  return "";
+}
+
 export function mapMemberToForm(member: any): MemberFormData {
   const conversion = splitDateParts(member.date_of_conversion);
   const baptism = splitDateParts(member.baptism_date);
@@ -371,10 +387,20 @@ const [form, setForm] = useState<MemberFormData>(getEmptyMemberForm());
       }
     }
 
-    if (!/^\d{10}$/.test(form.phone)) {
+    if (!isValidTanzaniaPhone(form.phone)) {
       Swal.fire({
         title: "Namba ya simu sio sahihi",
-        text: "Lazima iwe tarakimu 10",
+        text: "Tumia mfumo wa 0712345678 au 255712345678.",
+        icon: "error",
+      });
+
+      return false;
+    }
+
+    if (form.whatsappNumber && !isValidTanzaniaPhone(form.whatsappNumber)) {
+      Swal.fire({
+        title: "Namba ya WhatsApp sio sahihi",
+        text: "Tumia mfumo wa 0712345678 au 255712345678.",
         icon: "error",
       });
 
@@ -495,6 +521,7 @@ const [form, setForm] = useState<MemberFormData>(getEmptyMemberForm());
 
       zone: form.zone,
       phone: form.phone,
+      phone_number: form.phone,
       whatsapp_number:
         form.whatsappNumber,
 
@@ -621,9 +648,14 @@ const [form, setForm] = useState<MemberFormData>(getEmptyMemberForm());
         });
       }
     } catch (error: any) {
+      const phoneError = getFieldError(error?.errors, ["phone_number", "phone"]);
+      const whatsappError = getFieldError(error?.errors, ["whatsapp_number"]);
+
       Swal.fire({
         title: "Tatizo",
         text:
+          phoneError ||
+          whatsappError ||
           error?.message ||
           "Tatizo limetokea",
         icon: "error",

@@ -33,9 +33,26 @@ export default function TaarifaZaIbada() {
   const [filterSearch, setFilterSearch] = useState('');
   const [editingItem, setEditingItem] = useState<ServiceAttendance | null>(null);
   const [saving, setSaving] = useState(false);
+  const [loadingEditId, setLoadingEditId] = useState<number | null>(null);
 
   const getServiceName = (item: ServiceAttendance) =>
     item.service_name || item.title || '';
+
+  const normalizeServiceEvent = (response: any, fallback?: ServiceAttendance): ServiceAttendance => {
+    const source = response?.edit_data ?? response?.service_event ?? response?.data?.edit_data ?? response?.data?.service_event ?? response?.data ?? response;
+
+    return {
+      ...(fallback ?? {}),
+      ...source,
+      date: (source?.date ?? fallback?.date ?? '').slice(0, 10),
+      service_name: source?.service_name ?? source?.title ?? fallback?.service_name ?? fallback?.title ?? '',
+      title: source?.title ?? source?.service_name ?? fallback?.title ?? fallback?.service_name ?? '',
+      attendance_children: Number(source?.attendance_children ?? fallback?.attendance_children ?? 0),
+      attendance_women: Number(source?.attendance_women ?? fallback?.attendance_women ?? 0),
+      attendance_men: Number(source?.attendance_men ?? fallback?.attendance_men ?? 0),
+      total_offerings: Number(source?.total_offerings ?? fallback?.total_offerings ?? 0),
+    } as ServiceAttendance;
+  };
 
   async function fetchAttendance() {
     try {
@@ -114,6 +131,18 @@ export default function TaarifaZaIbada() {
       await Swal.fire('Imefutwa', 'Taarifa imefutwa.', 'success');
     } catch (error) {
       await Swal.fire('Hitilafu', error instanceof Error ? error.message : 'Imeshindikana kufuta.', 'error');
+    }
+  };
+
+  const openEditForm = async (item: ServiceAttendance) => {
+    try {
+      setLoadingEditId(item.id);
+      const response = await apiFetch(`/service-events/${item.id}`);
+      setEditingItem(normalizeServiceEvent(response, item));
+    } catch (error) {
+      await Swal.fire('Hitilafu', error instanceof Error ? error.message : 'Imeshindikana kupata taarifa za kuhariri.', 'error');
+    } finally {
+      setLoadingEditId(null);
     }
   };
 
@@ -278,7 +307,7 @@ export default function TaarifaZaIbada() {
                   </td>
                   <td className="px-3 py-2 text-center">
                     <div className="flex justify-center gap-2">
-                      <button onClick={() => setEditingItem({ ...item, date: item.date.slice(0, 10) })} className="rounded bg-blue-600 px-2 py-1 text-xs text-white">Edit</button>
+                      <button disabled={loadingEditId === item.id} onClick={() => openEditForm(item)} className="rounded bg-blue-600 px-2 py-1 text-xs text-white disabled:opacity-60">{loadingEditId === item.id ? 'Inapakia...' : 'Edit'}</button>
                       <button onClick={() => handleDelete(item.id)} className="rounded bg-red-500 px-2 py-1 text-xs text-white">Delete</button>
                     </div>
                   </td>
@@ -304,7 +333,12 @@ export default function TaarifaZaIbada() {
       {editingItem && (
         <div className="fixed inset-0 z-999999 flex items-center justify-center bg-black/50 p-4">
           <div className="max-h-[90vh] w-full max-w-3xl overflow-y-auto rounded-2xl bg-white p-6 shadow-xl dark:bg-gray-900">
-            <h3 className="mb-5 text-xl font-bold">Hariri Taarifa za Ibada</h3>
+            <div className="mb-5">
+              <h3 className="text-xl font-bold">Hariri Taarifa za Ibada</h3>
+              <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
+                {getServiceName(editingItem) || 'Ibada'} · {editingItem.date ? new Date(editingItem.date).toLocaleDateString() : 'Tarehe haipo'}
+              </p>
+            </div>
             <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
               <input className="rounded border border-gray-300 bg-white p-2 dark:border-gray-700 dark:bg-gray-800" type="date" value={editingItem.date} onChange={(e) => updateField('date', e.target.value)} />
               <input className="rounded border border-gray-300 bg-white p-2 dark:border-gray-700 dark:bg-gray-800" placeholder="Aina ya ibada" value={getServiceName(editingItem)} onChange={(e) => updateField('service_name', e.target.value)} />

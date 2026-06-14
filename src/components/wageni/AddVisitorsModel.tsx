@@ -56,7 +56,14 @@ export default function AddVisitorModal({ open, onClose, onSubmit, visitor }: Pr
   return (
     <div className="fixed inset-0 z-999999 flex items-center justify-center bg-black/50 p-4 backdrop-blur-sm">
       <div className="w-full max-w-2xl rounded-2xl bg-white p-6 text-gray-800 shadow-xl dark:bg-gray-900 dark:text-white/90">
-        <h3 className="mb-6 text-lg font-semibold">{visitor ? 'Hariri Taarifa za Mgeni' : 'Ongeza Taarifa za Mgeni'}</h3>
+        <div className="mb-6">
+          <h3 className="text-lg font-semibold">{visitor ? 'Hariri Taarifa za Mgeni' : 'Ongeza Taarifa za Mgeni'}</h3>
+          {visitor && (
+            <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
+              {visitor.full_name || 'Mgeni'} · {visitor.church_origin || 'Kanisa halipo'} · {visitor.visit_date ? new Date(visitor.visit_date).toLocaleDateString() : 'Tarehe haipo'}
+            </p>
+          )}
+        </div>
         <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
           <input className={inputClass} placeholder="Jina Kamili" value={form.full_name} onChange={(e) => setForm({ ...form, full_name: e.target.value })} />
           <input className={inputClass} placeholder="Namba ya Simu" value={form.phone} onChange={(e) => setForm({ ...form, phone: e.target.value })} />

@@ -35,6 +35,7 @@ export default function WageniPage() {
   const [showAddModal, setShowAddModal] =
     useState(false);
   const [editingVisitor, setEditingVisitor] = useState<Visitor | null>(null);
+  const [loadingEditId, setLoadingEditId] = useState<number | null>(null);
 
   const {
     loading,
@@ -99,6 +100,25 @@ export default function WageniPage() {
     });
     await fetchVisitors();
     setEditingVisitor(null);
+  };
+
+  const openEditVisitor = async (visitor: Visitor) => {
+    try {
+      setLoadingEditId(visitor.id);
+      const response = await apiFetch(`/guests/${visitor.id}`);
+      const editData = response?.edit_data ?? response?.guest ?? response?.data?.edit_data ?? response?.data?.guest ?? response?.data ?? response;
+
+      setEditingVisitor({
+        ...visitor,
+        ...editData,
+        id: visitor.id,
+        visit_date: (editData?.visit_date ?? visitor.visit_date ?? '').slice(0, 10),
+      });
+    } catch (error) {
+      await Swal.fire('Hitilafu', error instanceof Error ? error.message : 'Imeshindikana kupata taarifa za mgeni.', 'error');
+    } finally {
+      setLoadingEditId(null);
+    }
   };
 
   const handleDeleteVisitor = async (visitor: Visitor) => {
@@ -386,7 +406,7 @@ export default function WageniPage() {
 
                   <td className="px-4 py-4">
                     <div className="flex gap-2">
-                      <button onClick={() => setEditingVisitor(v)} className="rounded-lg border border-blue-200 p-2 text-blue-600 hover:bg-blue-50 dark:border-blue-500/30 dark:hover:bg-blue-500/10" aria-label={`Hariri ${v.full_name}`}><FaEdit /></button>
+                      <button disabled={loadingEditId === v.id} onClick={() => openEditVisitor(v)} className="rounded-lg border border-blue-200 p-2 text-blue-600 hover:bg-blue-50 disabled:opacity-60 dark:border-blue-500/30 dark:hover:bg-blue-500/10" aria-label={`Hariri ${v.full_name}`}><FaEdit /></button>
                       <button onClick={() => handleDeleteVisitor(v)} className="rounded-lg border border-red-200 p-2 text-red-600 hover:bg-red-50 dark:border-red-500/30 dark:hover:bg-red-500/10" aria-label={`Futa ${v.full_name}`}><FaTrash /></button>
                     </div>
                   </td>
