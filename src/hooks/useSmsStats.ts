@@ -9,9 +9,7 @@ interface SmsLog {
 }
 
 export function useSmsStats(logs: SmsLog[]) {
-
   return useMemo(() => {
-
     const deliveredStatuses = [
       'success',
       'sent',
@@ -19,26 +17,47 @@ export function useSmsStats(logs: SmsLog[]) {
       'imetumwa',
     ];
 
-    const delivered = logs.filter(log =>
-      deliveredStatuses.some(s =>
-        log.status?.toLowerCase().includes(s)
+    const delivered = logs.filter((log) =>
+      deliveredStatuses.some((status) =>
+        log.status?.toLowerCase().includes(status)
       )
     );
 
     const now = new Date();
 
-    const monthly = delivered.filter(log => {
+    const currentMonth = now.getMonth();
+    const currentYear = now.getFullYear();
+
+    const previousMonthDate = new Date(
+      currentYear,
+      currentMonth - 1,
+      1
+    );
+
+    const smsSentThisMonth = delivered.filter((log) => {
       const d = new Date(log.sent_at);
+
       return (
-        d.getFullYear() === now.getFullYear() &&
-        d.getMonth() === now.getMonth()
+        d.getFullYear() === currentYear &&
+        d.getMonth() === currentMonth
       );
-    });
+    }).length;
+
+    const smsSentLastMonth = delivered.filter((log) => {
+      const d = new Date(log.sent_at);
+
+      return (
+        d.getFullYear() === previousMonthDate.getFullYear() &&
+        d.getMonth() === previousMonthDate.getMonth()
+      );
+    }).length;
+
+    const smsSentAllTime = delivered.length;
 
     return {
-      smsSentThisMonth: monthly.length,
-      smsSentAllTime: delivered.length,
+      smsSentThisMonth,
+      smsSentLastMonth,
+      smsSentAllTime,
     };
-
   }, [logs]);
 }
