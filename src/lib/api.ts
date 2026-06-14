@@ -59,15 +59,21 @@ export async function apiFetch(endpoint: string, options: ApiOptions = {}) {
     Object.assign(customHeaders, requestOptions.headers);
   }
 
+  const isFormData =
+    typeof FormData !== "undefined" && requestOptions.body instanceof FormData;
+
   const headers: Record<string, string> = {
     Accept: "application/json",
-    "Content-Type": "application/json",
     ...customHeaders,
     ...(token ? { Authorization: `Bearer ${token}` } : {}),
   };
 
+  if (!isFormData && !headers["Content-Type"]) {
+    headers["Content-Type"] = "application/json";
+  }
+
   const body =
-    requestOptions.body && typeof requestOptions.body !== "string"
+    requestOptions.body && !isFormData && typeof requestOptions.body !== "string"
       ? JSON.stringify(requestOptions.body)
       : requestOptions.body;
 

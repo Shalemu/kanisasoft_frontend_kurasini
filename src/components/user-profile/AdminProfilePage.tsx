@@ -1,0 +1,971 @@
+"use client";
+
+import React, { useEffect, useMemo, useState } from "react";
+import Button from "@/components/ui/button/Button";
+import { apiFetch } from "@/lib/api";
+import Swal from "sweetalert2";
+import {
+  Bell,
+  CalendarDays,
+  ChevronLeft,
+  ChevronRight,
+  HelpCircle,
+  ImagePlus,
+  LayoutDashboard,
+  Mail,
+  MonitorCog,
+  Shield,
+  SlidersHorizontal,
+  Upload,
+} from "lucide-react";
+
+type ActiveSection = "profile" | "settings" | "support";
+
+type AdminProfile = {
+  id?: number | string;
+  full_name: string;
+  email?: string;
+  phone?: string;
+  role?: string;
+  profile_picture_url?: string | null;
+  profile_picture_path?: string | null;
+};
+
+type AccountSettings = {
+  appearance: {
+    theme: "light" | "dark" | "system";
+    compact_mode: boolean;
+    sidebar_collapsed: boolean;
+  };
+  localization: {
+    language: "sw" | "en";
+    timezone: string;
+    date_format: "d/m/Y" | "Y-m-d" | "m/d/Y";
+    time_format: "12h" | "24h";
+  };
+  notifications: {
+    email_notifications: boolean;
+    sms_notifications: boolean;
+    whatsapp_notifications: boolean;
+    member_registration_alerts: boolean;
+    contribution_alerts: boolean;
+    event_reminders: boolean;
+    support_updates: boolean;
+  };
+  dashboard: {
+    default_date_range: "today" | "week" | "month" | "quarter" | "year";
+    records_per_page: number;
+    auto_refresh: boolean;
+    show_dashboard_verse: boolean;
+  };
+  privacy: {
+    show_phone_to_leaders: boolean;
+    show_email_to_leaders: boolean;
+    login_alerts: boolean;
+  };
+  support: {
+    preferred_contact_method: "email" | "phone" | "whatsapp";
+  };
+};
+
+type SupportPayload = {
+  channels?: unknown[];
+  categories?: unknown[];
+  priorities?: unknown[];
+  recent_requests?: SupportRequest[];
+  system?: Record<string, unknown>;
+};
+
+type SupportRequest = {
+  id?: number | string;
+  category?: string;
+  priority?: string;
+  subject?: string;
+  message?: string;
+  status?: string;
+  created_at?: string;
+  updated_at?: string;
+};
+
+type SupportHistory = {
+  data: SupportRequest[];
+  currentPage: number;
+  lastPage: number;
+  total?: number;
+};
+
+type SupportForm = {
+  category: "account" | "members" | "contributions" | "events" | "groups" | "reports" | "technical" | "general";
+  priority: "low" | "normal" | "high" | "urgent";
+  subject: string;
+  message: string;
+  contact_email: string;
+  contact_phone: string;
+};
+
+const defaultSettings: AccountSettings = {
+  appearance: {
+    theme: "system",
+    compact_mode: false,
+    sidebar_collapsed: false,
+  },
+  localization: {
+    language: "sw",
+    timezone: "Africa/Dar_es_Salaam",
+    date_format: "d/m/Y",
+    time_format: "24h",
+  },
+  notifications: {
+    email_notifications: true,
+    sms_notifications: false,
+    whatsapp_notifications: false,
+    member_registration_alerts: true,
+    contribution_alerts: true,
+    event_reminders: true,
+    support_updates: true,
+  },
+  dashboard: {
+    default_date_range: "month",
+    records_per_page: 25,
+    auto_refresh: false,
+    show_dashboard_verse: true,
+  },
+  privacy: {
+    show_phone_to_leaders: true,
+    show_email_to_leaders: true,
+    login_alerts: true,
+  },
+  support: {
+    preferred_contact_method: "email",
+  },
+};
+
+const categoryOptions: Array<{ value: SupportForm["category"]; label: string }> = [
+  { value: "account", label: "Account" },
+  { value: "members", label: "Members" },
+  { value: "contributions", label: "Contributions" },
+  { value: "events", label: "Events" },
+  { value: "groups", label: "Groups" },
+  { value: "reports", label: "Reports" },
+  { value: "technical", label: "Technical" },
+  { value: "general", label: "General" },
+];
+
+const priorityOptions: Array<{ value: SupportForm["priority"]; label: string }> = [
+  { value: "low", label: "Low" },
+  { value: "normal", label: "Normal" },
+  { value: "high", label: "High" },
+  { value: "urgent", label: "Urgent" },
+];
+
+const fieldClass =
+  "w-full rounded-xl border border-gray-300 bg-white px-4 py-3 text-sm text-gray-900 shadow-sm outline-none transition focus:border-brand-500 focus:ring-4 focus:ring-brand-500/10 dark:border-gray-700 dark:bg-gray-900 dark:text-white/90";
+
+const sectionTabs: Array<{ key: ActiveSection; label: string }> = [
+  { key: "profile", label: "Edit Profile" },
+  { key: "settings", label: "Account Settings" },
+  { key: "support", label: "Support" },
+];
+
+function unwrap<T>(response: any, key: string, fallback: T): T {
+  return response?.[key] ?? response?.data?.[key] ?? response?.data ?? fallback;
+}
+
+function mergeSettings(settings: Partial<AccountSettings> | undefined): AccountSettings {
+  return {
+    appearance: { ...defaultSettings.appearance, ...settings?.appearance },
+    localization: { ...defaultSettings.localization, ...settings?.localization },
+    notifications: { ...defaultSettings.notifications, ...settings?.notifications },
+    dashboard: { ...defaultSettings.dashboard, ...settings?.dashboard },
+    privacy: { ...defaultSettings.privacy, ...settings?.privacy },
+    support: { ...defaultSettings.support, ...settings?.support },
+  };
+}
+
+function changedSettings(current: AccountSettings, original: AccountSettings) {
+  const patch: Record<string, Record<string, string | number | boolean>> = {};
+
+  (Object.keys(current) as Array<keyof AccountSettings>).forEach((section) => {
+    const sectionPatch: Record<string, string | number | boolean> = {};
+    const values = current[section] as Record<string, string | number | boolean>;
+    const previous = original[section] as Record<string, string | number | boolean>;
+
+    Object.keys(values).forEach((key) => {
+      if (values[key] !== previous[key]) {
+        sectionPatch[key] = values[key];
+      }
+    });
+
+    if (Object.keys(sectionPatch).length > 0) {
+      patch[section] = sectionPatch;
+    }
+  });
+
+  return patch;
+}
+
+function normalizeHistory(response: any, fallbackPage: number): SupportHistory {
+  const source = response?.requests ?? response?.data?.requests ?? response?.data ?? response;
+  const data = Array.isArray(source) ? source : source?.data ?? [];
+
+  return {
+    data: Array.isArray(data) ? data : [],
+    currentPage: Number(source?.current_page ?? response?.current_page ?? fallbackPage),
+    lastPage: Number(source?.last_page ?? response?.last_page ?? fallbackPage),
+    total: source?.total ?? response?.total,
+  };
+}
+
+function formatDate(value?: string) {
+  if (!value) return "-";
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return value;
+  return date.toLocaleString();
+}
+
+function displayList(items?: unknown[]) {
+  if (!items || items.length === 0) return "No data";
+
+  return items
+    .map((item) => {
+      if (typeof item === "string") return item;
+      if (item && typeof item === "object") {
+        const value = item as Record<string, unknown>;
+        return String(value.label ?? value.name ?? value.title ?? value.value ?? JSON.stringify(value));
+      }
+      return String(item);
+    })
+    .join(", ");
+}
+
+export default function AdminProfilePage() {
+  const [activeSection, setActiveSection] = useState<ActiveSection>("profile");
+
+  const [profile, setProfile] = useState<AdminProfile | null>(null);
+  const [profileName, setProfileName] = useState("");
+  const [profileFile, setProfileFile] = useState<File | null>(null);
+  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+  const [profileLoaded, setProfileLoaded] = useState(false);
+  const [profileLoading, setProfileLoading] = useState(false);
+  const [profileSaving, setProfileSaving] = useState(false);
+
+  const [settings, setSettings] = useState<AccountSettings>(defaultSettings);
+  const [savedSettings, setSavedSettings] = useState<AccountSettings>(defaultSettings);
+  const [settingsLoaded, setSettingsLoaded] = useState(false);
+  const [settingsLoading, setSettingsLoading] = useState(false);
+  const [settingsSaving, setSettingsSaving] = useState(false);
+
+  const [support, setSupport] = useState<SupportPayload | null>(null);
+  const [supportHistory, setSupportHistory] = useState<SupportHistory>({
+    data: [],
+    currentPage: 1,
+    lastPage: 1,
+  });
+  const [supportError, setSupportError] = useState<string | null>(null);
+  const [historyPage, setHistoryPage] = useState(1);
+  const [supportForm, setSupportForm] = useState<SupportForm>({
+    category: "general",
+    priority: "normal",
+    subject: "",
+    message: "",
+    contact_email: "",
+    contact_phone: "",
+  });
+  const [supportLoaded, setSupportLoaded] = useState(false);
+  const [supportLoading, setSupportLoading] = useState(false);
+  const [supportHistoryLoading, setSupportHistoryLoading] = useState(false);
+  const [supportSaving, setSupportSaving] = useState(false);
+
+  const imageSrc = previewUrl || profile?.profile_picture_url || "";
+  const settingsPatch = useMemo(() => changedSettings(settings, savedSettings), [settings, savedSettings]);
+  const hasSettingsChanges = Object.keys(settingsPatch).length > 0;
+
+  useEffect(() => {
+    return () => {
+      if (previewUrl) URL.revokeObjectURL(previewUrl);
+    };
+  }, [previewUrl]);
+
+  useEffect(() => {
+    if (activeSection !== "profile" || profileLoaded || profileLoading) return;
+
+    async function loadProfile() {
+      try {
+        setProfileLoading(true);
+        const response = await apiFetch("/admin/profile");
+        const nextProfile = unwrap<AdminProfile | null>(response, "profile", null);
+        setProfile(nextProfile);
+        setProfileName(nextProfile?.full_name || "");
+        setProfileLoaded(true);
+      } catch (error) {
+        console.error(error);
+        Swal.fire("Error", "Imeshindikana kupakia taarifa za profile.", "error");
+      } finally {
+        setProfileLoading(false);
+      }
+    }
+
+    loadProfile();
+  }, [activeSection, profileLoaded, profileLoading]);
+
+  useEffect(() => {
+    if (activeSection !== "settings" || settingsLoaded || settingsLoading) return;
+
+    async function loadSettings() {
+      try {
+        setSettingsLoading(true);
+        const response = await apiFetch("/admin/account-settings");
+        const nextSettings = mergeSettings(unwrap<Partial<AccountSettings>>(response, "settings", {}));
+        setSettings(nextSettings);
+        setSavedSettings(nextSettings);
+        setSettingsLoaded(true);
+      } catch (error) {
+        console.error(error);
+        Swal.fire("Error", "Imeshindikana kupakia account settings.", "error");
+      } finally {
+        setSettingsLoading(false);
+      }
+    }
+
+    loadSettings();
+  }, [activeSection, settingsLoaded, settingsLoading]);
+
+  useEffect(() => {
+    if (activeSection !== "support" || supportLoaded || supportLoading) return;
+
+    async function loadSupport() {
+      try {
+        setSupportLoading(true);
+        const response = await apiFetch("/admin/support");
+        const nextSupport = unwrap<SupportPayload | null>(response, "support", null);
+        setSupport(nextSupport);
+        setSupportError(null);
+        setSupportLoaded(true);
+      } catch {
+        setSupport(null);
+        setSupportError("Support is unavailable because the backend support requests table is missing.");
+        setSupportLoaded(true);
+      } finally {
+        setSupportLoading(false);
+      }
+    }
+
+    loadSupport();
+  }, [activeSection, supportLoaded, supportLoading]);
+
+  useEffect(() => {
+    if (activeSection !== "support") return;
+
+    async function loadHistory() {
+      try {
+        setSupportHistoryLoading(true);
+        const response = await apiFetch(`/admin/support/requests?page=${historyPage}`, {
+          signal: new AbortController().signal,
+        });
+        setSupportHistory(normalizeHistory(response, historyPage));
+        setSupportError(null);
+      } catch {
+        setSupportHistory({
+          data: [],
+          currentPage: historyPage,
+          lastPage: historyPage,
+        });
+        setSupportError("Support request history is unavailable because the backend support requests table is missing.");
+      } finally {
+        setSupportHistoryLoading(false);
+      }
+    }
+
+    loadHistory();
+  }, [activeSection, historyPage]);
+
+  const updateSetting = <TSection extends keyof AccountSettings, TKey extends keyof AccountSettings[TSection]>(
+    section: TSection,
+    key: TKey,
+    value: AccountSettings[TSection][TKey]
+  ) => {
+    setSettings((prev) => ({
+      ...prev,
+      [section]: {
+        ...prev[section],
+        [key]: value,
+      },
+    }));
+  };
+
+  const handleProfileFile = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0] ?? null;
+
+    if (!file) return;
+
+    const allowedTypes = ["image/jpeg", "image/png", "image/webp"];
+    if (!allowedTypes.includes(file.type)) {
+      Swal.fire("Tahadhari", "Chagua picha ya JPG, JPEG, PNG au WEBP.", "warning");
+      return;
+    }
+
+    if (file.size > 2 * 1024 * 1024) {
+      Swal.fire("Tahadhari", "Picha isizidi 2MB.", "warning");
+      return;
+    }
+
+    if (previewUrl) URL.revokeObjectURL(previewUrl);
+    setProfileFile(file);
+    setPreviewUrl(URL.createObjectURL(file));
+  };
+
+  const saveProfile = async () => {
+    if (!profileName.trim()) {
+      Swal.fire("Tahadhari", "Jina kamili linahitajika.", "warning");
+      return;
+    }
+
+    try {
+      setProfileSaving(true);
+      const formData = new FormData();
+      formData.append("full_name", profileName.trim());
+      if (profileFile) formData.append("profile_picture", profileFile);
+
+      const response = await apiFetch("/admin/profile", {
+        method: "POST",
+        body: formData,
+      });
+      const nextProfile = unwrap<AdminProfile>(response, "profile", {
+        ...profile,
+        full_name: profileName.trim(),
+      } as AdminProfile);
+
+      setProfile(nextProfile);
+      setProfileName(nextProfile.full_name || profileName.trim());
+      const storedUser = localStorage.getItem("user");
+      if (storedUser && storedUser !== "undefined") {
+        try {
+          localStorage.setItem(
+            "user",
+            JSON.stringify({
+              ...JSON.parse(storedUser),
+              ...nextProfile,
+            })
+          );
+        } catch {
+          localStorage.setItem("user", JSON.stringify(nextProfile));
+        }
+      }
+      setProfileFile(null);
+      if (previewUrl) {
+        URL.revokeObjectURL(previewUrl);
+        setPreviewUrl(null);
+      }
+      Swal.fire("Imefanikiwa", "Profile imehifadhiwa.", "success");
+    } catch (error: any) {
+      Swal.fire("Error", error?.message || "Imeshindikana kuhifadhi profile.", "error");
+    } finally {
+      setProfileSaving(false);
+    }
+  };
+
+  const saveSettings = async () => {
+    if (!hasSettingsChanges) {
+      Swal.fire("Hakuna mabadiliko", "Badilisha angalau setting moja kabla ya kuhifadhi.", "info");
+      return;
+    }
+
+    try {
+      setSettingsSaving(true);
+      const response = await apiFetch("/admin/account-settings", {
+        method: "PATCH",
+        body: settingsPatch,
+      });
+      const nextSettings = mergeSettings(unwrap<Partial<AccountSettings>>(response, "settings", settings));
+      setSettings(nextSettings);
+      setSavedSettings(nextSettings);
+      Swal.fire("Imefanikiwa", "Account settings zimehifadhiwa.", "success");
+    } catch (error: any) {
+      Swal.fire("Error", error?.message || "Imeshindikana kuhifadhi account settings.", "error");
+    } finally {
+      setSettingsSaving(false);
+    }
+  };
+
+  const submitSupportRequest = async () => {
+    if (supportError) {
+      Swal.fire("Support unavailable", supportError, "warning");
+      return;
+    }
+
+    if (!supportForm.subject.trim() || !supportForm.message.trim()) {
+      Swal.fire("Tahadhari", "Subject na message zinahitajika.", "warning");
+      return;
+    }
+
+    try {
+      setSupportSaving(true);
+      const payload = {
+        category: supportForm.category,
+        priority: supportForm.priority,
+        subject: supportForm.subject.trim(),
+        message: supportForm.message.trim(),
+        ...(supportForm.contact_email.trim() ? { contact_email: supportForm.contact_email.trim() } : {}),
+        ...(supportForm.contact_phone.trim() ? { contact_phone: supportForm.contact_phone.trim() } : {}),
+      };
+
+      await apiFetch("/admin/support/requests", {
+        method: "POST",
+        body: payload,
+      });
+
+      setSupportForm({
+        category: "general",
+        priority: "normal",
+        subject: "",
+        message: "",
+        contact_email: "",
+        contact_phone: "",
+      });
+      setHistoryPage(1);
+      const response = await apiFetch("/admin/support/requests?page=1", {
+        signal: new AbortController().signal,
+      });
+      setSupportHistory(normalizeHistory(response, 1));
+      Swal.fire("Imefanikiwa", "Ombi la support limetumwa.", "success");
+    } catch (error: any) {
+      Swal.fire("Error", error?.message || "Imeshindikana kutuma ombi la support.", "error");
+    } finally {
+      setSupportSaving(false);
+    }
+  };
+
+  return (
+    <div className="space-y-6">
+      <div className="rounded-2xl border border-gray-200 bg-white p-2 dark:border-gray-800 dark:bg-white/3">
+        <div className="grid gap-2 sm:grid-cols-3">
+          {sectionTabs.map((tab) => {
+            const selected = activeSection === tab.key;
+
+            return (
+              <button
+                key={tab.key}
+                type="button"
+                onClick={() => setActiveSection(tab.key)}
+                className={`rounded-xl px-4 py-3 text-sm font-medium transition ${
+                  selected
+                    ? "bg-[#1e293b] text-white shadow-sm dark:bg-white dark:text-gray-900"
+                    : "text-gray-600 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-white/5"
+                }`}
+              >
+                {tab.label}
+              </button>
+            );
+          })}
+        </div>
+      </div>
+
+      {activeSection === "profile" && (
+      <section className="rounded-2xl border border-gray-200 bg-white p-5 dark:border-gray-800 dark:bg-white/3 lg:p-6">
+        <div className="mb-6 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+          <div>
+            <h3 className="text-lg font-semibold text-gray-800 dark:text-white/90">Edit Profile</h3>
+            <p className="text-sm text-gray-500 dark:text-gray-400">
+              Only full name and profile picture can be changed here.
+            </p>
+          </div>
+          <Button onClick={saveProfile} disabled={profileSaving} startIcon={<Upload size={16} />}>
+            {profileSaving ? "Saving..." : "Save Profile"}
+          </Button>
+        </div>
+
+        {profileLoading ? (
+          <SectionLoading message="Inapakia profile..." />
+        ) : (
+        <div className="grid gap-6 lg:grid-cols-[220px_1fr]">
+          <div className="flex flex-col items-center gap-4 rounded-xl border border-gray-200 p-4 dark:border-gray-800">
+            <div className="flex size-32 items-center justify-center overflow-hidden rounded-full border border-gray-200 bg-gray-50 dark:border-gray-700 dark:bg-gray-900">
+              {imageSrc ? (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img src={imageSrc} alt="Profile" className="h-full w-full object-cover" />
+              ) : (
+                <ImagePlus className="text-gray-400" size={38} />
+              )}
+            </div>
+            <label className="inline-flex cursor-pointer items-center gap-2 rounded-lg border border-gray-300 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 dark:border-gray-700 dark:text-gray-300 dark:hover:bg-white/5">
+              <ImagePlus size={16} />
+              Upload Picture
+              <input type="file" accept="image/jpeg,image/png,image/webp" className="hidden" onChange={handleProfileFile} />
+            </label>
+            <p className="text-center text-xs text-gray-500">JPG, JPEG, PNG or WEBP. Max 2MB.</p>
+          </div>
+
+          <div className="grid gap-5 md:grid-cols-2">
+            <Field label="Full Name">
+              <input className={fieldClass} value={profileName} onChange={(event) => setProfileName(event.target.value)} />
+            </Field>
+            <ReadOnly label="Email" value={profile?.email} />
+            <ReadOnly label="Phone" value={profile?.phone} />
+            <ReadOnly label="Role" value={profile?.role} />
+          </div>
+        </div>
+        )}
+      </section>
+      )}
+
+      {activeSection === "settings" && (
+      <section className="rounded-2xl border border-gray-200 bg-white p-5 dark:border-gray-800 dark:bg-white/3 lg:p-6">
+        <div className="mb-6 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+          <div>
+            <h3 className="text-lg font-semibold text-gray-800 dark:text-white/90">Account Settings</h3>
+            <p className="text-sm text-gray-500 dark:text-gray-400">Changes are sent as a partial PATCH payload.</p>
+          </div>
+          <Button onClick={saveSettings} disabled={settingsSaving || !hasSettingsChanges} startIcon={<SlidersHorizontal size={16} />}>
+            {settingsSaving ? "Saving..." : "Save Settings"}
+          </Button>
+        </div>
+
+        {settingsLoading ? (
+          <SectionLoading message="Inapakia account settings..." />
+        ) : (
+        <div className="grid gap-5 xl:grid-cols-2">
+          <SettingsGroup icon={<MonitorCog size={18} />} title="Appearance">
+            <SelectField
+              label="Theme"
+              value={settings.appearance.theme}
+              options={[
+                ["light", "Light"],
+                ["dark", "Dark"],
+                ["system", "System"],
+              ]}
+              onChange={(value) => updateSetting("appearance", "theme", value as AccountSettings["appearance"]["theme"])}
+            />
+            <Toggle label="Compact Mode" checked={settings.appearance.compact_mode} onChange={(value) => updateSetting("appearance", "compact_mode", value)} />
+            <Toggle label="Sidebar Collapsed" checked={settings.appearance.sidebar_collapsed} onChange={(value) => updateSetting("appearance", "sidebar_collapsed", value)} />
+          </SettingsGroup>
+
+          <SettingsGroup icon={<CalendarDays size={18} />} title="Localization">
+            <SelectField
+              label="Language"
+              value={settings.localization.language}
+              options={[
+                ["sw", "Swahili"],
+                ["en", "English"],
+              ]}
+              onChange={(value) => updateSetting("localization", "language", value as AccountSettings["localization"]["language"])}
+            />
+            <Field label="Timezone">
+              <input
+                className={fieldClass}
+                value={settings.localization.timezone}
+                onChange={(event) => updateSetting("localization", "timezone", event.target.value)}
+                placeholder="Africa/Dar_es_Salaam"
+              />
+            </Field>
+            <SelectField
+              label="Date Format"
+              value={settings.localization.date_format}
+              options={[
+                ["d/m/Y", "d/m/Y"],
+                ["Y-m-d", "Y-m-d"],
+                ["m/d/Y", "m/d/Y"],
+              ]}
+              onChange={(value) => updateSetting("localization", "date_format", value as AccountSettings["localization"]["date_format"])}
+            />
+            <SelectField
+              label="Time Format"
+              value={settings.localization.time_format}
+              options={[
+                ["12h", "12h"],
+                ["24h", "24h"],
+              ]}
+              onChange={(value) => updateSetting("localization", "time_format", value as AccountSettings["localization"]["time_format"])}
+            />
+          </SettingsGroup>
+
+          <SettingsGroup icon={<Bell size={18} />} title="Notifications">
+            <Toggle label="Email Notifications" checked={settings.notifications.email_notifications} onChange={(value) => updateSetting("notifications", "email_notifications", value)} />
+            <Toggle label="SMS Notifications" checked={settings.notifications.sms_notifications} onChange={(value) => updateSetting("notifications", "sms_notifications", value)} />
+            <Toggle label="WhatsApp Notifications" checked={settings.notifications.whatsapp_notifications} onChange={(value) => updateSetting("notifications", "whatsapp_notifications", value)} />
+            <Toggle label="Member Registration Alerts" checked={settings.notifications.member_registration_alerts} onChange={(value) => updateSetting("notifications", "member_registration_alerts", value)} />
+            <Toggle label="Contribution Alerts" checked={settings.notifications.contribution_alerts} onChange={(value) => updateSetting("notifications", "contribution_alerts", value)} />
+            <Toggle label="Event Reminders" checked={settings.notifications.event_reminders} onChange={(value) => updateSetting("notifications", "event_reminders", value)} />
+            <Toggle label="Support Updates" checked={settings.notifications.support_updates} onChange={(value) => updateSetting("notifications", "support_updates", value)} />
+          </SettingsGroup>
+
+          <SettingsGroup icon={<LayoutDashboard size={18} />} title="Dashboard">
+            <SelectField
+              label="Default Date Range"
+              value={settings.dashboard.default_date_range}
+              options={[
+                ["today", "Today"],
+                ["week", "Week"],
+                ["month", "Month"],
+                ["quarter", "Quarter"],
+                ["year", "Year"],
+              ]}
+              onChange={(value) => updateSetting("dashboard", "default_date_range", value as AccountSettings["dashboard"]["default_date_range"])}
+            />
+            <Field label="Records Per Page">
+              <input
+                className={fieldClass}
+                type="number"
+                min={10}
+                max={100}
+                value={settings.dashboard.records_per_page}
+                onChange={(event) => {
+                  const value = Math.min(100, Math.max(10, Number(event.target.value) || 10));
+                  updateSetting("dashboard", "records_per_page", value);
+                }}
+              />
+            </Field>
+            <Toggle label="Auto Refresh" checked={settings.dashboard.auto_refresh} onChange={(value) => updateSetting("dashboard", "auto_refresh", value)} />
+            <Toggle label="Show Dashboard Verse" checked={settings.dashboard.show_dashboard_verse} onChange={(value) => updateSetting("dashboard", "show_dashboard_verse", value)} />
+          </SettingsGroup>
+
+          <SettingsGroup icon={<Shield size={18} />} title="Privacy">
+            <Toggle label="Show Phone To Leaders" checked={settings.privacy.show_phone_to_leaders} onChange={(value) => updateSetting("privacy", "show_phone_to_leaders", value)} />
+            <Toggle label="Show Email To Leaders" checked={settings.privacy.show_email_to_leaders} onChange={(value) => updateSetting("privacy", "show_email_to_leaders", value)} />
+            <Toggle label="Login Alerts" checked={settings.privacy.login_alerts} onChange={(value) => updateSetting("privacy", "login_alerts", value)} />
+          </SettingsGroup>
+
+          <SettingsGroup icon={<HelpCircle size={18} />} title="Support Preferences">
+            <SelectField
+              label="Preferred Contact Method"
+              value={settings.support.preferred_contact_method}
+              options={[
+                ["email", "Email"],
+                ["phone", "Phone"],
+                ["whatsapp", "WhatsApp"],
+              ]}
+              onChange={(value) => updateSetting("support", "preferred_contact_method", value as AccountSettings["support"]["preferred_contact_method"])}
+            />
+          </SettingsGroup>
+        </div>
+        )}
+      </section>
+      )}
+
+      {activeSection === "support" && (
+      <section className="rounded-2xl border border-gray-200 bg-white p-5 dark:border-gray-800 dark:bg-white/3 lg:p-6">
+        <div className="mb-6">
+          <h3 className="text-lg font-semibold text-gray-800 dark:text-white/90">Support</h3>
+          <p className="text-sm text-gray-500 dark:text-gray-400">Submit a request and review support information.</p>
+        </div>
+
+        {supportLoading ? (
+          <SectionLoading message="Inapakia support..." />
+        ) : (
+        <>
+        {supportError && (
+          <div className="mb-6 rounded-xl border border-yellow-200 bg-yellow-50 px-4 py-3 text-sm text-yellow-800 dark:border-yellow-500/30 dark:bg-yellow-500/10 dark:text-yellow-200">
+            {supportError}
+          </div>
+        )}
+
+        <div className="mb-6 grid gap-4 lg:grid-cols-4">
+          <SupportSummary title="Channels" value={displayList(support?.channels)} />
+          <SupportSummary title="Categories" value={displayList(support?.categories)} />
+          <SupportSummary title="Priorities" value={displayList(support?.priorities)} />
+          <SupportSummary title="System" value={support?.system ? JSON.stringify(support.system) : "No data"} />
+        </div>
+
+        {support?.recent_requests && support.recent_requests.length > 0 && (
+          <div className="mb-6">
+            <h4 className="mb-3 text-base font-semibold text-gray-800 dark:text-white/90">Recent Requests</h4>
+            <RequestList requests={support.recent_requests} />
+          </div>
+        )}
+
+        <div className="grid gap-6 xl:grid-cols-[1fr_1.2fr]">
+          <div className="rounded-xl border border-gray-200 p-4 dark:border-gray-800">
+            <h4 className="mb-4 text-base font-semibold text-gray-800 dark:text-white/90">New Support Request</h4>
+            <div className="space-y-4">
+              <SelectField
+                label="Category"
+                value={supportForm.category}
+                options={categoryOptions.map((option) => [option.value, option.label])}
+                onChange={(value) => setSupportForm((prev) => ({ ...prev, category: value as SupportForm["category"] }))}
+              />
+              <SelectField
+                label="Priority"
+                value={supportForm.priority}
+                options={priorityOptions.map((option) => [option.value, option.label])}
+                onChange={(value) => setSupportForm((prev) => ({ ...prev, priority: value as SupportForm["priority"] }))}
+              />
+              <Field label="Subject">
+                <input className={fieldClass} value={supportForm.subject} onChange={(event) => setSupportForm((prev) => ({ ...prev, subject: event.target.value }))} />
+              </Field>
+              <Field label="Message">
+                <textarea
+                  className={`${fieldClass} min-h-28 resize-y`}
+                  value={supportForm.message}
+                  onChange={(event) => setSupportForm((prev) => ({ ...prev, message: event.target.value }))}
+                />
+              </Field>
+              <Field label="Contact Email">
+                <input
+                  className={fieldClass}
+                  type="email"
+                  value={supportForm.contact_email}
+                  onChange={(event) => setSupportForm((prev) => ({ ...prev, contact_email: event.target.value }))}
+                />
+              </Field>
+              <Field label="Contact Phone">
+                <input className={fieldClass} value={supportForm.contact_phone} onChange={(event) => setSupportForm((prev) => ({ ...prev, contact_phone: event.target.value }))} />
+              </Field>
+              <Button onClick={submitSupportRequest} disabled={supportSaving || Boolean(supportError)} startIcon={<Mail size={16} />} className="w-full">
+                {supportSaving ? "Sending..." : "Submit Request"}
+              </Button>
+            </div>
+          </div>
+
+          <div className="rounded-xl border border-gray-200 p-4 dark:border-gray-800">
+            <div className="mb-4 flex items-center justify-between gap-3">
+              <h4 className="text-base font-semibold text-gray-800 dark:text-white/90">Request History</h4>
+              <div className="flex items-center gap-2">
+                <button
+                  type="button"
+                  disabled={historyPage <= 1}
+                  onClick={() => setHistoryPage((page) => Math.max(1, page - 1))}
+                  className="rounded-lg border border-gray-300 p-2 text-gray-600 disabled:opacity-40 dark:border-gray-700 dark:text-gray-300"
+                  aria-label="Previous page"
+                >
+                  <ChevronLeft size={16} />
+                </button>
+                <span className="text-sm text-gray-500">
+                  {supportHistory.currentPage} / {supportHistory.lastPage}
+                </span>
+                <button
+                  type="button"
+                  disabled={historyPage >= supportHistory.lastPage}
+                  onClick={() => setHistoryPage((page) => Math.min(supportHistory.lastPage, page + 1))}
+                  className="rounded-lg border border-gray-300 p-2 text-gray-600 disabled:opacity-40 dark:border-gray-700 dark:text-gray-300"
+                  aria-label="Next page"
+                >
+                  <ChevronRight size={16} />
+                </button>
+              </div>
+            </div>
+            {supportHistoryLoading ? (
+              <SectionLoading message="Inapakia request history..." />
+            ) : (
+              <RequestList requests={supportHistory.data} />
+            )}
+          </div>
+        </div>
+        </>
+        )}
+      </section>
+      )}
+    </div>
+  );
+}
+
+function SectionLoading({ message }: { message: string }) {
+  return (
+    <div className="rounded-xl border border-dashed border-gray-300 p-4 text-sm text-gray-500 dark:border-gray-700">
+      {message}
+    </div>
+  );
+}
+
+function Field({ label, children }: { label: string; children: React.ReactNode }) {
+  return (
+    <label className="block">
+      <span className="mb-2 block text-sm font-medium text-gray-800 dark:text-gray-200">{label}</span>
+      {children}
+    </label>
+  );
+}
+
+function ReadOnly({ label, value }: { label: string; value?: string }) {
+  return (
+    <div>
+      <p className="mb-2 text-sm font-medium text-gray-800 dark:text-gray-200">{label}</p>
+      <p className="rounded-xl border border-gray-200 bg-gray-50 px-4 py-3 text-sm text-gray-600 dark:border-gray-800 dark:bg-gray-900 dark:text-gray-300">
+        {value || "-"}
+      </p>
+    </div>
+  );
+}
+
+function SelectField({
+  label,
+  value,
+  options,
+  onChange,
+}: {
+  label: string;
+  value: string;
+  options: Array<[string, string]>;
+  onChange: (value: string) => void;
+}) {
+  return (
+    <Field label={label}>
+      <select className={fieldClass} value={value} onChange={(event) => onChange(event.target.value)}>
+        {options.map(([optionValue, labelText]) => (
+          <option key={optionValue} value={optionValue}>
+            {labelText}
+          </option>
+        ))}
+      </select>
+    </Field>
+  );
+}
+
+function Toggle({ label, checked, onChange }: { label: string; checked: boolean; onChange: (checked: boolean) => void }) {
+  return (
+    <label className="flex cursor-pointer items-center justify-between gap-4 rounded-xl border border-gray-200 px-4 py-3 text-sm font-medium text-gray-700 dark:border-gray-800 dark:text-gray-300">
+      <span>{label}</span>
+      <input type="checkbox" checked={checked} onChange={(event) => onChange(event.target.checked)} className="size-5 rounded border-gray-300 text-brand-500 focus:ring-brand-500" />
+    </label>
+  );
+}
+
+function SettingsGroup({ icon, title, children }: { icon: React.ReactNode; title: string; children: React.ReactNode }) {
+  return (
+    <div className="rounded-xl border border-gray-200 p-4 dark:border-gray-800">
+      <div className="mb-4 flex items-center gap-2 text-gray-800 dark:text-white/90">
+        {icon}
+        <h4 className="text-base font-semibold">{title}</h4>
+      </div>
+      <div className="grid gap-4">{children}</div>
+    </div>
+  );
+}
+
+function SupportSummary({ title, value }: { title: string; value: string }) {
+  return (
+    <div className="rounded-xl border border-gray-200 p-4 dark:border-gray-800">
+      <p className="mb-2 text-sm font-semibold text-gray-800 dark:text-white/90">{title}</p>
+      <p className="line-clamp-4 text-sm text-gray-500 dark:text-gray-400">{value}</p>
+    </div>
+  );
+}
+
+function RequestList({ requests }: { requests: SupportRequest[] }) {
+  if (requests.length === 0) {
+    return <p className="rounded-xl border border-dashed border-gray-300 p-4 text-sm text-gray-500 dark:border-gray-700">No support requests found.</p>;
+  }
+
+  return (
+    <div className="space-y-3">
+      {requests.map((request, index) => (
+        <div key={request.id ?? `${request.subject}-${index}`} className="rounded-xl border border-gray-200 p-4 dark:border-gray-800">
+          <div className="mb-2 flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
+            <div>
+              <p className="font-medium text-gray-800 dark:text-white/90">{request.subject || "Untitled request"}</p>
+              <p className="text-xs text-gray-500">{formatDate(request.created_at)}</p>
+            </div>
+            <div className="flex flex-wrap gap-2 text-xs">
+              {request.category && <Badge>{request.category}</Badge>}
+              {request.priority && <Badge>{request.priority}</Badge>}
+              {request.status && <Badge>{request.status}</Badge>}
+            </div>
+          </div>
+          {request.message && <p className="text-sm text-gray-500 dark:text-gray-400">{request.message}</p>}
+        </div>
+      ))}
+    </div>
+  );
+}
+
+function Badge({ children }: { children: React.ReactNode }) {
+  return <span className="rounded-full bg-gray-100 px-3 py-1 text-gray-600 dark:bg-white/10 dark:text-gray-300">{children}</span>;
+}

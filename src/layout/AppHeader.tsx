@@ -13,6 +13,7 @@ const AppHeader: React.FC = () => {
 
 
   const user = useAuthUser();
+  const profilePictureUrl = user?.profile_picture_url;
 
   const handleToggle = () => {
     if (window.innerWidth >= 1024) {
@@ -104,8 +105,17 @@ const AppHeader: React.FC = () => {
             </div>
 
             {/* AVATAR */}
-            <div className="w-9 h-9 rounded-full bg-[#f0ce32] flex items-center justify-center font-bold text-black">
-              {user?.full_name?.charAt(0)?.toUpperCase() || "U"}
+            <div className="flex h-9 w-9 items-center justify-center overflow-hidden rounded-full bg-[#f0ce32] font-bold text-black">
+              {profilePictureUrl ? (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img
+                  src={profilePictureUrl}
+                  alt={user?.full_name || "Profile"}
+                  className="h-full w-full object-cover"
+                />
+              ) : (
+                user?.full_name?.charAt(0)?.toUpperCase() || "U"
+              )}
             </div>
 
             {/* EXISTING DROPDOWN */}
