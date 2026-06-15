@@ -9,6 +9,7 @@ import {
   BoxCubeIcon,
   CalenderIcon,
   ChevronDownIcon,
+  FolderIcon,
   GridIcon,
   HorizontaLDots,
   ListIcon,
@@ -70,11 +71,7 @@ const navItems: NavItem[] = [
   {
     icon: <PieChartIcon />,
     name: "Fedha",
-    subItems: [
-      { name: "Michango", path: "/fedha/michango", pro: false },
-      // { name: "Ongeza Mali", path: "/basic-tables", pro: false },
-      // { name: "Ripoti", path: "/basic-tables", pro: false },
-    ],
+    path: "/fedha",
   },
   {
     icon: <BoxCubeIcon />,
@@ -107,6 +104,11 @@ const navItems: NavItem[] = [
 ];
 
 const othersItems: NavItem[] = [
+  {
+    icon: <FolderIcon />,
+    name: "Rasilimali",
+    path: "/rasilimali",
+  },
   {
     icon: <CalenderIcon />,
     name: "Matangazo & Matukio",
@@ -181,14 +183,16 @@ const AppSidebar: React.FC = () => {
             )}
 
             {(isExpanded || isHovered || isMobileOpen) && (
-              <ChevronDownIcon
+              <span
                 className={`ml-auto w-5 h-5 transition-transform duration-200 ${
                   openSubmenu?.type === menuType &&
                   openSubmenu?.index === index
                     ? "rotate-180 text-[#f0ce32]"
                     : "text-white"
                 }`}
-              />
+              >
+                <ChevronDownIcon />
+              </span>
             )}
           </button>
         ) : (
