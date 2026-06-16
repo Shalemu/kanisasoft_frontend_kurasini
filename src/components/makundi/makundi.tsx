@@ -39,13 +39,15 @@ interface GroupDetails extends Group {
     membership_number?: string | null;
     phone?: string | null;
   }[];
-  statistics?: Record<string, string | number | null>;
-  stats?: Record<string, string | number | null>;
+  statistics?: Record<string, StatisticValue>;
+  stats?: Record<string, StatisticValue>;
   total_members?: number;
   group?: {
     members_count?: number;
   };
 }
+
+type StatisticValue = string | number | boolean | null | undefined | StatisticValue[] | { [key: string]: StatisticValue };
 
 function normalizeGroupDetails(response: any, fallback: Group): GroupDetails {
   const group = response?.group ?? response?.data?.group ?? response?.data ?? response ?? {};
@@ -61,6 +63,28 @@ function normalizeGroupDetails(response: any, fallback: Group): GroupDetails {
     total_members: response?.total_members ?? group?.total_members,
     group: response?.group ?? group?.group,
   };
+}
+
+function formatSummaryValue(value: StatisticValue): string | number {
+  if (value === null || value === undefined || value === '') {
+    return '—';
+  }
+
+  if (typeof value === 'string' || typeof value === 'number') {
+    return value;
+  }
+
+  if (typeof value === 'boolean') {
+    return value ? 'Ndiyo' : 'Hapana';
+  }
+
+  if (Array.isArray(value)) {
+    return value.map(formatSummaryValue).join(', ') || '—';
+  }
+
+  return Object.entries(value)
+    .map(([key, entryValue]) => `${key}: ${formatSummaryValue(entryValue)}`)
+    .join(', ') || '—';
 }
 
 function getGroupTotalMembers(group: GroupDetails | null) {
@@ -380,7 +404,7 @@ export default function MakundiTab() {
                 {Object.entries(selectedGroupDetails?.statistics ?? selectedGroupDetails?.stats ?? {}).length > 0 && (
                   <div className="mb-5 grid grid-cols-1 gap-3 sm:grid-cols-3">
                     {Object.entries(selectedGroupDetails?.statistics ?? selectedGroupDetails?.stats ?? {}).map(([key, value]) => (
-                      <DetailSummary key={key} title={key.replaceAll('_', ' ')} value={value ?? '—'} />
+                      <DetailSummary key={key} title={key.replaceAll('_', ' ')} value={formatSummaryValue(value)} />
                     ))}
                   </div>
                 )}
