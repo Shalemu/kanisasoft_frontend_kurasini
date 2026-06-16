@@ -98,6 +98,19 @@ function getGroupTotalMembers(group: GroupDetails | null) {
   );
 }
 
+function shouldShowStatistic(key: string) {
+  const normalizedKey = key.toLowerCase().replace(/[\s-]+/g, '_');
+  return ![
+    'total_member',
+    'total_members',
+    'member_count',
+    'members_count',
+    'members',
+    'jumla_washirika',
+    'jumla_ya_washirika',
+  ].includes(normalizedKey);
+}
+
 export default function MakundiTab() {
   const [groups, setGroups] = useState<Group[]>([]);
   const [filteredGroups, setFilteredGroups] = useState<Group[]>([]);
@@ -198,6 +211,10 @@ export default function MakundiTab() {
       setLoading(false);
     }
   };
+
+  const visibleDetailsStatistics = Object.entries(
+    selectedGroupDetails?.statistics ?? selectedGroupDetails?.stats ?? {}
+  ).filter(([key]) => shouldShowStatistic(key));
 
   const deleteGroup = async (id: number) => {
     Swal.fire({
@@ -377,33 +394,33 @@ export default function MakundiTab() {
       </Dialog>
 
       <Dialog open={detailsOpen} onClose={() => setDetailsOpen(false)}>
-        <div className="fixed inset-0 z-50 bg-black/40 flex items-center justify-center p-4">
-          <div className="max-h-[90vh] w-full max-w-3xl overflow-y-auto rounded-2xl bg-white p-6 text-slate-800 shadow-xl dark:bg-gray-900 dark:text-white/90">
-            <div className="mb-5 flex items-start justify-between gap-4">
-              <div>
-                <h2 className="text-2xl font-bold">{selectedGroupDetails?.name ?? 'Kundi'}</h2>
+        <div className="fixed inset-0 z-999999 flex items-center justify-center bg-black/40 p-2 sm:p-4">
+          <div className="flex max-h-[calc(100dvh-1rem)] w-full max-w-3xl flex-col overflow-hidden rounded-2xl bg-white text-slate-800 shadow-xl dark:bg-gray-900 dark:text-white/90 sm:max-h-[calc(100dvh-2rem)]">
+            <div className="shrink-0 border-b border-slate-200 p-4 dark:border-gray-800 sm:p-6">
+              <div className="min-w-0">
+                <h2 className="break-words text-xl font-extrabold uppercase leading-snug tracking-normal text-slate-900 dark:text-white sm:text-2xl">
+                  {selectedGroupDetails?.name ?? 'KUNDI'}
+                </h2>
                 <p className="mt-1 text-sm text-slate-500 dark:text-gray-400">
                   {selectedGroupDetails?.description || 'Taarifa za kundi na washirika wake'}
                 </p>
               </div>
-              <button onClick={() => setDetailsOpen(false)} className="rounded-lg border border-slate-200 px-3 py-1 text-sm dark:border-gray-700">
-                Funga
-              </button>
             </div>
 
-            {detailsLoading ? (
-              <div className="py-10 text-center text-slate-500">Inapakia taarifa za kundi...</div>
-            ) : (
-              <>
+            <div className="min-h-0 flex-1 overflow-y-auto p-4 sm:p-6">
+              {detailsLoading ? (
+                <div className="py-10 text-center text-slate-500">Inapakia taarifa za kundi...</div>
+              ) : (
+                <>
                 <div className="mb-5 grid grid-cols-1 gap-3 sm:grid-cols-3">
                   <DetailSummary title="Jumla ya Washirika" value={getGroupTotalMembers(selectedGroupDetails)} />
                   <DetailSummary title="Viongozi" value={selectedGroupDetails?.leaders?.length ?? (selectedGroupDetails?.leader ? 1 : 0)} />
                   <DetailSummary title="WhatsApp" value={selectedGroupDetails?.whatsapp_link ? 'Ipo' : 'Hakuna'} />
                 </div>
 
-                {Object.entries(selectedGroupDetails?.statistics ?? selectedGroupDetails?.stats ?? {}).length > 0 && (
+                {visibleDetailsStatistics.length > 0 && (
                   <div className="mb-5 grid grid-cols-1 gap-3 sm:grid-cols-3">
-                    {Object.entries(selectedGroupDetails?.statistics ?? selectedGroupDetails?.stats ?? {}).map(([key, value]) => (
+                    {visibleDetailsStatistics.map(([key, value]) => (
                       <DetailSummary key={key} title={key.replaceAll('_', ' ')} value={formatSummaryValue(value)} />
                     ))}
                   </div>
@@ -458,8 +475,15 @@ export default function MakundiTab() {
                     </tbody>
                   </table>
                 </div>
-              </>
-            )}
+                </>
+              )}
+            </div>
+
+            <div className="flex shrink-0 justify-end border-t border-slate-200 p-4 dark:border-gray-800">
+              <button onClick={() => setDetailsOpen(false)} className="rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700">
+                Funga
+              </button>
+            </div>
           </div>
         </div>
       </Dialog>

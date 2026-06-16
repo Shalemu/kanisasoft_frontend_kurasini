@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import type { ReactNode } from 'react';
 import Swal from 'sweetalert2';
 import type { Visitor } from '@/hooks/useVisitors';
 
@@ -30,6 +31,24 @@ const makeForm = (visitor?: Visitor | null): VisitorFormData => visitor ? {
   visit_date: new Date().toISOString().slice(0, 10), other: '',
 };
 
+interface FieldWrapperProps {
+  label: string;
+  htmlFor: string;
+  className?: string;
+  children: ReactNode;
+}
+
+function FieldWrapper({ label, htmlFor, className = '', children }: FieldWrapperProps) {
+  return (
+    <div className={className}>
+      <label htmlFor={htmlFor} className="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-200">
+        {label}
+      </label>
+      {children}
+    </div>
+  );
+}
+
 export default function AddVisitorModal({ open, onClose, onSubmit, visitor }: Props) {
   const [form, setForm] = useState<VisitorFormData>(() => makeForm(visitor));
   const [saving, setSaving] = useState(false);
@@ -52,7 +71,7 @@ export default function AddVisitorModal({ open, onClose, onSubmit, visitor }: Pr
     }
   };
 
-  const inputClass = 'border border-gray-300 bg-white rounded-lg px-3 py-2 text-gray-800 placeholder:text-gray-400 dark:border-gray-700 dark:bg-gray-800 dark:text-white/90 dark:placeholder:text-gray-500';
+  const inputClass = 'w-full border border-gray-300 bg-white rounded-lg px-3 py-2 text-gray-800 placeholder:text-gray-400 dark:border-gray-700 dark:bg-gray-800 dark:text-white/90 dark:placeholder:text-gray-500';
   return (
     <div className="fixed inset-0 z-999999 flex items-center justify-center bg-black/50 p-4 backdrop-blur-sm">
       <div className="w-full max-w-2xl rounded-2xl bg-white p-6 text-gray-800 shadow-xl dark:bg-gray-900 dark:text-white/90">
@@ -65,11 +84,21 @@ export default function AddVisitorModal({ open, onClose, onSubmit, visitor }: Pr
           )}
         </div>
         <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-          <input className={inputClass} placeholder="Jina Kamili" value={form.full_name} onChange={(e) => setForm({ ...form, full_name: e.target.value })} />
-          <input className={inputClass} placeholder="Namba ya Simu" value={form.phone} onChange={(e) => setForm({ ...form, phone: e.target.value })} />
-          <input className={inputClass} placeholder="Kanisa Alikotoka" value={form.church_origin} onChange={(e) => setForm({ ...form, church_origin: e.target.value })} />
-          <input className={inputClass} type="date" value={form.visit_date} onChange={(e) => setForm({ ...form, visit_date: e.target.value })} />
-          <textarea className={`${inputClass} md:col-span-2`} placeholder="Maelezo mengine kama yapo" value={form.other} onChange={(e) => setForm({ ...form, other: e.target.value })} />
+          <FieldWrapper label="Jina Kamili" htmlFor="visitor-full-name">
+            <input id="visitor-full-name" className={inputClass} placeholder="Jina Kamili" value={form.full_name} onChange={(e) => setForm({ ...form, full_name: e.target.value })} />
+          </FieldWrapper>
+          <FieldWrapper label="Namba ya Simu" htmlFor="visitor-phone">
+            <input id="visitor-phone" className={inputClass} placeholder="Namba ya Simu" value={form.phone} onChange={(e) => setForm({ ...form, phone: e.target.value })} />
+          </FieldWrapper>
+          <FieldWrapper label="Kanisa Alikotoka" htmlFor="visitor-church-origin">
+            <input id="visitor-church-origin" className={inputClass} placeholder="Kanisa Alikotoka" value={form.church_origin} onChange={(e) => setForm({ ...form, church_origin: e.target.value })} />
+          </FieldWrapper>
+          <FieldWrapper label="Tarehe ya Kutembelea" htmlFor="visitor-visit-date">
+            <input id="visitor-visit-date" className={inputClass} type="date" value={form.visit_date} onChange={(e) => setForm({ ...form, visit_date: e.target.value })} />
+          </FieldWrapper>
+          <FieldWrapper label="Maelezo Mengine" htmlFor="visitor-other" className="md:col-span-2">
+            <textarea id="visitor-other" className={inputClass} placeholder="Maelezo mengine kama yapo" value={form.other} onChange={(e) => setForm({ ...form, other: e.target.value })} />
+          </FieldWrapper>
         </div>
         <div className="mt-6 flex justify-end gap-3">
           <button onClick={onClose} className="rounded-lg border border-gray-300 px-4 py-2 dark:border-gray-700">Ghairi</button>

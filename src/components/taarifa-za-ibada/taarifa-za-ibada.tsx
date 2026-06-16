@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import type { ReactNode } from 'react';
 import Swal from 'sweetalert2';
 import { apiFetch } from '@/lib/api';
 import Pagination from '@/components/tables/Pagination';
@@ -19,6 +20,24 @@ interface ServiceAttendance {
   leaders_on_duty?: string;
   preacher_description?: string;
   message?: string;
+}
+
+interface EditFieldProps {
+  label: string;
+  htmlFor: string;
+  className?: string;
+  children: ReactNode;
+}
+
+function EditField({ label, htmlFor, className = '', children }: EditFieldProps) {
+  return (
+    <div className={className}>
+      <label htmlFor={htmlFor} className="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-200">
+        {label}
+      </label>
+      {children}
+    </div>
+  );
 }
 
 export default function TaarifaZaIbada() {
@@ -149,6 +168,8 @@ export default function TaarifaZaIbada() {
   const updateField = (name: keyof ServiceAttendance, value: string) => {
     setEditingItem((current) => current ? { ...current, [name]: value } : current);
   };
+
+  const editInputClass = 'w-full rounded border border-gray-300 bg-white p-2 text-gray-800 placeholder:text-gray-400 dark:border-gray-700 dark:bg-gray-800 dark:text-white/90 dark:placeholder:text-gray-500';
 
   const handleUpdate = async () => {
     if (!editingItem) return;
@@ -340,15 +361,33 @@ export default function TaarifaZaIbada() {
               </p>
             </div>
             <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-              <input className="rounded border border-gray-300 bg-white p-2 dark:border-gray-700 dark:bg-gray-800" type="date" value={editingItem.date} onChange={(e) => updateField('date', e.target.value)} />
-              <input className="rounded border border-gray-300 bg-white p-2 dark:border-gray-700 dark:bg-gray-800" placeholder="Aina ya ibada" value={getServiceName(editingItem)} onChange={(e) => updateField('service_name', e.target.value)} />
-              <input className="rounded border border-gray-300 bg-white p-2 dark:border-gray-700 dark:bg-gray-800" placeholder="Mhubiri" value={editingItem.preacher || ''} onChange={(e) => updateField('preacher', e.target.value)} />
-              <input className="rounded border border-gray-300 bg-white p-2 dark:border-gray-700 dark:bg-gray-800" placeholder="Kiongozi wa ibada" value={editingItem.leaders_on_duty || ''} onChange={(e) => updateField('leaders_on_duty', e.target.value)} />
-              <input className="rounded border border-gray-300 bg-white p-2 dark:border-gray-700 dark:bg-gray-800" type="number" placeholder="Watoto" value={editingItem.attendance_children} onChange={(e) => updateField('attendance_children', e.target.value)} />
-              <input className="rounded border border-gray-300 bg-white p-2 dark:border-gray-700 dark:bg-gray-800" type="number" placeholder="Wanawake" value={editingItem.attendance_women} onChange={(e) => updateField('attendance_women', e.target.value)} />
-              <input className="rounded border border-gray-300 bg-white p-2 dark:border-gray-700 dark:bg-gray-800" type="number" placeholder="Wanaume" value={editingItem.attendance_men} onChange={(e) => updateField('attendance_men', e.target.value)} />
-              <input className="rounded border border-gray-300 bg-white p-2 dark:border-gray-700 dark:bg-gray-800" type="number" placeholder="Sadaka" value={editingItem.total_offerings} onChange={(e) => updateField('total_offerings', e.target.value)} />
-              <textarea className="rounded border border-gray-300 bg-white p-2 dark:border-gray-700 dark:bg-gray-800 md:col-span-2" placeholder="Ujumbe" value={editingItem.message || ''} onChange={(e) => updateField('message', e.target.value)} />
+              <EditField label="Tarehe ya Ibada" htmlFor="service-date">
+                <input id="service-date" className={editInputClass} type="date" value={editingItem.date} onChange={(e) => updateField('date', e.target.value)} />
+              </EditField>
+              <EditField label="Aina ya Ibada" htmlFor="service-name">
+                <input id="service-name" className={editInputClass} placeholder="Aina ya ibada" value={getServiceName(editingItem)} onChange={(e) => updateField('service_name', e.target.value)} />
+              </EditField>
+              <EditField label="Mhubiri" htmlFor="service-preacher">
+                <input id="service-preacher" className={editInputClass} placeholder="Mhubiri" value={editingItem.preacher || ''} onChange={(e) => updateField('preacher', e.target.value)} />
+              </EditField>
+              <EditField label="Kiongozi wa Ibada" htmlFor="service-leaders">
+                <input id="service-leaders" className={editInputClass} placeholder="Kiongozi wa ibada" value={editingItem.leaders_on_duty || ''} onChange={(e) => updateField('leaders_on_duty', e.target.value)} />
+              </EditField>
+              <EditField label="Mahudhurio ya Watoto" htmlFor="service-children">
+                <input id="service-children" className={editInputClass} type="number" placeholder="Watoto" value={editingItem.attendance_children} onChange={(e) => updateField('attendance_children', e.target.value)} />
+              </EditField>
+              <EditField label="Mahudhurio ya Wanawake" htmlFor="service-women">
+                <input id="service-women" className={editInputClass} type="number" placeholder="Wanawake" value={editingItem.attendance_women} onChange={(e) => updateField('attendance_women', e.target.value)} />
+              </EditField>
+              <EditField label="Mahudhurio ya Wanaume" htmlFor="service-men">
+                <input id="service-men" className={editInputClass} type="number" placeholder="Wanaume" value={editingItem.attendance_men} onChange={(e) => updateField('attendance_men', e.target.value)} />
+              </EditField>
+              <EditField label="Jumla ya Sadaka" htmlFor="service-offerings">
+                <input id="service-offerings" className={editInputClass} type="number" placeholder="Sadaka" value={editingItem.total_offerings} onChange={(e) => updateField('total_offerings', e.target.value)} />
+              </EditField>
+              <EditField label="Ujumbe" htmlFor="service-message" className="md:col-span-2">
+                <textarea id="service-message" className={editInputClass} placeholder="Ujumbe" value={editingItem.message || ''} onChange={(e) => updateField('message', e.target.value)} />
+              </EditField>
             </div>
             <div className="mt-6 flex justify-end gap-3">
               <button onClick={() => setEditingItem(null)} className="rounded border border-gray-300 px-4 py-2 dark:border-gray-700">Ghairi</button>
