@@ -6,7 +6,7 @@ import { MoreDotIcon } from "@/icons";
 import { DropdownItem } from "../ui/dropdown/DropdownItem";
 import { Dropdown } from "../ui/dropdown/Dropdown";
 import { useEffect, useState } from "react";
-import { apiFetch } from "@/lib/api";
+import { ApiAuthError, apiFetch } from "@/lib/api";
 
 const ReactApexChart = dynamic(() => import("react-apexcharts"), {
   ssr: false,
@@ -65,6 +65,8 @@ export default function MonthlySadakaChart() {
           },
         ]);
       } catch (err) {
+        if (err instanceof ApiAuthError) return;
+
         console.error("Failed to load sadaka chart", err);
       }
     }

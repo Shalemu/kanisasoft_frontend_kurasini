@@ -1,7 +1,7 @@
 'use client';
 
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import { apiFetch } from '@/lib/api';
+import { ApiAuthError, apiFetch } from '@/lib/api';
 
 export interface Visitor {
   id: number;
@@ -41,6 +41,8 @@ export function useVisitors() {
       setSelectedIds([]);
       setSelectAll(false);
     } catch (error) {
+      if (error instanceof ApiAuthError) return;
+
       console.error(error);
       setData([]);
     } finally {

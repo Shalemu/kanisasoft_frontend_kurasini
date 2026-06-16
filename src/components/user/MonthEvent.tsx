@@ -5,7 +5,7 @@ import dynamic from "next/dynamic";
 import { ApexOptions } from "apexcharts";
 import flatpickr from "flatpickr";
 import { CalenderIcon } from "../../icons";
-import { apiFetch } from "@/lib/api";
+import { ApiAuthError, apiFetch } from "@/lib/api";
 
 const Chart = dynamic(() => import("react-apexcharts"), { ssr: false });
 
@@ -64,6 +64,8 @@ export default function EventsStatisticsChart() {
           },
         ]);
       } catch (err) {
+        if (err instanceof ApiAuthError) return;
+
         console.error("Failed to load events stats", err);
       }
     }

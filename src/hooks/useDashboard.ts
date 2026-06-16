@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { apiFetch } from "@/lib/api";
+import { ApiAuthError, apiFetch } from "@/lib/api";
 
 export function useDashboard() {
   const [totalMembers, setTotalMembers] = useState(0);
@@ -112,6 +112,8 @@ export function useDashboard() {
 
         results.forEach((result) => {
           if (result.status === "rejected") {
+            if (result.reason instanceof ApiAuthError) return;
+
             console.error("Failed to load dashboard metric", result.reason);
           }
         });
