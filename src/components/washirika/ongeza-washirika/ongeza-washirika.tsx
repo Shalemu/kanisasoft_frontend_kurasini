@@ -232,7 +232,6 @@ case 0:
     { value: "MURUSI A", label: "MURUSI A" },
     { value: "KUMUNYIKA B", label: "KUMUNYIKA B" },
   ]}
-  className="bg-[#2d314b] text-white border-gray-500"
 />
       </div>
 
@@ -249,14 +248,13 @@ case 0:
   value={form.maritalStatus}
   onChange={handleChange}
 options={[
-  { value: "Ameoa", label: "Nimeoa" },
-  { value: "Ameolewa", label: "Nimeolewa" },
-  { value: "Hajaoa", label: "Sijaoa" },
-  { value: "Hajaolewa", label: "Sijaolewa" },
+  { value: "Nimeoa", label: "Nimeoa" },
+  { value: "Nimeolewa", label: "Nimeolewa" },
+  { value: "Sijaoa", label: "Sijaoa" },
+  { value: "Sijaolewa", label: "Sijaolewa" },
   { value: "Mjane", label: "Mjane" },
   { value: "Mgane", label: "Mgane" },
 ]}
-  className="bg-[#2d314b] text-white border-gray-500"
 />
       </div>
 
@@ -280,7 +278,6 @@ options={[
     { value: "Kiserikali", label: "Kiserikali" },
     { value: "Kienyeji", label: "Kienyeji" },
   ]}
-  className="bg-[#2d314b] text-white border-gray-500"
 />
           </div>
 
@@ -365,18 +362,9 @@ options={[
     { value: "ndio", label: "Ndio" },
     { value: "hapana", label: "Hapana" },
   ]}
-  className="bg-[#2d314b] text-white border-gray-500"
 />
       </div>
 
-      {form.hasDisability === "ndio" && (
-        <Field
-          label="Eleza Aina ya Ulemavu *"
-          name="disabilityDescription"
-          value={form.disabilityDescription}
-          onChange={handleChange}
-        />
-      )}
     </>
   );
 
@@ -582,9 +570,9 @@ case 1:
       {form.previousChurchStatus === "Nimehamia" && (
         <div className="grid grid-cols-1 md:grid-cols-3 gap-3 col-span-full">
           <Field
-            label="Tangu Lini? *"
+            label="Mwaka wa Kuhamia *"
             name="tanguLini"
-            type="month"
+            type="number"
             value={form.tanguLini}
             onChange={handleChange}
           />
@@ -673,7 +661,7 @@ case 1:
       {/* ===== ROW 2 (CONDITIONAL) ===== */}
       {(form.occupation === "Nimeajiriwa" ||
         form.occupation === "Nimejiajiri") && (
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-3 col-span-full mt-2">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-3 col-span-full mt-2">
           <Field
             label="Kazi au Shughuli gani? (Hiari)"
             name="workPlace"
@@ -685,13 +673,6 @@ case 1:
             label="Mahali pa Kazi (Hiari)"
             name="workPlace"
             value={form.workPlace}
-            onChange={handleChange}
-          />
-
-          <Field
-            label="Mawasiliano ya Kazi (Hiari)"
-            name="workContact"
-            value={form.workContact}
             onChange={handleChange}
           />
         </div>
@@ -749,7 +730,7 @@ case 1:
           />
 
           <Select
-            label="Unaishi na Nani"
+            label="Anaishi na nani"
             name="liveWithWho"
             value={form.liveWithWho}
             onChange={handleChange}

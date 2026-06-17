@@ -20,6 +20,8 @@ type FilterField = {
 
 type Member = {
   id?: number;
+  user_id?: number;
+  member_id?: number;
   full_name?: string | null;
   membership_number?: string | null;
   gender?: string | null;
@@ -52,8 +54,56 @@ const yesNoOptions = [
 const genderOptions = [
   { value: "Mwanaume", label: "Mwanaume" },
   { value: "Mwanamke", label: "Mwanamke" },
-  { value: "M", label: "M" },
-  { value: "F", label: "F" },
+];
+
+const maritalStatusOptions = [
+  { value: "Nimeoa", label: "Nimeoa" },
+  { value: "Nimeolewa", label: "Nimeolewa" },
+  { value: "Sijaoa", label: "Sijaoa" },
+  { value: "Sijaolewa", label: "Sijaolewa" },
+  { value: "Mjane", label: "Mjane" },
+  { value: "Mgane", label: "Mgane" },
+];
+
+const marriageTypeOptions = [
+  { value: "Kikristo", label: "Kikristo" },
+  { value: "Kiserikali", label: "Kiserikali" },
+  { value: "Kienyeji", label: "Kienyeji" },
+];
+
+const membershipStatusOptions = [
+  { value: "active", label: "Active" },
+  { value: "pending", label: "Pending" },
+  { value: "left", label: "Amehama" },
+  { value: "lost", label: "Amepotea" },
+  { value: "deceased", label: "Amefariki" },
+  { value: "detained", label: "Ametegwa ushirika" },
+];
+
+const educationLevelOptions = [
+  { value: "Sijasoma", label: "Sijasoma" },
+  { value: "Elimu ya msingi", label: "Elimu ya msingi" },
+  { value: "Elimu ya sekondari", label: "Elimu ya sekondari" },
+  { value: "Elimu ya chuo", label: "Elimu ya chuo" },
+  { value: "Elimu ya chuo kikuu", label: "Elimu ya chuo kikuu" },
+];
+
+const livesWithOptions = [
+  { value: "Peke yangu", label: "Peke yangu" },
+  { value: "Familia", label: "Familia" },
+  { value: "Wazazi", label: "Wazazi" },
+  { value: "Ndugu", label: "Ndugu" },
+  { value: "Marafiki", label: "Marafiki" },
+  { value: "Wengine", label: "Wengine" },
+];
+
+const familyRoleOptions = [
+  { value: "Mzazi", label: "Mzazi" },
+  { value: "Mtoto", label: "Mtoto" },
+  { value: "Ndugu", label: "Ndugu" },
+  { value: "Mwenzi", label: "Mwenzi" },
+  { value: "Mlezi", label: "Mlezi" },
+  { value: "Mwingine", label: "Mwingine" },
 ];
 
 const monthOptions = [
@@ -75,18 +125,13 @@ const filterSections: { title: string; fields: FilterField[] }[] = [
   {
     title: "Taarifa Binafsi",
     fields: [
-      { name: "full_name", label: "Jina kamili" },
       { name: "membership_number", label: "Namba ya ushirika" },
       { name: "gender", label: "Jinsia", type: "select", options: genderOptions },
-      { name: "phone_number", label: "Namba ya simu" },
-      { name: "whatsapp_number", label: "WhatsApp" },
-      { name: "email", label: "Barua pepe" },
-      { name: "marital_status", label: "Hali ya ndoa" },
-      { name: "marriage_type", label: "Aina ya ndoa" },
+      { name: "marital_status", label: "Hali ya ndoa", type: "select", options: maritalStatusOptions },
+      { name: "marriage_type", label: "Aina ya ndoa", type: "select", options: marriageTypeOptions },
       { name: "spouse_name", label: "Jina la mwenza" },
       { name: "number_of_children", label: "Idadi ya watoto", type: "number" },
       { name: "has_disability", label: "Ana ulemavu", type: "select", options: yesNoOptions },
-      { name: "disability_description", label: "Maelezo ya ulemavu" },
       { name: "is_authorized", label: "Ameidhinishwa", type: "select", options: yesNoOptions },
     ],
   },
@@ -95,7 +140,6 @@ const filterSections: { title: string; fields: FilterField[] }[] = [
     fields: [
       { name: "birth_date", label: "Tarehe ya kuzaliwa", type: "date" },
       { name: "birth_month", label: "Mwezi wa kuzaliwa", type: "select", options: monthOptions },
-      { name: "birth_place", label: "Mahali alipozaliwa" },
       { name: "birth_region", label: "Mkoa aliozaliwa" },
       { name: "birth_district", label: "Wilaya aliozaliwa" },
       { name: "birth_ward", label: "Kata aliozaliwa" },
@@ -108,12 +152,10 @@ const filterSections: { title: string; fields: FilterField[] }[] = [
   {
     title: "Imani na Ushirika",
     fields: [
-      { name: "date_of_conversion", label: "Tarehe ya kuokoka", type: "date" },
       { name: "conversion_year", label: "Mwaka wa kuokoka", type: "number" },
       { name: "conversion_month", label: "Mwezi wa kuokoka", type: "select", options: monthOptions },
       { name: "conversion_day", label: "Siku ya kuokoka", type: "number" },
       { name: "church_of_conversion", label: "Kanisa alilookokea" },
-      { name: "baptism_date", label: "Tarehe ya ubatizo", type: "date" },
       { name: "baptism_year", label: "Mwaka wa ubatizo", type: "number" },
       { name: "baptism_month", label: "Mwezi wa ubatizo", type: "select", options: monthOptions },
       { name: "baptism_day", label: "Siku ya ubatizo", type: "number" },
@@ -121,28 +163,23 @@ const filterSections: { title: string; fields: FilterField[] }[] = [
       { name: "baptizer_name", label: "Jina la mbatizaji" },
       { name: "baptizer_title", label: "Cheo cha mbatizaji" },
       { name: "previous_church", label: "Kanisa la awali" },
-      { name: "previous_church_status", label: "Hali ya kanisa la awali" },
-      { name: "tangu_lini", label: "Tangu lini" },
+      { name: "tangu_lini", label: "Mwaka wa kuhamia", type: "number" },
       { name: "church_service", label: "Huduma kanisani" },
-      { name: "service_duration", label: "Muda wa huduma" },
       { name: "participates_communion", label: "Anashiriki meza ya Bwana", type: "select", options: yesNoOptions },
-      { name: "verified_by", label: "Aliyethibitisha" },
-      { name: "membership_start_date", label: "Tarehe ya kuanza ushirika", type: "date" },
-      { name: "membership_status", label: "Status ya ushirika" },
+      { name: "membership_status", label: "Hali ya ushirika", type: "select", options: membershipStatusOptions },
     ],
   },
   {
     title: "Elimu, Kazi na Familia",
     fields: [
-      { name: "education_level", label: "Kiwango cha elimu" },
+      { name: "education_level", label: "Kiwango cha elimu", type: "select", options: educationLevelOptions },
       { name: "profession", label: "Taaluma" },
       { name: "occupation", label: "Kazi" },
       { name: "work_place", label: "Mahali pa kazi" },
-      { name: "work_contact", label: "Mawasiliano ya kazi" },
       { name: "lives_alone", label: "Anaishi peke yake", type: "select", options: yesNoOptions },
-      { name: "lives_with", label: "Anaishi na" },
-      { name: "family_role", label: "Nafasi kwenye familia" },
-      { name: "live_with_who", label: "Anaishi na nani" },
+      { name: "lives_with", label: "Anaishi na", type: "select", options: livesWithOptions },
+      { name: "family_role", label: "Nafasi kwenye familia", type: "select", options: familyRoleOptions },
+      { name: "live_with_who", label: "Anaishi na nani", type: "select", options: livesWithOptions },
       { name: "next_of_kin", label: "Mtu wa karibu" },
       { name: "next_of_kin_phone", label: "Simu ya mtu wa karibu" },
     ],
@@ -158,8 +195,6 @@ const filterSections: { title: string; fields: FilterField[] }[] = [
       { name: "date_of_conversion_to", label: "Kuokoka mpaka", type: "date" },
       { name: "baptism_date_from", label: "Ubatizo kuanzia", type: "date" },
       { name: "baptism_date_to", label: "Ubatizo mpaka", type: "date" },
-      { name: "membership_start_date_from", label: "Ushirika kuanzia", type: "date" },
-      { name: "membership_start_date_to", label: "Ushirika mpaka", type: "date" },
     ],
   },
 ];
@@ -205,9 +240,12 @@ export default function MemberReports() {
   const [savingGroup, setSavingGroup] = useState(false);
   const [groupForm, setGroupForm] = useState({
     name: "",
+    leader_name: "",
     leader_membership_number: "",
     whatsapp_link: "",
   });
+  const [leaderResults, setLeaderResults] = useState<Member[]>([]);
+  const [leaderSearchLoading, setLeaderSearchLoading] = useState(false);
 
   const members = result?.members ?? [];
   const exportRows = result?.export?.rows ?? [];
@@ -227,7 +265,14 @@ export default function MemberReports() {
     setHasSearched(true);
 
     try {
-      const params = new URLSearchParams(activeFilters);
+      const nextFilters = { ...activeFilters };
+      const rawSearch = String(nextFilters.search ?? "").trim();
+
+      if (/^\d+$/.test(rawSearch) && !nextFilters.membership_number) {
+        nextFilters.membership_number = rawSearch;
+      }
+
+      const params = new URLSearchParams(nextFilters);
       const data = await apiFetch(`/members/search-filter${params.toString() ? `?${params.toString()}` : ""}`);
       setResult(data);
     } catch (error) {
@@ -277,8 +322,43 @@ export default function MemberReports() {
       return;
     }
 
-    setGroupForm({ name: "", leader_membership_number: "", whatsapp_link: "" });
+    setGroupForm({ name: "", leader_name: "", leader_membership_number: "", whatsapp_link: "" });
+    setLeaderResults([]);
     setGroupOpen(true);
+  };
+
+  const searchLeader = async (value: string) => {
+    setGroupForm((prev) => ({
+      ...prev,
+      leader_name: value,
+      leader_membership_number: "",
+    }));
+
+    if (!value.trim()) {
+      setLeaderResults([]);
+      return;
+    }
+
+    setLeaderSearchLoading(true);
+
+    try {
+      const response = await apiFetch(`/users?search=${encodeURIComponent(value.trim())}`);
+      const records = response?.users ?? response?.data?.users ?? response?.members ?? response?.data ?? [];
+      setLeaderResults(Array.isArray(records) ? records.slice(0, 8) : []);
+    } catch {
+      setLeaderResults([]);
+    } finally {
+      setLeaderSearchLoading(false);
+    }
+  };
+
+  const selectLeader = (member: Member) => {
+    setGroupForm((prev) => ({
+      ...prev,
+      leader_name: member.full_name ?? "",
+      leader_membership_number: member.membership_number ?? "",
+    }));
+    setLeaderResults([]);
   };
 
   const createGroup = async () => {
@@ -352,7 +432,7 @@ export default function MemberReports() {
             onKeyDown={(event) => {
               if (event.key === "Enter") void runSearch();
             }}
-            placeholder="Tafuta jina, namba, simu, email..."
+            placeholder="Tafuta jina au namba ya ushirika..."
             className="rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-800 placeholder:text-gray-400 dark:border-gray-700 dark:bg-gray-900 dark:text-white/90 dark:placeholder:text-gray-500"
           />
           <button
@@ -471,13 +551,34 @@ export default function MemberReports() {
                   required
                 />
               </label>
-              <label className="block text-sm font-medium">
-                Namba ya ushirika ya kiongozi
+              <label className="relative block text-sm font-medium">
+                Kiongozi wa kundi
                 <input
-                  value={groupForm.leader_membership_number}
-                  onChange={(event) => setGroupForm((prev) => ({ ...prev, leader_membership_number: event.target.value }))}
+                  value={groupForm.leader_name}
+                  onChange={(event) => void searchLeader(event.target.value)}
+                  placeholder="Andika jina la kiongozi"
                   className="mt-1 w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm dark:border-gray-700 dark:bg-gray-800"
                 />
+                {leaderSearchLoading ? (
+                  <span className="mt-1 block text-xs text-gray-500">Inatafuta...</span>
+                ) : null}
+                {leaderResults.length > 0 ? (
+                  <div className="absolute z-10 mt-1 max-h-52 w-full overflow-y-auto rounded-lg border border-gray-200 bg-white shadow-lg dark:border-gray-700 dark:bg-gray-800">
+                    {leaderResults.map((member, index) => (
+                      <button
+                        key={member.id ?? member.user_id ?? member.member_id ?? index}
+                        type="button"
+                        onClick={() => selectLeader(member)}
+                        className="flex w-full items-center justify-between gap-3 px-3 py-2 text-left text-sm hover:bg-gray-50 dark:hover:bg-gray-700"
+                      >
+                        <span>{member.full_name || "-"}</span>
+                        <span className="text-xs text-gray-500">
+                          {member.membership_number || "-"}
+                        </span>
+                      </button>
+                    ))}
+                  </div>
+                ) : null}
               </label>
               <label className="block text-sm font-medium">
                 WhatsApp link

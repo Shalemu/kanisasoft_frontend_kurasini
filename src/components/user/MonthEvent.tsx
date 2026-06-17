@@ -11,15 +11,17 @@ const Chart = dynamic(() => import("react-apexcharts"), { ssr: false });
 
 type EventRecord = {
   date?: string;
+  start_date?: string;
 };
 
 function countEventsByMonth(events: EventRecord[]) {
   const monthlyCounts = Array(12).fill(0);
 
   events.forEach((event) => {
-    if (!event.date) return;
+    const eventDate = event.start_date ?? event.date;
+    if (!eventDate) return;
 
-    const date = new Date(event.date);
+    const date = new Date(eventDate);
     if (Number.isNaN(date.getTime())) return;
 
     monthlyCounts[date.getMonth()] += 1;

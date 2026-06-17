@@ -156,9 +156,40 @@ function splitDateParts(dateValue?: string | null) {
 }
 
 function normalizeYesNo(value: unknown) {
-  if (value === true || value === 1 || value === "1" || value === "ndio") return "ndio";
-  if (value === false || value === 0 || value === "0" || value === "hapana") return "hapana";
+  const normalized = typeof value === "string" ? value.toLowerCase() : value;
+
+  if (
+    normalized === true ||
+    normalized === 1 ||
+    normalized === "1" ||
+    normalized === "ndio" ||
+    normalized === "yes"
+  ) {
+    return "ndio";
+  }
+
+  if (
+    normalized === false ||
+    normalized === 0 ||
+    normalized === "0" ||
+    normalized === "hapana" ||
+    normalized === "no"
+  ) {
+    return "hapana";
+  }
+
   return "";
+}
+
+function normalizeMaritalStatus(value?: string | null) {
+  const maritalStatusMap: Record<string, string> = {
+    Ameoa: "Nimeoa",
+    Ameolewa: "Nimeolewa",
+    Hajaoa: "Sijaoa",
+    Hajaolewa: "Sijaolewa",
+  };
+
+  return value ? maritalStatusMap[value] ?? value : "";
 }
 
 function isValidTanzaniaPhone(value: string) {
@@ -194,7 +225,7 @@ export function mapMemberToForm(member: any): MemberFormData {
     residentialWard: member.residential_ward ?? "",
     residentialStreet: member.residential_street ?? "",
     residence: member.residence ?? "",
-    maritalStatus: member.marital_status ?? "",
+    maritalStatus: normalizeMaritalStatus(member.marital_status),
     marriageType: member.marriage_type ?? "",
     spouseName: member.spouse_name ?? "",
     childrenCount: String(member.children_count ?? member.number_of_children ?? ""),
@@ -344,19 +375,6 @@ const [form, setForm] = useState<MemberFormData>(getEmptyMemberForm());
       Swal.fire({
         title: "Tahadhari",
         text: "Chagua aina ya ndoa.",
-        icon: "warning",
-      });
-
-      return false;
-    }
-
-    if (
-      form.hasDisability === "ndio" &&
-      !form.disabilityDescription
-    ) {
-      Swal.fire({
-        title: "Tahadhari",
-        text: "Eleza aina ya ulemavu.",
         icon: "warning",
       });
 
@@ -537,8 +555,7 @@ const [form, setForm] = useState<MemberFormData>(getEmptyMemberForm());
       has_disability:
         form.hasDisability === "ndio",
 
-      disability_description:
-        form.disabilityDescription,
+      disability_description: "",
 
       conversion_year:
         Number(form.conversionYear) || null,
@@ -597,8 +614,7 @@ const [form, setForm] = useState<MemberFormData>(getEmptyMemberForm());
       work_place:
         form.workPlace,
 
-      work_contact:
-        form.workContact,
+      work_contact: "",
 
       lives_alone:
         form.livesAlone === "ndio",

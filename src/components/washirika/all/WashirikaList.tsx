@@ -55,7 +55,14 @@ interface Props {
   statusFilter?: string;
 }
 
-export default function WashirikaList({ searchTerm, statusFilter = "" }: Props) {
+export default function WashirikaList({
+  searchTerm,
+  selectedMonth = "",
+  selectedGroup = "",
+  fromDate = "",
+  toDate = "",
+  statusFilter = "",
+}: Props) {
   const [members, setMembers] = useState<User[]>([]);
   const [loading, setLoading] = useState(true);
   const [sendingSms, setSendingSms] = useState(false);
@@ -129,6 +136,10 @@ const fetchGroups = async () => {
   }
 };
 
+function normalizeDate(value?: string | null) {
+  return value ? value.slice(0, 10) : "";
+}
+
   const fetchMembers = async () => {
     try {
       setLoading(true);
@@ -144,10 +155,13 @@ const fetchGroups = async () => {
         residential_zone: u.residential_zone ?? "",
         phone: u.phone ?? null,
         role: u.role ?? null,
-        membership_number: u.membership_number ?? null,
+        membership_number:
+          u.membership_number !== null && u.membership_number !== undefined
+            ? String(u.membership_number)
+            : null,
         membership_status: u.membership_status ?? "pending",
         created_at: u.created_at,
-        groups: u.groups ?? [],
+        groups: u.groups ?? u.member_groups ?? u.assigned_groups ?? [],
       }));
 
       // Filter washirika
@@ -168,13 +182,41 @@ const fetchGroups = async () => {
   };
 
 const filteredMembers = useMemo(() => {
+  const query = searchTerm.trim().toLowerCase();
+  const groupQuery = selectedGroup.trim().toLowerCase();
+
   const filtered = members.filter((m) => {
+    const createdDate = normalizeDate(m.created_at);
+    const createdMonth = createdDate.slice(0, 7);
+    const groupNames = m.groups?.map((group) => group.name).join(" ") ?? "";
+
+    const normalizedMembershipNumber = (m.membership_number ?? "").replace(/^0+/, "");
+    const normalizedQuery = query.replace(/^0+/, "");
+
     const matchesSearch =
-      m.full_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      m.phone?.includes(searchTerm);
+      !query ||
+      Boolean(
+        m.full_name?.toLowerCase().includes(query) ||
+          m.phone?.includes(searchTerm.trim()) ||
+          m.membership_number?.toLowerCase().includes(query) ||
+          (normalizedQuery &&
+            normalizedMembershipNumber.includes(normalizedQuery))
+      );
+    const matchesMonth = !selectedMonth || createdMonth === selectedMonth;
+    const matchesDateFrom = !fromDate || createdDate >= fromDate;
+    const matchesDateTo = !toDate || createdDate <= toDate;
+    const matchesGroup =
+      !groupQuery || groupNames.toLowerCase().includes(groupQuery);
     const matchesStatus = !statusFilter || m.membership_status === statusFilter;
 
-    return matchesSearch && matchesStatus;
+    return (
+      matchesSearch &&
+      matchesMonth &&
+      matchesDateFrom &&
+      matchesDateTo &&
+      matchesGroup &&
+      matchesStatus
+    );
   });
 
   const sorted = filtered.sort((a, b) => {
@@ -192,7 +234,20 @@ const filteredMembers = useMemo(() => {
   });
 
   return sorted;
-}, [members, searchTerm, statusFilter]);
+}, [
+  members,
+  searchTerm,
+  selectedMonth,
+  selectedGroup,
+  fromDate,
+  toDate,
+  statusFilter,
+]);
+
+useEffect(() => {
+  setCurrentPage(1);
+  setSelectedMembers([]);
+}, [searchTerm, selectedMonth, selectedGroup, fromDate, toDate, statusFilter]);
 
   // PAGINATION
   const totalPages = Math.ceil(filteredMembers.length / rowsPerPage);
@@ -246,27 +301,40 @@ const toggleSelectAll = () => {
 
   // APPROVE
   const handleApprove = async (userId: number) => {
-    const response = await apiFetch("/authorize-user", {
-      method: "POST",
-      body: JSON.stringify({ user_id: userId }),
-    });
+    try {
+      const response = await apiFetch("/authorize-user", {
+        method: "POST",
+        body: { user_id: userId },
+      });
 
-    if (response.status === "success") {
-      setMembers((prev) =>
-        prev.map((m) =>
-          m.user_id === userId
-            ? {
-                ...m,
-                role: "mshirika",
-                membership_number: response.member.membership_number,
-              }
-            : m
-        )
+      if (response.status === "success" || response.member || response.data?.member) {
+        const member = response.member ?? response.data?.member ?? {};
+
+        setMembers((prev) =>
+          prev.map((m) =>
+            m.user_id === userId
+              ? {
+                  ...m,
+                  role: "mshirika",
+                  member_id: member.id ?? member.member_id ?? m.member_id,
+                  membership_number:
+                    member.membership_number ?? m.membership_number,
+                  membership_status: member.membership_status ?? "active",
+                }
+              : m
+          )
+        );
+
+        Swal.fire("Imefanikiwa", "Mshirika ameidhinishwa", "success");
+      } else {
+        Swal.fire("Error", response.message || "Imeshindikana", "error");
+      }
+    } catch (error) {
+      Swal.fire(
+        "Hitilafu",
+        error instanceof Error ? error.message : "Imeshindikana kuidhinisha mshirika.",
+        "error"
       );
-
-      Swal.fire("Imefanikiwa", "Mshirika ameidhinishwa", "success");
-    } else {
-      Swal.fire("Error", response.message || "Imeshindikana", "error");
     }
   };
 
@@ -478,14 +546,6 @@ const totalPending = filteredMembers.filter(
   (m) => m.membership_status === MEMBERSHIP_STATUS.PENDING
 ).length;
 
-const activeMembers = filteredMembers.filter(
-  (m) => m.membership_status === MEMBERSHIP_STATUS.ACTIVE
-);
-
-
-
-
-
   return (
 
     <div className="space-y-5">
@@ -690,7 +750,7 @@ const activeMembers = filteredMembers.filter(
                   </td>
 
                   <td className="px-4 py-3">
-                    {m.role === null ? (
+                    {m.membership_status !== MEMBERSHIP_STATUS.ACTIVE ? (
                       <div className="flex gap-2">
                         <button
                           onClick={() => handleApprove(m.user_id)}
