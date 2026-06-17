@@ -3,6 +3,7 @@
 import { useEffect, useState, useMemo, useCallback } from "react";
 import { apiFetch } from "@/lib/api";
 import Swal from "sweetalert2";
+import PdfViewerModal from "@/components/common/PdfViewerModal";
 import {
   FaFilePdf,
   FaFileWord,
@@ -12,6 +13,7 @@ import {
   FaDownload,
   FaTrash,
   FaExternalLinkAlt,
+  FaEye,
 } from "react-icons/fa";
 
 interface Resource {
@@ -20,6 +22,7 @@ interface Resource {
   description: string | null;
   link: string | null;
   file_path: string | null;
+  view_url: string | null;
   download_url: string | null;
   file_type: string | null;
   uploaded_by_role: string | null;
@@ -79,6 +82,12 @@ function FileTypeBadge({ fileType }: { fileType: string | null }) {
 export default function RasilimaliList({ searchTerm, refreshKey }: Props) {
   const [resources, setResources] = useState<Resource[]>([]);
   const [loading, setLoading] = useState(true);
+
+  const [viewModalOpen, setViewModalOpen] = useState(false);
+  const [viewModalUrl, setViewModalUrl] = useState("");
+  const [viewModalTitle, setViewModalTitle] = useState("");
+  const [viewModalDownloadUrl, setViewModalDownloadUrl] = useState<string | null>(null);
+  const [viewModalFileName, setViewModalFileName] = useState("");
 
   const fetchResources = useCallback(async () => {
     setLoading(true);
@@ -150,97 +159,108 @@ export default function RasilimaliList({ searchTerm, refreshKey }: Props) {
   }
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-5">
-      {filtered.map((resource) => (
-        <div
-          key={resource.id}
-          className="bg-white dark:bg-gray-900 rounded-2xl shadow hover:shadow-md transition-shadow border border-gray-100 dark:border-gray-700 flex flex-col"
-        >
-          {/* Card Header */}
-          <div className="p-5 border-b border-gray-100 dark:border-gray-700 flex items-start gap-3">
-            {resource.file_path ? (
-              <div className="flex-shrink-0 mt-0.5">
-                <FileIcon fileType={resource.file_type} />
-              </div>
-            ) : (
-              <div className="flex-shrink-0 mt-0.5">
-                <FaLink className="text-[#1e293b] dark:text-slate-300 text-2xl" />
-              </div>
-            )}
-            <div className="flex-1 min-w-0">
-              <h4 className="font-semibold text-gray-800 dark:text-white text-base leading-snug truncate">
-                {resource.title}
-              </h4>
-              {resource.file_path && <FileTypeBadge fileType={resource.file_type} />}
-            </div>
-          </div>
-
-          {/* Card Body */}
-          <div className="p-5 flex-1 space-y-3">
-            {resource.description && (
-              <p className="text-sm text-gray-600 dark:text-gray-400 leading-relaxed line-clamp-3">
-                {resource.description}
-              </p>
-            )}
-
-            {/* Link */}
-            {resource.link && (
-              <a
-                href={resource.link}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="flex items-center gap-2 text-sm text-blue-600 hover:text-blue-800 dark:text-blue-400 truncate"
-              >
-                <FaExternalLinkAlt className="flex-shrink-0" />
-                <span className="truncate">{resource.link}</span>
-              </a>
-            )}
-          </div>
-
-          {/* Card Footer */}
-          <div className="px-5 py-3 bg-gray-50 dark:bg-gray-800 rounded-b-2xl flex items-center justify-between gap-3">
-            <div className="min-w-0">
-              <p className="text-xs text-gray-500 dark:text-gray-400">
-                <span className="font-medium text-gray-700 dark:text-gray-300">
-                  {resource.uploaded_by_role ?? "Mtumiaji"}
-                </span>
-              </p>
-              <p className="text-xs text-gray-400 mt-0.5">{formatDate(resource.created_at)}</p>
-            </div>
-
-            <div className="flex items-center gap-2 flex-shrink-0">
-              {resource.download_url ? (
-                <a
-                  href={resource.download_url}
-                  download={`${resource.title}${resource.file_path?.substring(resource.file_path.lastIndexOf(".")) || ""}`}
-                  className="flex items-center gap-1.5 px-3 py-1.5 bg-[#1e293b] text-white text-xs rounded-lg hover:bg-[#334155] transition-colors"
-                >
-                  <FaDownload />
-                  Pakua
-                </a>
-              ) : resource.file_path && (
-                <a
-                  href={`${process.env.NEXT_PUBLIC_API_BASE_URL?.replace(/\/api$/, "")}/${resource.file_path}`}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  download={`${resource.title}${resource.file_path?.substring(resource.file_path.lastIndexOf(".")) || ""}`}
-                  className="flex items-center gap-1.5 px-3 py-1.5 bg-[#1e293b] text-white text-xs rounded-lg hover:bg-[#334155] transition-colors"
-                >
-                  <FaDownload />
-                  Pakua
-                </a>
-              )}
-              <button
-                onClick={() => handleDelete(resource.id, resource.title)}
-                className="p-1.5 text-gray-400 hover:text-red-500 transition-colors"
-                title="Futa"
-              >
-                <FaTrash />
-              </button>
-            </div>
-          </div>
+    <div className="space-y-4">
+      {filtered.length === 0 ? (
+        <div className="flex flex-col items-center justify-center py-20 text-gray-400">
+          <FaFile className="text-5xl mb-4 opacity-40" />
+          <p className="text-base font-medium">
+            {searchTerm ? `Hakuna rasilimali zenye kichwa "${searchTerm}"` : "Hakuna rasilimali bado."}
+          </p>
         </div>
-      ))}
+      ) : (
+        <div className="overflow-x-auto rounded-xl border border-gray-200 dark:border-gray-800">
+          <table className="w-full text-sm">
+            <thead className="bg-[#1e293b] text-white text-left">
+              <tr>
+                <th className="px-5 py-3 font-medium">#</th>
+                <th className="px-5 py-3 font-medium">JINA</th>
+                <th className="px-5 py-3 font-medium">AINA</th>
+                <th className="px-5 py-3 font-medium">MAELEZO</th>
+                <th className="px-5 py-3 font-medium">TAREHE</th>
+                <th className="px-5 py-3 font-medium"></th>
+              </tr>
+            </thead>
+            <tbody>
+              {filtered.map((resource, index) => {
+                const fileExt = resource.file_path?.substring(resource.file_path.lastIndexOf(".")) || "";
+                const directUrl = resource.view_url
+                  ? resource.view_url
+                  : resource.file_path
+                  ? `${process.env.NEXT_PUBLIC_API_BASE_URL?.replace(/\/api$/, "")}/${resource.file_path}`
+                  : resource.link || "";
+                return (
+                  <tr key={resource.id} className="border-t border-gray-100 dark:border-gray-800 hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors">
+                    <td className="px-5 py-4 text-gray-600 dark:text-gray-300">{index + 1}</td>
+                    <td className="px-5 py-4 font-medium text-gray-800 dark:text-white">
+                      {resource.title}
+                    </td>
+                    <td className="px-5 py-4">
+                      <FileTypeBadge fileType={resource.file_type} />
+                      {!resource.file_type && resource.link && (
+                        <span className="px-2 py-0.5 text-xs rounded-full bg-blue-100 text-blue-600 font-medium">Link</span>
+                      )}
+                    </td>
+                    <td className="px-5 py-4 text-gray-600 dark:text-gray-300 max-w-xs truncate">
+                      {resource.description ?? "—"}
+                    </td>
+                    <td className="px-5 py-4 text-gray-600 dark:text-gray-300 whitespace-nowrap">
+                      {formatDate(resource.created_at)}
+                    </td>
+                    <td className="px-5 py-4">
+                      <div className="flex items-center gap-2 justify-end">
+                        {directUrl && (
+                          <button
+                            onClick={() => {
+                              setViewModalUrl(directUrl);
+                              setViewModalTitle(resource.title);
+                              setViewModalDownloadUrl(resource.download_url ?? (resource.file_path ? `${process.env.NEXT_PUBLIC_API_BASE_URL?.replace(/\/api$/, "")}/${resource.file_path}` : null));
+                              setViewModalFileName(`${resource.title}${fileExt}`);
+                              setViewModalOpen(true);
+                            }}
+                            className="inline-flex items-center gap-1.5 px-3 py-2 bg-[#1e293b] hover:bg-[#334155] text-white text-xs font-semibold rounded-lg transition-colors"
+                          >
+                            <FaEye /> Tazama
+                          </button>
+                        )}
+                        {resource.download_url ? (
+                          <a href={resource.download_url}
+                            download={`${resource.title}${resource.file_path?.substring(resource.file_path.lastIndexOf(".")) || ""}`}
+                            className="inline-flex items-center gap-1.5 px-3 py-2 bg-gray-700 hover:bg-gray-800 text-white text-xs font-semibold rounded-lg transition-colors">
+                            <FaDownload /> Pakua
+                          </a>
+                        ) : resource.file_path ? (
+                          <a href={`${process.env.NEXT_PUBLIC_API_BASE_URL?.replace(/\/api$/, "")}/${resource.file_path}`}
+                            download={`${resource.title}${resource.file_path?.substring(resource.file_path.lastIndexOf(".")) || ""}`}
+                            className="inline-flex items-center gap-1.5 px-3 py-2 bg-gray-700 hover:bg-gray-800 text-white text-xs font-semibold rounded-lg transition-colors">
+                            <FaDownload /> Pakua
+                          </a>
+                        ) : resource.link ? (
+                          <a href={resource.link} target="_blank" rel="noopener noreferrer"
+                            className="inline-flex items-center gap-1.5 px-3 py-2 bg-gray-700 hover:bg-gray-800 text-white text-xs font-semibold rounded-lg transition-colors">
+                            <FaExternalLinkAlt /> Pakua
+                          </a>
+                        ) : null}
+                        <button onClick={() => handleDelete(resource.id, resource.title)}
+                          className="p-2 text-gray-400 hover:text-red-500 transition-colors" title="Futa">
+                          <FaTrash />
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+        </div>
+      )}
+      <PdfViewerModal
+        isOpen={viewModalOpen}
+        onClose={() => setViewModalOpen(false)}
+        url={viewModalUrl}
+        title={viewModalTitle}
+        downloadUrl={viewModalDownloadUrl}
+        fileName={viewModalFileName}
+      />
     </div>
   );
 }
