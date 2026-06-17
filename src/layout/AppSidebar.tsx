@@ -71,7 +71,10 @@ const navItems: NavItem[] = [
   {
     icon: <PieChartIcon />,
     name: "Fedha",
-    path: "/fedha",
+    subItems: [
+      { name: "Fedha", path: "/fedha", pro: false },
+      { name: "Ripoti ya Fedha", path: "/fedha/ripoti", pro: false },
+    ],
   },
   {
     icon: <BoxCubeIcon />,
