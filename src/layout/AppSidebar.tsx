@@ -79,16 +79,20 @@ const navItems: NavItem[] = [
   {
     icon: <BoxCubeIcon />,
     name: "Viongozi",
-    subItems: [{ name: "viongozi", path: "/viongozi", pro: false },
+    subItems: [{ name: "viongozi wa Kanisa", path: "/viongozi", pro: false },
               {
       name: "Waliostaafu",
       path: "/viongozi/waliostaafu",
       pro: false
+    },
+              {
+      name: "Nafasi",
+      path: "/viongozi/nafasi",
+      pro: false
     }
     ],
-
   },
-  {
+   {
     icon: <PageIcon />,
     name: "SMS",
     subItems: [
