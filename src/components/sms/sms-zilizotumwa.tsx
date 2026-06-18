@@ -10,12 +10,13 @@ import {
   FaSearch
 } from 'react-icons/fa';
 
-
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import * as XLSX from 'xlsx';
 
-import { useSmsStats } from '@/hooks/useSmsStats';
+import { useSmsStats } from '@/hooks/sms/useSmsStats';
+import { useReceiverNames } from '@/hooks/sms/useReceiverNames';
+
 
 interface SmsLog {
   id: number;
@@ -23,187 +24,403 @@ interface SmsLog {
   message: string;
   status: string;
   sent_at: string;
-  receiver?: string | null;
+  receiver: string;
 }
+
 
 const PAGE_SIZE = 10;
 
+
 export default function SmsZilizotumwa() {
+
   const [logs, setLogs] = useState<SmsLog[]>([]);
 
   const [search, setSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState('');
-  const [dateFilter, setDateFilter] = useState('');
+ const [startDate, setStartDate] = useState('');
+ const [endDate, setEndDate] = useState('');
 
   const [currentPage, setCurrentPage] = useState(1);
 
-  const { smsSentThisMonth, smsSentLastMonth, smsSentAllTime } =
-    useSmsStats(logs);
+  const { getReceiverName } = useReceiverNames();
+
+
+  const {
+    smsSentThisMonth,
+    smsSentLastMonth,
+    smsSentAllTime
+  } = useSmsStats(logs);
+
+
 
   useEffect(() => {
     fetchLogs();
   }, []);
 
+
+
   const fetchLogs = async () => {
+
     try {
+
       const res = await fetch(
         `${process.env.NEXT_PUBLIC_API_BASE_URL}/sms/logs`,
         {
-          headers: {
-            Authorization: `Bearer ${localStorage.getItem('token')}`,
+          headers:{
+            Authorization:
+              `Bearer ${localStorage.getItem('token')}`,
           },
         }
       );
 
+
       const data = await res.json();
 
-      if (data.status === 'success') {
+
+      if(data.status === 'success'){
         setLogs(data.logs || []);
       }
-    } catch (err) {
+
+
+    } catch(err){
       console.error(err);
     }
+
   };
 
 
-  const normalizePhone = (phone: string) => {
-    if (!phone) return '';
+
+  const normalizePhone = (phone:string)=>{
+    if(!phone) return '';
     return phone.replace(/^255/, '0');
   };
 
-  const normalizeStatus = (status: string) => {
+
+  const normalizeStatus = (status:string)=>{
     return (status || '').toLowerCase();
   };
 
 
-  const filteredLogs = useMemo(() => {
-    const searchValue = search.toLowerCase().trim();
-    const statusValue = statusFilter.toLowerCase();
 
-    return logs.filter((log) => {
-      const phone = normalizePhone(log.recipient);
-      const message = (log.message || '').toLowerCase();
-      const status = normalizeStatus(log.status);
+  const filteredLogs = useMemo(()=>{
 
-      // search (phone OR message)
+
+    const searchValue =
+      search.toLowerCase().trim();
+
+
+    const statusValue =
+      statusFilter.toLowerCase();
+
+
+
+    return logs.filter((log)=>{
+
+
+      const phone =
+        normalizePhone(log.recipient);
+
+
+      const message =
+        (log.message || '').toLowerCase();
+
+
+      const status =
+        normalizeStatus(log.status);
+
+
+
       const matchSearch =
-        phone.includes(searchValue) || message.includes(searchValue);
+        phone.includes(searchValue) ||
+        message.includes(searchValue);
 
-      // status (SMART MATCHING)
+
+
       const matchStatus =
         !statusValue ||
-        (statusValue === 'success' &&
-          (status.includes('sent') ||
+        (
+          statusValue === 'success' &&
+          (
+            status.includes('sent') ||
             status.includes('success') ||
-            status.includes('delivered'))) ||
-        (statusValue === 'failed' && status.includes('fail'));
+            status.includes('delivered')
+          )
+        ) ||
+        (
+          statusValue === 'failed' &&
+          status.includes('fail')
+        );
 
-      // date
-      const matchDate =
-        !dateFilter ||
-        new Date(log.sent_at).toISOString().slice(0, 10) === dateFilter;
+const logDate = new Date(log.sent_at);
 
-      return matchSearch && matchStatus && matchDate;
+
+const matchDate =
+  (!startDate ||
+    logDate >= new Date(startDate + "T00:00:00"))
+  &&
+  (!endDate ||
+    logDate <= new Date(endDate + "T23:59:59"));
+
+
+
+      return (
+        matchSearch &&
+        matchStatus &&
+        matchDate
+      );
+
+
     });
-  }, [logs, search, statusFilter, dateFilter]);
 
 
-  const totalPages = Math.ceil(filteredLogs.length / PAGE_SIZE);
+},[
+ logs,
+ search,
+ statusFilter,
+ startDate,
+ endDate
+]);
 
-  const paginatedLogs = useMemo(() => {
-    const start = (currentPage - 1) * PAGE_SIZE;
-    return filteredLogs.slice(start, start + PAGE_SIZE);
-  }, [filteredLogs, currentPage]);
 
-  // reset page when filters change
-  useEffect(() => {
-    setCurrentPage(1);
-  }, [search, statusFilter, dateFilter]);
 
-  const [selected, setSelected] = useState<number[]>([]);
+  const totalPages =
+    Math.ceil(filteredLogs.length / PAGE_SIZE);
 
-// toggle single row
-const toggleOne = (id: number) => {
-  setSelected((prev) =>
-    prev.includes(id)
-      ? prev.filter((x) => x !== id)
-      : [...prev, id]
-  );
-};
 
-// toggle all visible rows
-const toggleAll = () => {
-  const allIds = paginatedLogs.map((l) => l.id);
 
-  if (selected.length === allIds.length) {
-    setSelected([]);
-  } else {
-    setSelected(allIds);
-  }
-};
+  const paginatedLogs = useMemo(()=>{
 
-  //  STATUS BADGE 
-  const getStatusBadge = (status: string) => {
-    const s = status?.toLowerCase();
+    const start =
+      (currentPage - 1) * PAGE_SIZE;
 
-    if (
+
+    return filteredLogs.slice(
+      start,
+      start + PAGE_SIZE
+    );
+
+  },[
+    filteredLogs,
+    currentPage
+  ]);
+
+
+
+useEffect(()=>{
+  setCurrentPage(1);
+},[
+ search,
+ statusFilter,
+ startDate,
+ endDate
+]);
+
+
+  const [selected,setSelected] =
+    useState<number[]>([]);
+
+
+
+  const toggleOne = (id:number)=>{
+
+    setSelected(prev =>
+      prev.includes(id)
+      ? prev.filter(x=>x!==id)
+      : [...prev,id]
+    );
+
+  };
+
+
+
+  const toggleAll = ()=>{
+
+    const ids =
+      paginatedLogs.map(x=>x.id);
+
+
+    setSelected(
+      selected.length === ids.length
+      ? []
+      : ids
+    );
+
+  };
+
+
+
+  const getStatusBadge = (status:string)=>{
+
+    const s =
+      status?.toLowerCase();
+
+
+    if(
       s.includes('sent') ||
       s.includes('success') ||
       s.includes('delivered')
-    ) {
+    ){
+
       return (
-        <span className="px-2 py-1 text-xs rounded bg-green-100 text-green-700">
+        <span className="
+          px-2 py-1 text-xs rounded
+          bg-green-100 text-green-700
+        ">
           Imetumwa
         </span>
       );
+
     }
 
-    if (s.includes('fail')) {
+
+    if(s.includes('fail')){
+
       return (
-        <span className="px-2 py-1 text-xs rounded bg-red-100 text-red-700">
+        <span className="
+          px-2 py-1 text-xs rounded
+          bg-red-100 text-red-700
+        ">
           Imeshindikana
         </span>
       );
+
     }
 
+
     return (
-      <span className="px-2 py-1 text-xs rounded bg-gray-100 text-gray-600">
+      <span className="
+        px-2 py-1 text-xs rounded
+        bg-gray-100 text-gray-600
+      ">
         {status}
       </span>
     );
+
   };
 
 
-  const exportPDF = () => {
+
+  const exportPDF = ()=>{
+
     const doc = new jsPDF();
 
-    autoTable(doc, {
-      head: [['Date', 'Recipient', 'Message', 'Status']],
-      body: filteredLogs.map((l) => [
-        new Date(l.sent_at).toLocaleString(),
+
+    autoTable(doc,{
+      head:[
+        [
+          'Date',
+          'Receiver',
+          'Phone',
+          'Message',
+          'Status'
+        ]
+      ],
+
+      body:
+
+      filteredLogs.map(l=>[
+
+        new Date(
+          l.sent_at
+        ).toLocaleString(),
+
+        getReceiverName(
+          l.receiver
+        ),
+
         l.recipient,
+
         l.message,
-        l.status,
-      ]),
+
+        l.status
+
+      ])
+
     });
 
+
     doc.save('sms-logs.pdf');
+
   };
 
-  const exportExcel = () => {
-    const worksheet = XLSX.utils.json_to_sheet(
-      filteredLogs.map((l) => ({
-        Date: new Date(l.sent_at).toLocaleString(),
-        Recipient: l.recipient,
-        Message: l.message,
-        Status: l.status,
-      }))
+
+
+  const exportExcel = ()=>{
+
+
+    const worksheet =
+      XLSX.utils.json_to_sheet(
+
+        filteredLogs.map(l=>({
+
+          Date:
+          new Date(
+            l.sent_at
+          ).toLocaleString(),
+
+
+          Receiver:
+          getReceiverName(
+            l.receiver
+          ),
+
+
+          Phone:
+          l.recipient,
+
+
+          Message:
+          l.message,
+
+
+          Status:
+          l.status
+
+        }))
+
+      );
+
+
+    const workbook =
+      XLSX.utils.book_new();
+
+
+    XLSX.utils.book_append_sheet(
+      workbook,
+      worksheet,
+      'SMS Logs'
     );
 
-    const workbook = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(workbook, worksheet, 'SMS Logs');
-    XLSX.writeFile(workbook, 'sms-logs.xlsx');
+
+    XLSX.writeFile(
+      workbook,
+      'sms-logs.xlsx'
+    );
+
   };
+
+  const formatDate = (date:string) => {
+
+  const fixedDate = date.includes('Z')
+    ? date
+    : date.replace(' ', 'T') + '+03:00';
+
+
+  return new Intl.DateTimeFormat(
+    'sw-TZ',
+    {
+      year:'numeric',
+      month:'numeric',
+      day:'numeric',
+      hour:'2-digit',
+      minute:'2-digit',
+      second:'2-digit',
+      hour12:true,
+      timeZone:'Africa/Dar_es_Salaam'
+    }
+  ).format(new Date(fixedDate));
+
+};
 
  
   return (
@@ -289,45 +506,121 @@ const toggleAll = () => {
 
 </div>
 
-      {/*  FILTERS  */}
-<div className="flex flex-col md:flex-row md:items-center gap-3 p-3 rounded-xl border border-gray-200 bg-white dark:bg-gray-900 dark:border-gray-800">
+{/* FILTERS */}
+<div className="
+  flex flex-col lg:flex-row
+  lg:items-center
+  gap-3
+  p-3
+  rounded-xl
+  border border-gray-200
+  bg-white
+  dark:bg-gray-900
+  dark:border-gray-800
+">
+
 
   {/* SEARCH */}
-  <div className="flex items-center w-full md:w-1/2">
-    <div className="flex items-center w-full border border-gray-300 dark:border-gray-700 rounded-lg px-3 py-2 focus-within:ring-2 focus-within:ring-blue-500">
+  <div className="flex-1">
+
+    <div className="flex items-center border border-gray-300 dark:border-gray-700 rounded-lg px-3 py-2">
+
       <FaSearch className="text-gray-400 mr-2" />
+
       <input
         type="text"
         placeholder="Tafuta kwa namba au ujumbe..."
         value={search}
-        onChange={(e) => setSearch(e.target.value)}
+        onChange={(e)=>setSearch(e.target.value)}
         className="w-full outline-none bg-transparent text-gray-700 dark:text-white/90"
       />
+
     </div>
+
   </div>
+
+
 
   {/* STATUS */}
-  <div className="w-full md:w-1/4">
+  <div className="w-full lg:w-48">
+
     <select
       value={statusFilter}
-      onChange={(e) => setStatusFilter(e.target.value)}
-      className="w-full border border-gray-300 dark:border-gray-700 rounded-lg px-3 py-2 bg-white dark:bg-gray-900 text-gray-700 dark:text-white/90 focus:ring-2 focus:ring-blue-500"
+      onChange={(e)=>setStatusFilter(e.target.value)}
+      className="
+        w-full
+        border border-gray-300
+        dark:border-gray-700
+        rounded-lg
+        px-3 py-2
+        bg-white
+        dark:bg-gray-900
+      "
     >
-      <option value="">Status zote</option>
-      <option value="success">Imetumwa</option>
-      <option value="failed">Imeshindikana</option>
+
+      <option value="">
+        Status zote
+      </option>
+
+      <option value="success">
+        Imetumwa
+      </option>
+
+      <option value="failed">
+        Imeshindikana
+      </option>
+
     </select>
+
   </div>
 
-  {/* DATE */}
-  <div className="w-full md:w-1/4">
+
+
+  {/* START DATE */}
+  <div className="w-full lg:w-44">
+
     <input
       type="date"
-      value={dateFilter}
-      onChange={(e) => setDateFilter(e.target.value)}
-      className="w-full border border-gray-300 dark:border-gray-700 rounded-lg px-3 py-2 bg-white dark:bg-gray-900 text-gray-700 dark:text-white/90 focus:ring-2 focus:ring-blue-500"
+      value={startDate}
+      onChange={(e)=>setStartDate(e.target.value)}
+      className="
+        w-full
+        border border-gray-300
+        dark:border-gray-700
+        rounded-lg
+        px-3 py-2
+        bg-white
+        dark:bg-gray-900
+      "
     />
+
   </div>
+
+
+
+  {/* END DATE */}
+<div className="w-full lg:w-44">
+
+  <input
+    type="date"
+    value={endDate}
+    onChange={(e)=>setEndDate(e.target.value)}
+    className="
+      w-full
+      border border-gray-300
+      dark:border-gray-700
+      rounded-lg
+      px-3 py-2
+      bg-white
+      dark:bg-gray-900
+      text-gray-700
+      dark:text-white
+      [color-scheme:light]
+    "
+  />
+
+</div>
+
 
 </div>
 
@@ -356,7 +649,7 @@ const toggleAll = () => {
 
 </div>
 
-{/* ================= TABLE ================= */}
+{/*  TABLE  */}
 <div className="overflow-x-auto rounded-xl border border-gray-200 bg-white dark:border-gray-800 dark:bg-gray-900">
   
 
@@ -391,7 +684,7 @@ const toggleAll = () => {
         paginatedLogs.map((log) => (
           <tr
             key={log.id}
-            className="border-b border-gray-100 hover:bg-gray-50 dark:border-gray-800 dark:hover:bg-white/[0.04]"
+            className="border-b border-gray-100 hover:bg-gray-50 dark:border-gray-800 dark:hover:bg-white/4"
           >
             {/* checkbox */}
             <td className="px-4 py-3">
@@ -404,7 +697,7 @@ const toggleAll = () => {
 
             {/* date */}
             <td className="px-4 py-3">
-              {new Date(log.sent_at).toLocaleString()}
+              {formatDate(log.sent_at)}
             </td>
 
             {/* recipient */}
@@ -413,7 +706,7 @@ const toggleAll = () => {
             </td>
 
             {/* message */}
-            <td className="px-4 py-3 max-w-[220px] truncate">
+            <td className="px-4 py-3 max-w-55 truncate">
               {log.message}
             </td>
 
@@ -424,7 +717,7 @@ const toggleAll = () => {
 
             {/* receiver */}
             <td className="px-4 py-3">
-              {log.receiver || '—'}
+              {getReceiverName(log.receiver)}
             </td>
           </tr>
         ))
@@ -439,7 +732,7 @@ const toggleAll = () => {
   <button
     onClick={() => setCurrentPage((p) => Math.max(p - 1, 1))}
     disabled={currentPage === 1}
-    className="px-4 py-2 border rounded-lg disabled:opacity-40 hover:bg-gray-100 dark:border-gray-700 dark:hover:bg-white/[0.05]"
+    className="px-4 py-2 border rounded-lg disabled:opacity-40 hover:bg-gray-100 dark:border-gray-700 dark:hover:bg-white/5"
   >
     Prev
   </button>
@@ -452,7 +745,7 @@ const toggleAll = () => {
         className={`px-3 py-1 rounded-lg border ${
           currentPage === i + 1
             ? 'bg-[#1e293b] text-white'
-            : 'hover:bg-gray-100 dark:hover:bg-white/[0.05]'
+            : 'hover:bg-gray-100 dark:hover:bg-white/5'
         }`}
       >
         {i + 1}
@@ -463,7 +756,7 @@ const toggleAll = () => {
   <button
     onClick={() => setCurrentPage((p) => Math.min(p + 1, totalPages))}
     disabled={currentPage === totalPages}
-    className="px-4 py-2 border rounded-lg disabled:opacity-40 hover:bg-gray-100 dark:border-gray-700 dark:hover:bg-white/[0.05]"
+    className="px-4 py-2 border rounded-lg disabled:opacity-40 hover:bg-gray-100 dark:border-gray-700 dark:hover:bg-white/5"
   >
     Next
   </button>

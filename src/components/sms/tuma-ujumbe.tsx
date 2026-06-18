@@ -6,7 +6,7 @@ import Swal from 'sweetalert2';
 import { FaSms } from 'react-icons/fa';
 import { FiUsers, FiUser, FiSend } from 'react-icons/fi';
 
-import { useSendSms } from '@/hooks/useSendSms';
+import { useSendSms } from '@/hooks/sms/useSendSms';
 import { apiFetch } from '@/lib/api';
 
 interface User {
