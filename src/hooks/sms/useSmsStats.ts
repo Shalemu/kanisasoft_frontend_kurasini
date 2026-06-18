@@ -6,6 +6,7 @@ interface SmsLog {
   message: string;
   status: string;
   sent_at: string;
+  receiver: string;
 }
 
 export function useSmsStats(logs: SmsLog[]) {
