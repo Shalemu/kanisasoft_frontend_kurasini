@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useEffect, useRef } from "react";
-import { FaTimes, FaPrint, FaDownload } from "react-icons/fa";
+import { FaTimes, FaPrint, FaDownload, FaArrowLeft } from "react-icons/fa";
 
 interface Props {
   isOpen: boolean;
@@ -88,24 +88,35 @@ export default function PdfViewerModal({
           />
         </div>
 
-        {/* Footer with Print + Download */}
-        <div className="flex items-center justify-end gap-3 px-5 py-3 border-t border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800/50">
+        {/* Footer with Back + Print + Download */}
+        <div className="flex items-center justify-between px-5 py-3 border-t border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800/50">
+          {/* Back button on the left */}
           <button
-            onClick={handlePrint}
+            onClick={onClose}
             className="inline-flex items-center gap-2 px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-200 text-sm font-medium hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
           >
-            <FaPrint /> Print
+            <FaArrowLeft /> Rudi
           </button>
 
-          {(downloadUrl || url) && (
-            <a
-              href={downloadUrl || url}
-              download={fileName || title}
-              className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-[#1e293b] hover:bg-[#334155] text-white text-sm font-medium transition-colors"
+          {/* Print + Download on the right */}
+          <div className="flex items-center gap-3">
+            <button
+              onClick={handlePrint}
+              className="inline-flex items-center gap-2 px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-200 text-sm font-medium hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
             >
-              <FaDownload /> Download
-            </a>
-          )}
+              <FaPrint /> Print
+            </button>
+
+            {(downloadUrl || url) && (
+              <a
+                href={downloadUrl || url}
+                download={fileName || title}
+                className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-[#1e293b] hover:bg-[#334155] text-white text-sm font-medium transition-colors"
+              >
+                <FaDownload /> Pakua
+              </a>
+            )}
+          </div>
         </div>
       </div>
     </div>
