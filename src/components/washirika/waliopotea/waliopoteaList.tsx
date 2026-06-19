@@ -15,6 +15,10 @@ import {
 } from "react-icons/fa";
 import { useWashirikaExport } from "@/hooks/useWashirikaExport";
 import { UserX } from "lucide-react";
+import {
+  getMembershipStatusLabel,
+  type MembershipStatusLabels,
+} from "@/lib/memberLabels";
 
 interface User {
   id: number;
@@ -42,6 +46,7 @@ export default function WaliopoteaList({ searchTerm }: Props) {
   const [members, setMembers] = useState<User[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedMembers, setSelectedMembers] = useState<number[]>([]);
+  const [statusLabels, setStatusLabels] = useState<MembershipStatusLabels | null>(null);
 
   // Pagination
   const [currentPage, setCurrentPage] = useState(1);
@@ -58,6 +63,8 @@ export default function WaliopoteaList({ searchTerm }: Props) {
         const data = await apiFetch("/users");
 
         if (data?.users) {
+          setStatusLabels(data.membership_status_labels ?? null);
+
           const lost = data.users.filter((u: any) =>
            ["detained", "lost", "left", "deceased", "rejected"].includes(
               u.membership_status
@@ -76,13 +83,6 @@ export default function WaliopoteaList({ searchTerm }: Props) {
 
     fetchLostMembers();
   }, []);
-
-    const statusLabels: Record<string, string> = {
-    detained: 'Ametegwa',
-    lost: 'Amepotea',
-    left: 'Amehama',
-    deceased: 'Amefariki',
-  };
 
   const filteredMembers = useMemo(() => {
     return members.filter((m) => {
@@ -223,11 +223,11 @@ if (!loading && members.length === 0) {
 
       {/* Text */}
       <h2 className="relative z-10 mt-8 text-2xl font-bold text-gray-800 dark:text-white">
-        Hakuna waliopotea
+        Hakuna waliopoteza ushirika
       </h2>
 
       <p className="relative z-10 mt-3 max-w-md text-center text-sm leading-7 text-gray-500 dark:text-gray-400">
-       Kwa sasa hakuna taarifa za washirika waliopotea.
+       Kwa sasa hakuna taarifa za waliopoteza ushirika.
       </p>
     </div>
   );
@@ -238,12 +238,12 @@ if (!loading && members.length === 0) {
       {/* HEADER */}
 <div className="flex flex-col gap-3 border-b border-gray-200 px-6 py-4 dark:border-gray-800 md:flex-row md:items-center md:justify-between">
 
-  <h2 className="text-lg font-bold text-gray-800 dark:text-white/90">Waliopotea</h2>
+  <h2 className="text-lg font-bold text-gray-800 dark:text-white/90">Waliopoteza ushirika</h2>
 
   <div className="flex gap-2">
 
     <button
-      onClick={() => exportToExcel(filteredMembers, "waliopotea")}
+      onClick={() => exportToExcel(filteredMembers, "waliopoteza-ushirika", statusLabels)}
       className="px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-md flex items-center gap-2 text-sm"
     >
       <FaFileExcel />
@@ -251,7 +251,7 @@ if (!loading && members.length === 0) {
     </button>
 
     <button
-      onClick={() => exportToPDF(filteredMembers, "waliopotea")}
+      onClick={() => exportToPDF(filteredMembers, "waliopoteza-ushirika", statusLabels)}
       className="px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-md flex items-center gap-2 text-sm"
     >
       <FaFilePdf />
@@ -349,7 +349,7 @@ if (!loading && members.length === 0) {
                 <td className="p-3">
                 <div className="flex items-center gap-2 text-yellow-600 font-bold dark:text-yellow-300">
                     <FaTimes />
-                     {m.deactivation_reason || "—"}
+                    {m.deactivation_reason || getMembershipStatusLabel(m.membership_status, statusLabels)}
                 </div>
                 </td>
                 </tr>

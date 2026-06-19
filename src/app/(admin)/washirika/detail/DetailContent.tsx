@@ -4,12 +4,15 @@ import { useSearchParams } from "next/navigation";
 import { useEffect, useState } from "react";
 import { apiFetch } from "@/lib/api";
 import UserDetailsClient from "@/components/washirika/UserDetailsClient";
+import type { MembershipStatusLabels } from "@/lib/memberLabels";
 
 export default function DetailContent() {
   const searchParams = useSearchParams();
   const id = searchParams.get("id");
 
   const [user, setUser] = useState<any>(null);
+  const [membershipStatusLabels, setMembershipStatusLabels] =
+    useState<MembershipStatusLabels | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -17,10 +20,12 @@ export default function DetailContent() {
       try {
         try {
           const data = await apiFetch(`/members/by-user/${id}`);
+          setMembershipStatusLabels(data.membership_status_labels ?? null);
           setUser(data.member);
           return;
         } catch {
           const data = await apiFetch("/users");
+          setMembershipStatusLabels(data.membership_status_labels ?? null);
           const foundUser = data?.users?.find((user: any) => {
             const requestedId = Number(id);
 
@@ -59,5 +64,5 @@ export default function DetailContent() {
     return <div className="p-6 text-red-500">Mshirika hakupatikana</div>;
   }
 
-  return <UserDetailsClient user={user} />;
+  return <UserDetailsClient user={user} membershipStatusLabels={membershipStatusLabels} />;
 }

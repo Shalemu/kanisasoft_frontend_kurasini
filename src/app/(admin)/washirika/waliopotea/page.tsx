@@ -6,9 +6,9 @@ import { Metadata } from "next";
 import React from "react";
 
 export const metadata: Metadata = {
-  title: "Washirika Waliopotea",
+  title: "Waliopoteza ushirika",
   description:
-    "Ukurasa wa Washirika Waliopotea",
+    "Ukurasa wa Waliopoteza ushirika",
        icons: {
     icon: "/logo.png",
   },
@@ -17,7 +17,7 @@ export const metadata: Metadata = {
 export default function page() {
   return (
     <div>
-      <PageBreadcrumb pageTitle="Washirika Waliopotea" />
+      <PageBreadcrumb pageTitle="Waliopoteza ushirika" />
       <Waliopotea />
     </div>
   );

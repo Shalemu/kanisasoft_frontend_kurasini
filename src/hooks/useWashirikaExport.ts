@@ -1,12 +1,17 @@
 import * as XLSX from "xlsx";
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
+import {
+  getMembershipStatusLabel,
+  type MembershipStatusLabels,
+} from "@/lib/memberLabels";
 
 export const useWashirikaExport = () => {
 
   const exportToExcel = (
   members: any[],
-  fileName: string = "washirika"
+  fileName: string = "washirika",
+  membershipStatusLabels?: MembershipStatusLabels | null
 ) => {
   const data = members.map((m, index) => ({
     "#": index + 1,
@@ -18,12 +23,12 @@ export const useWashirikaExport = () => {
     "Tarehe ya Kuzaliwa": m.birth_date
       ? new Date(m.birth_date).toLocaleDateString()
       : "—",
-    "Hali ya Ndoa": m.marital_status || "—",
+    "Hali ya ndoa": m.marital_status || "—",
     Elimu: m.education_level || "—",
     Zone: m.residential_zone || "—",
     Tarehe: new Date(m.created_at).toLocaleDateString(),
     Sababu: m.deactivation_reason || "—",
-    Status: m.membership_status || "—",
+    Status: getMembershipStatusLabel(m.membership_status, membershipStatusLabels),
   }));
 
   const worksheet = XLSX.utils.json_to_sheet(data);
@@ -36,7 +41,8 @@ export const useWashirikaExport = () => {
 
   const exportToPDF = (
   members: any[],
-  fileName: string = "washirika"
+  fileName: string = "washirika",
+  membershipStatusLabels?: MembershipStatusLabels | null
 ) => {
   const doc = new jsPDF();
 
@@ -52,7 +58,7 @@ export const useWashirikaExport = () => {
     m.education_level || "—",
     m.residential_zone || "—",
     m.deactivation_reason || "—",
-    m.membership_status || "—",
+    getMembershipStatusLabel(m.membership_status, membershipStatusLabels),
   ]);
 
   autoTable(doc, {

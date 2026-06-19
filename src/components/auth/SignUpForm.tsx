@@ -7,6 +7,12 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import { apiFetch } from '@/lib/api';
 import Swal from 'sweetalert2';
 import { FaEye, FaEyeSlash } from 'react-icons/fa';
+import {
+  isMarriedStatus,
+  MARITAL_STATUS_OPTIONS,
+  normalizeGenderValue,
+  normalizeMaritalStatusForApi,
+} from '@/lib/memberLabels';
 
 export default function RegisterPage() {
   const router = useRouter();
@@ -48,7 +54,7 @@ export default function RegisterPage() {
       ...prev,
       [name]: value,
       // Clear spouse & marriage type when marital status changes to non-married
-      ...(name === 'maritalStatus' && !['Nimeoa', 'Nimeolewa'].includes(value)
+      ...(name === 'maritalStatus' && !isMarriedStatus(normalizeMaritalStatusForApi(value, prev.gender))
         ? { spouseName: '', marriageType: '' } : {}),
       // Clear disability description when hasDisability = hapana
       ...(name === 'hasDisability' && value === 'hapana'
@@ -78,7 +84,7 @@ export default function RegisterPage() {
       setActiveTab(0);
       return false;
     }
-    if (['Nimeoa', 'Nimeolewa'].includes(form.maritalStatus) && !form.marriageType) {
+    if (isMarriedStatus(normalizeMaritalStatusForApi(form.maritalStatus, form.gender)) && !form.marriageType) {
       Swal.fire({ title: 'Taarifa Inakosekana', text: 'Tafadhali chagua aina ya ndoa.', icon: 'warning', confirmButtonText: 'Sawa', confirmButtonColor: '#f0ce32' });
       setActiveTab(0);
       return false;
@@ -143,7 +149,7 @@ export default function RegisterPage() {
 
     const payload = {
       full_name: form.fullName,
-      gender: form.gender === 'Mwanaume' ? 'M' : 'F',
+      gender: normalizeGenderValue(form.gender),
       birth_date: form.birthDate,
       birth_place: form.birthPlace || form.birthDistrict,
       birth_region: form.birthRegion,
@@ -153,13 +159,9 @@ export default function RegisterPage() {
       residence: form.residence || `${form.residentialStreet}, ${form.residentialWard}`,
       residential_ward: form.residentialWard,
       residential_street: form.residentialStreet,
-      marital_status: {
-        'Nimeoa': 'Ameoa', 'Nimeolewa': 'Ameolewa',
-        'Sijaoa': 'Hajaoa', 'Sijaolewa': 'Hajaolewa',
-        'Mjane': 'Mjane', 'Mgane': 'Mgane'
-      }[form.maritalStatus] || form.maritalStatus,
-      marriage_type: ['Nimeoa', 'Nimeolewa'].includes(form.maritalStatus) ? form.marriageType || null : null,
-      spouse_name: form.spouseName,
+      marital_status: normalizeMaritalStatusForApi(form.maritalStatus, form.gender),
+      marriage_type: isMarriedStatus(normalizeMaritalStatusForApi(form.maritalStatus, form.gender)) ? form.marriageType || null : null,
+      spouse_name: isMarriedStatus(normalizeMaritalStatusForApi(form.maritalStatus, form.gender)) ? form.spouseName : '',
       children_count: Number(form.childrenCount) || 0,
       zone: form.zone,
       phone: form.phone,
@@ -263,11 +265,11 @@ export default function RegisterPage() {
               options={['MURUBOMBO', 'MURUSI B', 'KIGANAMO', 'MURUSI A', 'KUMUNYIKA B', 'KAGUNGA C', 'KUMUNYIKA A', 'KAGANGA B', 'MURUBONA A', 'KAGUNGA A']}
             />
 
-            <Select label="Hali ya Ndoa *" name="maritalStatus" value={form.maritalStatus} onChange={handleChange}
-              options={['Nimeoa', 'Nimeolewa', 'Sijaoa', 'Sijaolewa', 'Mjane', 'Mgane']} />
+            <Select label="Hali ya ndoa *" name="maritalStatus" value={form.maritalStatus} onChange={handleChange}
+              options={MARITAL_STATUS_OPTIONS} />
 
             {/* Marriage Type - conditional */}
-            {['Nimeoa', 'Nimeolewa'].includes(form.maritalStatus) && (
+            {isMarriedStatus(form.maritalStatus) && (
               <>
                 <Select label="Aina ya Ndoa *" name="marriageType" value={form.marriageType} onChange={handleChange}
                   options={['Kikristo', 'Kiserikali', 'Kienyeji']} />
@@ -519,8 +521,10 @@ function Select({ label, name, value, onChange, options }: any) {
         className="w-full px-4 py-2 border rounded-md bg-[#2d314b] text-white border-gray-500
         focus:outline-none focus:ring-2 focus:ring-pink-500">
         <option value="">-- Chagua --</option>
-        {options.map((opt: string) => (
-          <option key={opt} value={opt}>{opt}</option>
+        {options.map((opt: string | { value: string; label: string }) => (
+          <option key={typeof opt === 'string' ? opt : opt.value} value={typeof opt === 'string' ? opt : opt.value}>
+            {typeof opt === 'string' ? opt : opt.label}
+          </option>
         ))}
       </select>
     </div>

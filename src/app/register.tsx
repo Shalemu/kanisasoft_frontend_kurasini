@@ -6,6 +6,12 @@ import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { apiFetch } from '@/lib/api';
 import Swal from 'sweetalert2';
+import {
+  isMarriedStatus,
+  MARITAL_STATUS_OPTIONS,
+  normalizeGenderValue,
+  normalizeMaritalStatusForApi,
+} from '@/lib/memberLabels';
 
 export default function RegisterPage() {
   const router = useRouter();
@@ -32,7 +38,7 @@ export default function RegisterPage() {
     setForm((prev) => ({
       ...prev,
       [name]: value,
-      ...(name === 'maritalStatus' && !['Nimeoa', 'Nimemeolewa'].includes(value) ? { spouseName: '' } : {}),
+      ...(name === 'maritalStatus' && !isMarriedStatus(normalizeMaritalStatusForApi(value, prev.gender)) ? { spouseName: '' } : {}),
       ...(name === 'livesAlone' && value === 'yes'
         ? { livesWith: '', familyRole: '', liveWithWho: '' }
         : {}),
@@ -147,20 +153,13 @@ Swal.fire({
 
     const payload = {
       full_name: form.fullName,
-      gender: form.gender === 'Mwanaume' ? 'M' : 'F',
+      gender: normalizeGenderValue(form.gender),
       birth_date: form.birthDate,
       birth_place: form.birthPlace,
       birth_district: form.birthDistrict,
       residence: form.residence,
-      marital_status: {
-        'Nimeoa': 'Ameoa',
-        'Nimeolewa': 'Ameolewa',
-        'Sijaoa': 'Hajaoa',
-        'Sijaolewa': 'Hajaolewa',
-        'Mjane': 'Mjane',
-        'Mgane': 'Mgane'
-      }[form.maritalStatus] || form.maritalStatus,      
-      spouse_name: form.spouseName,
+      marital_status: normalizeMaritalStatusForApi(form.maritalStatus, form.gender),
+      spouse_name: isMarriedStatus(normalizeMaritalStatusForApi(form.maritalStatus, form.gender)) ? form.spouseName : '',
       children_count: Number(form.childrenCount),
       zone: form.zone,
       phone: form.phone,
@@ -262,9 +261,9 @@ Swal.fire({
             <Select label="Zoni *" name="zone" value={form.zone} onChange={handleChange}
               options={['Kigamboni','Kizuiani','Mtongani','Yerusalem','Tandika','Kijichi','Mgeninani','Keko & Kurasini','Kinondoni','Kongowe','Mbande','Kingugi']}
             />
-            <Select label="Hali ya Ndoa *" name="maritalStatus" value={form.maritalStatus} onChange={handleChange}
-              options={['Nimeoa', 'Nimeolewa', 'Sijaoa', 'Sijaolewa', 'Mjane', 'Mgane']} />
-            {['Nimeoa', 'Nimeolewa'].includes(form.maritalStatus) && (
+            <Select label="Hali ya ndoa *" name="maritalStatus" value={form.maritalStatus} onChange={handleChange}
+              options={MARITAL_STATUS_OPTIONS} />
+            {isMarriedStatus(form.maritalStatus) && (
               <Field label="Jina la Mwenza *" name="spouseName" value={form.spouseName} onChange={handleChange} />
             )}
             <Field label="Idadi ya Watoto *" name="childrenCount" type="number" value={form.childrenCount} onChange={handleChange} />
@@ -455,8 +454,10 @@ function Select({ label, name, value, onChange, options }: any) {
         className="w-full px-4 py-2 border rounded-md bg-[#2d314b] text-white border-gray-500
         focus:outline-none focus:ring-2 focus:ring-pink-500">
         <option value="">-- Chagua --</option>
-        {options.map((opt: string) => (
-          <option key={opt} value={opt}>{opt}</option>
+        {options.map((opt: string | { value: string; label: string }) => (
+          <option key={typeof opt === 'string' ? opt : opt.value} value={typeof opt === 'string' ? opt : opt.value}>
+            {typeof opt === 'string' ? opt : opt.label}
+          </option>
         ))}
       </select>
     </div>

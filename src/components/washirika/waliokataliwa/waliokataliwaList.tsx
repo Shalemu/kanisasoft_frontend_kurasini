@@ -15,6 +15,10 @@ import {
 } from "react-icons/fa";
 import { useWashirikaExport } from "@/hooks/useWashirikaExport";
 import { UserX } from "lucide-react";
+import {
+  getMembershipStatusLabel,
+  type MembershipStatusLabels,
+} from "@/lib/memberLabels";
 
 interface User {
   id: number;
@@ -43,6 +47,7 @@ export default function WaliokataliwaList({ searchTerm, }: Props) {
   const [members, setMembers] = useState<User[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedMembers, setSelectedMembers] = useState<number[]>([]);
+  const [statusLabels, setStatusLabels] = useState<MembershipStatusLabels | null>(null);
 
   // Pagination
   const [currentPage, setCurrentPage] = useState(1);
@@ -60,6 +65,8 @@ useEffect(() => {
       const data = await apiFetch("/users");
 
       if (data?.users) {
+        setStatusLabels(data.membership_status_labels ?? null);
+
         const rejected = data.users.filter(
           (u: any) => u.membership_status === "rejected"
         );
@@ -76,13 +83,6 @@ useEffect(() => {
 
   fetchRejectedMembers();
 }, []);
-
-    const statusLabels: Record<string, string> = {
-    detained: 'Ametegwa',
-    lost: 'Amepotea',
-    left: 'Amehama',
-    deceased: 'Amefariki',
-  };
 
   const filteredMembers = useMemo(() => {
     return members.filter((m) => {
@@ -249,7 +249,7 @@ if (!loading && members.length === 0) {
 
     {/* EXPORT EXCEL */}
     <button
-      onClick={() => exportToExcel(filteredMembers, "waliokataliwa")}
+      onClick={() => exportToExcel(filteredMembers, "waliokataliwa", statusLabels)}
       className="px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-md flex items-center gap-2 text-sm"
     >
       <FaFileExcel />
@@ -258,7 +258,7 @@ if (!loading && members.length === 0) {
 
     {/* EXPORT PDF */}
     <button
-      onClick={() => exportToPDF(filteredMembers, "waliokataliwa")}
+      onClick={() => exportToPDF(filteredMembers, "waliokataliwa", statusLabels)}
       className="px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-md flex items-center gap-2 text-sm"
     >
       <FaFilePdf />
@@ -358,7 +358,7 @@ if (!loading && members.length === 0) {
                 <td className="p-3">
                 <div className="flex items-center gap-2 text-yellow-600 font-bold dark:text-yellow-300">
                     <FaTimes />
-                     {m.deactivation_reason || "—"}
+                    {m.deactivation_reason || getMembershipStatusLabel(m.membership_status, statusLabels)}
                 </div>
                 </td>
                 </tr>

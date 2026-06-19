@@ -8,6 +8,12 @@ import * as XLSX from "xlsx";
 import { Dialog } from "@headlessui/react";
 import { FaFileExcel, FaFilePdf, FaLayerGroup, FaSearch } from "react-icons/fa";
 import { apiFetch } from "@/lib/api";
+import {
+  getMembershipStatusLabel,
+  getMembershipStatusLabels,
+  MARITAL_STATUS_OPTIONS,
+  type MembershipStatusLabels,
+} from "@/lib/memberLabels";
 
 type FilterType = "text" | "date" | "number" | "select";
 
@@ -43,6 +49,7 @@ type SearchResponse = {
     rows?: Record<string, unknown>[];
   };
   filters?: Record<string, unknown>;
+  membership_status_labels?: MembershipStatusLabels;
   saved_group_criteria?: Record<string, unknown> | null;
 };
 
@@ -56,14 +63,7 @@ const genderOptions = [
   { value: "Mwanamke", label: "Mwanamke" },
 ];
 
-const maritalStatusOptions = [
-  { value: "Nimeoa", label: "Nimeoa" },
-  { value: "Nimeolewa", label: "Nimeolewa" },
-  { value: "Sijaoa", label: "Sijaoa" },
-  { value: "Sijaolewa", label: "Sijaolewa" },
-  { value: "Mjane", label: "Mjane" },
-  { value: "Mgane", label: "Mgane" },
-];
+const maritalStatusOptions = MARITAL_STATUS_OPTIONS;
 
 const marriageTypeOptions = [
   { value: "Kikristo", label: "Kikristo" },
@@ -71,14 +71,19 @@ const marriageTypeOptions = [
   { value: "Kienyeji", label: "Kienyeji" },
 ];
 
-const membershipStatusOptions = [
-  { value: "active", label: "Active" },
-  { value: "pending", label: "Pending" },
-  { value: "left", label: "Amehama" },
-  { value: "lost", label: "Amepotea" },
-  { value: "deceased", label: "Amefariki" },
-  { value: "detained", label: "Ametegwa ushirika" },
-];
+function membershipStatusOptions(labels?: MembershipStatusLabels | null) {
+  const mergedLabels = getMembershipStatusLabels(labels);
+
+  return [
+    { value: "active", label: mergedLabels.active },
+    { value: "pending", label: mergedLabels.pending },
+    { value: "left", label: mergedLabels.left },
+    { value: "lost", label: mergedLabels.lost },
+    { value: "deceased", label: mergedLabels.deceased },
+    { value: "detained", label: mergedLabels.detained },
+    { value: "rejected", label: mergedLabels.rejected },
+  ];
+}
 
 const educationLevelOptions = [
   { value: "Sijasoma", label: "Sijasoma" },
@@ -121,7 +126,8 @@ const monthOptions = [
   "Desemba",
 ].map((month, index) => ({ value: String(index + 1), label: month }));
 
-const filterSections: { title: string; fields: FilterField[] }[] = [
+function buildFilterSections(labels?: MembershipStatusLabels | null): { title: string; fields: FilterField[] }[] {
+  return [
   {
     title: "Taarifa Binafsi",
     fields: [
@@ -166,7 +172,7 @@ const filterSections: { title: string; fields: FilterField[] }[] = [
       { name: "tangu_lini", label: "Mwaka wa kuhamia", type: "number" },
       { name: "church_service", label: "Huduma kanisani" },
       { name: "participates_communion", label: "Anashiriki meza ya Bwana", type: "select", options: yesNoOptions },
-      { name: "membership_status", label: "Hali ya ushirika", type: "select", options: membershipStatusOptions },
+      { name: "membership_status", label: "Hali ya ushirika", type: "select", options: membershipStatusOptions(labels) },
     ],
   },
   {
@@ -197,9 +203,10 @@ const filterSections: { title: string; fields: FilterField[] }[] = [
       { name: "baptism_date_to", label: "Ubatizo mpaka", type: "date" },
     ],
   },
-];
+  ];
+}
 
-const allFilterFields = filterSections.flatMap((section) => section.fields);
+const allFilterFields = buildFilterSections().flatMap((section) => section.fields);
 
 const emptyFilters = allFilterFields.reduce<Record<string, string>>(
   (acc, field) => ({ ...acc, [field.name]: "" }),
@@ -248,6 +255,10 @@ export default function MemberReports() {
   const [leaderSearchLoading, setLeaderSearchLoading] = useState(false);
 
   const members = result?.members ?? [];
+  const filterSections = useMemo(
+    () => buildFilterSections(result?.membership_status_labels),
+    [result?.membership_status_labels]
+  );
   const exportRows = result?.export?.rows ?? [];
   const exportColumns = useMemo(
     () => columnLabels(result?.export?.columns, exportRows),
@@ -525,7 +536,9 @@ export default function MemberReports() {
                   <td className="px-4 py-3">{member.whatsapp_number || "-"}</td>
                   <td className="px-4 py-3">{member.email || "-"}</td>
                   <td className="px-4 py-3">{member.residential_zone || "-"}</td>
-                  <td className="px-4 py-3">{member.membership_status || "-"}</td>
+                  <td className="px-4 py-3">
+                    {getMembershipStatusLabel(member.membership_status, result?.membership_status_labels)}
+                  </td>
                 </tr>
               ))
             )}

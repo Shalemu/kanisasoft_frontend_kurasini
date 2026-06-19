@@ -43,7 +43,7 @@ const navItems: NavItem[] = [
       { name: "Orodha ya Washirika", path: "/washirika", pro: false },
       { name: "Ongeza Mshirika", path: "/washirika/ongeza-washirika", pro: false },
       { name: "Washirika Waliokataliwa", path: "/washirika/waliokataliwa", pro: false },
-      { name: "Washirika Waliopotea", path: "/washirika/waliopotea", pro: false },
+      { name: "Waliopoteza ushirika", path: "/washirika/waliopotea", pro: false },
       { name: "Ndoa za Washirika", path: "/washirika/ndoa", pro: false },
       { name: "Kutafuta & Kuchuja Washirika", path: "/washirika/ripoti", pro: false },
     ],

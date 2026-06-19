@@ -22,7 +22,7 @@ export default function Waliopotea() {
           <div className="inline-block h-8 w-8 animate-spin rounded-full border-4 border-gray-300 border-t-blue-500"></div>
 
           <p className="mt-2 text-sm text-gray-500">
-            Inapakia washirika waliopotea...
+            Inapakia washirika waliokataliwa...
           </p>
         </div>
       )}

@@ -3,6 +3,11 @@
 import { useEffect, useState } from "react";
 import Swal from "sweetalert2";
 import { apiFetch } from "@/lib/api";
+import {
+  isMarriedStatus,
+  normalizeGenderValue,
+  normalizeMaritalStatusForApi,
+} from "@/lib/memberLabels";
 
 export interface MemberFormData {
   fullName: string;
@@ -181,17 +186,6 @@ function normalizeYesNo(value: unknown) {
   return "";
 }
 
-function normalizeMaritalStatus(value?: string | null) {
-  const maritalStatusMap: Record<string, string> = {
-    Ameoa: "Nimeoa",
-    Ameolewa: "Nimeolewa",
-    Hajaoa: "Sijaoa",
-    Hajaolewa: "Sijaolewa",
-  };
-
-  return value ? maritalStatusMap[value] ?? value : "";
-}
-
 function isValidTanzaniaPhone(value: string) {
   return /^0\d{9}$/.test(value) || /^255\d{9}$/.test(value);
 }
@@ -225,7 +219,7 @@ export function mapMemberToForm(member: any): MemberFormData {
     residentialWard: member.residential_ward ?? "",
     residentialStreet: member.residential_street ?? "",
     residence: member.residence ?? "",
-    maritalStatus: normalizeMaritalStatus(member.marital_status),
+    maritalStatus: normalizeMaritalStatusForApi(member.marital_status ?? "", member.gender ?? ""),
     marriageType: member.marriage_type ?? "",
     spouseName: member.spouse_name ?? "",
     childrenCount: String(member.children_count ?? member.number_of_children ?? ""),
@@ -309,7 +303,7 @@ const [form, setForm] = useState<MemberFormData>(getEmptyMemberForm());
       [name]: value,
 
       ...(name === "maritalStatus" &&
-      !["Nimeoa", "Nimeolewa"].includes(value)
+      !isMarriedStatus(normalizeMaritalStatusForApi(value, prev.gender))
         ? {
             marriageType: "",
             spouseName: "",
@@ -369,7 +363,7 @@ const [form, setForm] = useState<MemberFormData>(getEmptyMemberForm());
     }
 
     if (
-      ["Nimeoa", "Nimeolewa"].includes(form.maritalStatus) &&
+      isMarriedStatus(normalizeMaritalStatusForApi(form.maritalStatus, form.gender)) &&
       !form.marriageType
     ) {
       Swal.fire({
@@ -511,7 +505,7 @@ const [form, setForm] = useState<MemberFormData>(getEmptyMemberForm());
 
     const payload = {
       full_name: form.fullName,
-      gender: form.gender === "Mwanaume" ? "M" : "F",
+      gender: normalizeGenderValue(form.gender),
 
       birth_date: form.birthDate,
       birth_place:
@@ -530,9 +524,13 @@ const [form, setForm] = useState<MemberFormData>(getEmptyMemberForm());
       residential_street:
         form.residentialStreet,
 
-      marital_status: form.maritalStatus,
-      marriage_type: form.marriageType,
-      spouse_name: form.spouseName,
+      marital_status: normalizeMaritalStatusForApi(form.maritalStatus, form.gender),
+      marriage_type: isMarriedStatus(normalizeMaritalStatusForApi(form.maritalStatus, form.gender))
+        ? form.marriageType
+        : null,
+      spouse_name: isMarriedStatus(normalizeMaritalStatusForApi(form.maritalStatus, form.gender))
+        ? form.spouseName
+        : "",
 
       children_count:
         Number(form.childrenCount) || 0,

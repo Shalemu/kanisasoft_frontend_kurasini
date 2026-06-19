@@ -13,8 +13,19 @@ import {
   Church,
 } from "lucide-react";
 import Swal from "sweetalert2";
+import {
+  getMembershipStatusLabel,
+  isMarriedStatus,
+  type MembershipStatusLabels,
+} from "@/lib/memberLabels";
 
-export default function UserDetailsClient({ user }: any) {
+export default function UserDetailsClient({
+  user,
+  membershipStatusLabels,
+}: {
+  user: any;
+  membershipStatusLabels?: MembershipStatusLabels | null;
+}) {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
 
@@ -108,7 +119,7 @@ export default function UserDetailsClient({ user }: any) {
             </p>
 
             <div className="mt-3 inline-flex items-center rounded-full bg-green-100 px-3 py-1 text-sm font-medium text-green-700">
-              {user.membership_status || "Pending"}
+              {getMembershipStatusLabel(user.membership_status ?? "pending", membershipStatusLabels)}
             </div>
           </div>
         </div>
@@ -136,9 +147,13 @@ export default function UserDetailsClient({ user }: any) {
         title="Taarifa za Familia"
         icon={<Heart size={18} />}
       >
-        <Info label="Hali ya Ndoa" value={user.marital_status} />
-        <Info label="Aina ya Ndoa" value={user.marriage_type} />
-        <Info label="Jina la Mwenzi" value={user.spouse_name} />
+        <Info label="Hali ya ndoa" value={user.marital_status} />
+        {isMarriedStatus(user.marital_status) ? (
+          <>
+            <Info label="Aina ya Ndoa" value={user.marriage_type} />
+            <Info label="Jina la Mwenzi" value={user.spouse_name} />
+          </>
+        ) : null}
         <Info label="Idadi ya Watoto" value={user.number_of_children} />
         <Info
           label="Anaishi Peke Yake"

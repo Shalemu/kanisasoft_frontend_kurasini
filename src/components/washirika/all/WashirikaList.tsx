@@ -17,6 +17,10 @@ import {
   FaUsers, 
 } from "react-icons/fa";
 import { useWashirikaExport } from "@/hooks/useWashirikaExport";
+import {
+  getMembershipStatusLabel,
+  type MembershipStatusLabels,
+} from "@/lib/memberLabels";
 
 
 interface Group {
@@ -64,6 +68,7 @@ export default function WashirikaList({
   statusFilter = "",
 }: Props) {
   const [members, setMembers] = useState<User[]>([]);
+  const [statusLabels, setStatusLabels] = useState<MembershipStatusLabels | null>(null);
   const [loading, setLoading] = useState(true);
   const [sendingSms, setSendingSms] = useState(false);
 
@@ -145,6 +150,7 @@ function normalizeDate(value?: string | null) {
       setLoading(true);
 
       const data = await apiFetch("/users");
+      setStatusLabels(data.membership_status_labels ?? null);
 
       const users: User[] = data.users.map((u: any) => ({
         id: u.user_id ?? u.id,
@@ -668,14 +674,14 @@ const totalPending = filteredMembers.filter(
   <div className="flex gap-3">
     
     <button
-      onClick={() => exportToExcel(filteredMembers)}
+      onClick={() => exportToExcel(filteredMembers, "washirika", statusLabels)}
       className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-md text-sm font-medium transition"
     >
       Pakua Excel
     </button>
 
     <button
-      onClick={() => exportToPDF(filteredMembers)}
+      onClick={() => exportToPDF(filteredMembers, "washirika", statusLabels)}
       className="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-md text-sm font-medium transition"
     >
       Pakua PDF
@@ -768,7 +774,7 @@ const totalPending = filteredMembers.filter(
                       </div>
                     ) : (
                       <span className="bg-green-600 text-white px-2 py-1 rounded text-xs">
-                        Ameidhinishwa
+                        {getMembershipStatusLabel(m.membership_status, statusLabels)}
                       </span>
                     )}
                   </td>

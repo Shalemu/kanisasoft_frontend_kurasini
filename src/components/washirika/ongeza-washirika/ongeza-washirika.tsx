@@ -10,6 +10,7 @@ import { Calendar } from "lucide-react";
 import { useEffect, useState } from "react";
 import DatePicker from "@/components/form/date-picker";
 import { apiFetch } from "@/lib/api";
+import { isMarriedStatus, MARITAL_STATUS_OPTIONS } from "@/lib/memberLabels";
 
 export default function OngezaMshirika() {
   const router = useRouter();
@@ -239,7 +240,7 @@ case 0:
 
       <div>
         <label className="block mb-1 text-sm font-medium text-gray-800 dark:text-gray-200">
-          Hali ya Ndoa *
+          Hali ya ndoa *
         </label>
 
         <Select
@@ -248,20 +249,14 @@ case 0:
   value={form.maritalStatus}
   onChange={handleChange}
 options={[
-  { value: "Nimeoa", label: "Nimeoa" },
-  { value: "Nimeolewa", label: "Nimeolewa" },
-  { value: "Sijaoa", label: "Sijaoa" },
-  { value: "Sijaolewa", label: "Sijaolewa" },
-  { value: "Mjane", label: "Mjane" },
-  { value: "Mgane", label: "Mgane" },
+  ...MARITAL_STATUS_OPTIONS,
 ]}
 />
       </div>
 
       {/* Marriage Type */}
 
-      {(form.maritalStatus === "Nimeoa" ||
-        form.maritalStatus === "Nimeolewa") && (
+      {isMarriedStatus(form.maritalStatus) && (
         <>
           <div>
             <label className="block mb-1 text-sm font-medium text-white">
