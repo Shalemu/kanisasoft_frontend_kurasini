@@ -122,6 +122,8 @@ export default function RipotzaIbada() {
     const totalMen = men.reduce((sum, value) => sum + value, 0);
     const totalAttendance = totalChildren + totalWomen + totalMen;
     const totalOfferings = sadaka.reduce((sum, value) => sum + value, 0);
+    const averageAttendance =
+      filteredEvents.length > 0 ? Math.round(totalAttendance / filteredEvents.length) : 0;
 
     return {
       children,
@@ -133,6 +135,7 @@ export default function RipotzaIbada() {
       totalMen,
       totalAttendance,
       totalOfferings,
+      averageAttendance,
     };
   }, [filteredEvents]);
 
@@ -257,7 +260,8 @@ export default function RipotzaIbada() {
     doc.text("Ripoti ya Ibada", 14, 15);
     doc.setFontSize(10);
     doc.text(`Jumla ya mahudhurio: ${report.totalAttendance.toLocaleString()}`, 14, 23);
-    doc.text(`Jumla ya sadaka: ${report.totalOfferings.toLocaleString()} TZS`, 95, 23);
+    doc.text(`Wastani wa mahudhurio: ${report.averageAttendance.toLocaleString()}`, 95, 23);
+    doc.text(`Jumla ya sadaka: ${report.totalOfferings.toLocaleString()} TZS`, 175, 23);
 
     autoTable(doc, {
       startY: 30,
@@ -305,32 +309,42 @@ export default function RipotzaIbada() {
             </p>
           </div>
 
-          <div className="flex flex-wrap gap-2">
-            <select
-              value={filterYear}
-              onChange={(event) => setFilterYear(event.target.value)}
-              className="rounded border border-gray-300 bg-white px-3 py-2 text-sm dark:border-gray-700 dark:bg-gray-900"
-            >
-              <option value="">Miaka yote</option>
-              {years.map((year) => (
-                <option key={year} value={year}>
-                  {year}
-                </option>
-              ))}
-            </select>
+          <div className="flex flex-wrap items-end gap-2">
+            <div>
+              <label className="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-200">
+                Mwaka
+              </label>
+              <select
+                value={filterYear}
+                onChange={(event) => setFilterYear(event.target.value)}
+                className="w-full rounded border border-gray-300 bg-white px-3 py-2 text-sm dark:border-gray-700 dark:bg-gray-900"
+              >
+                <option value="">Miaka yote</option>
+                {years.map((year) => (
+                  <option key={year} value={year}>
+                    {year}
+                  </option>
+                ))}
+              </select>
+            </div>
 
-            <select
-              value={filterService}
-              onChange={(event) => setFilterService(event.target.value)}
-              className="rounded border border-gray-300 bg-white px-3 py-2 text-sm dark:border-gray-700 dark:bg-gray-900"
-            >
-              <option value="">Ibada zote</option>
-              {serviceTypes.map((service) => (
-                <option key={service} value={service}>
-                  {service}
-                </option>
-              ))}
-            </select>
+            <div>
+              <label className="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-200">
+                Aina ya Ibada
+              </label>
+              <select
+                value={filterService}
+                onChange={(event) => setFilterService(event.target.value)}
+                className="w-full rounded border border-gray-300 bg-white px-3 py-2 text-sm dark:border-gray-700 dark:bg-gray-900"
+              >
+                <option value="">Ibada zote</option>
+                {serviceTypes.map((service) => (
+                  <option key={service} value={service}>
+                    {service}
+                  </option>
+                ))}
+              </select>
+            </div>
 
             <button
               type="button"
@@ -355,8 +369,9 @@ export default function RipotzaIbada() {
         </div>
       </div>
 
-      <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-5">
+      <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-6">
         <SummaryItem label="Ibada" value={filteredEvents.length} />
+        <SummaryItem label="Wastani wa Mahudhurio" value={report.averageAttendance.toLocaleString()} />
         <SummaryItem label="Watoto" value={report.totalChildren} />
         <SummaryItem label="Wanawake" value={report.totalWomen} />
         <SummaryItem label="Wanaume" value={report.totalMen} />

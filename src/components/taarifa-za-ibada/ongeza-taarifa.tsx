@@ -9,6 +9,8 @@ import InputField from '@/components/form/input/InputField';
 import TextArea from '@/components/form/input/TextArea';
 import { Calendar } from "lucide-react";
 
+const CUSTOM_SERVICE_VALUE = '__custom__';
+
 function toIsoDate(value: string | Date) {
   if (value instanceof Date) {
     return value.toISOString().slice(0, 10);
@@ -51,6 +53,7 @@ export default function OngezaTaarifaZaIbada() {
     leaders_on_duty: '',
     duty_leader: '',
   });
+  const [customServiceName, setCustomServiceName] = useState('');
   const dateRef = useRef<HTMLInputElement>(null);
 
 
@@ -105,7 +108,14 @@ export default function OngezaTaarifaZaIbada() {
     e.preventDefault();
 
     try {
-      const { service_name } = formData;
+      const service_name = formData.service_name === CUSTOM_SERVICE_VALUE
+        ? customServiceName.trim()
+        : formData.service_name;
+
+      if (!service_name) {
+        Swal.fire('Tahadhari', 'Chagua au andika aina ya ibada.', 'warning');
+        return;
+      }
 
       const res = await apiFetch('/service-events', {
         method: 'POST',
@@ -116,6 +126,7 @@ export default function OngezaTaarifaZaIbada() {
           preacher: formData.preacher,
           preacher_description: formData.preacher_description,
           leaders_on_duty: formData.leaders_on_duty,
+          duty_leader: formData.duty_leader,
           attendance_children: Number(formData.attendance_children || 0),
           attendance_women: Number(formData.attendance_women || 0),
           attendance_men: Number(formData.attendance_men || 0),
@@ -141,6 +152,7 @@ export default function OngezaTaarifaZaIbada() {
           leaders_on_duty: '',
           duty_leader: '',
         });
+        setCustomServiceName('');
       } else {
         Swal.fire('Error', res.message || 'Imeshindikana', 'error');
       }
@@ -197,8 +209,22 @@ export default function OngezaTaarifaZaIbada() {
                 {s}
               </option>
             ))}
+            <option value={CUSTOM_SERVICE_VALUE}>Ongeza aina nyingine ya ibada</option>
           </select>
         </div>
+
+        {formData.service_name === CUSTOM_SERVICE_VALUE && (
+          <div>
+            <Label>Aina mpya ya Ibada</Label>
+            <InputField
+              name="custom_service_name"
+              placeholder="Mfano: Ibada ya Asubuhi"
+              type="text"
+              value={customServiceName}
+              onChange={(event) => setCustomServiceName(event.target.value)}
+            />
+          </div>
+        )}
 
         {/* PREACHER */}
         <div>

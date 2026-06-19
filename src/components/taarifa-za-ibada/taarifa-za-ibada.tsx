@@ -1,11 +1,11 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import type { ReactNode } from 'react';
 import Swal from 'sweetalert2';
 import { apiFetch } from '@/lib/api';
 import Pagination from '@/components/tables/Pagination';
-import { FaUsers, FaMoneyBillWave } from 'react-icons/fa';
+import { FaChartLine, FaChurch, FaMoneyBillWave, FaUsers } from 'react-icons/fa';
 
 interface ServiceAttendance {
   id: number;
@@ -28,6 +28,17 @@ interface EditFieldProps {
   className?: string;
   children: ReactNode;
 }
+
+const SERVICE_TYPES = [
+  'Ibada ya kimataifa',
+  'Ibada ya Pili',
+  'Ibada ya Tatu',
+  'Ibada ya Vijana',
+  'Ibada ya wanawake',
+  'Ibada ya Neno la Mungu',
+];
+
+const toNumber = (value: unknown) => Number(value || 0);
 
 function EditField({ label, htmlFor, className = '', children }: EditFieldProps) {
   return (
@@ -56,6 +67,15 @@ export default function TaarifaZaIbada() {
 
   const getServiceName = (item: ServiceAttendance) =>
     item.service_name || item.title || '';
+
+  const serviceFilterOptions = useMemo(() => {
+    const services = new Set([
+      ...SERVICE_TYPES,
+      ...attendanceData.map(getServiceName).filter(Boolean),
+    ]);
+
+    return Array.from(services).sort();
+  }, [attendanceData]);
 
   const normalizeServiceEvent = (response: any, fallback?: ServiceAttendance): ServiceAttendance => {
     const source = response?.edit_data ?? response?.service_event ?? response?.data?.edit_data ?? response?.data?.service_event ?? response?.data ?? response;
@@ -115,16 +135,18 @@ export default function TaarifaZaIbada() {
   const totalMembers = filteredData.reduce(
     (sum, s) =>
       sum +
-      s.attendance_children +
-      s.attendance_women +
-      s.attendance_men,
+      toNumber(s.attendance_children) +
+      toNumber(s.attendance_women) +
+      toNumber(s.attendance_men),
     0
   );
 
   const totalSadaka = filteredData.reduce(
-    (sum, s) => sum + Number(s.total_offerings || 0),
+    (sum, s) => sum + toNumber(s.total_offerings),
     0
   );
+  const totalServices = filteredData.length;
+  const averageAttendance = totalServices > 0 ? Math.round(totalMembers / totalServices) : 0;
 
   // pagination
   const totalPages = Math.ceil(filteredData.length / itemsPerPage);
@@ -208,18 +230,62 @@ export default function TaarifaZaIbada() {
       </h2>
 
       {/* 🔵 FILTERS */}
-      <div className="flex flex-wrap gap-3 mb-6">
+      <div className="mb-6 grid grid-cols-1 gap-3 md:grid-cols-2 xl:grid-cols-[180px_220px_minmax(220px,1fr)_auto]">
 
         {/* DATE */}
-        <input
-          type="date"
-          value={filterDate}
-          onChange={(e) => {
-            setFilterDate(e.target.value);
-            setCurrentPage(1);
-          }}
-          className="rounded border border-gray-300 bg-white px-3 py-2 text-gray-800 dark:border-gray-700 dark:bg-gray-900 dark:text-white/90"
-        />
+        <div>
+          <label className="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-200">
+            Tarehe ya Ibada
+          </label>
+          <input
+            type="date"
+            value={filterDate}
+            onChange={(e) => {
+              setFilterDate(e.target.value);
+              setCurrentPage(1);
+            }}
+            className="w-full rounded border border-gray-300 bg-white px-3 py-2 text-gray-800 dark:border-gray-700 dark:bg-gray-900 dark:text-white/90"
+          />
+        </div>
+
+        {/* SERVICE */}
+        <div>
+          <label className="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-200">
+            Aina ya Ibada
+          </label>
+          <select
+            value={filterService}
+            onChange={(e) => {
+              setFilterService(e.target.value);
+              setCurrentPage(1);
+            }}
+            className="w-full rounded border border-gray-300 bg-white px-3 py-2 text-gray-800 dark:border-gray-700 dark:bg-gray-900 dark:text-white/90"
+          >
+            <option value="">Ibada Zote</option>
+            {serviceFilterOptions.map((service) => (
+              <option key={service} value={service}>
+                {service}
+              </option>
+            ))}
+          </select>
+        </div>
+
+        {/* SEARCH */}
+        <div>
+          <label className="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-200">
+            Tafuta
+          </label>
+          <input
+            type="text"
+            placeholder="Tafuta huduma au mhubiri..."
+            value={filterSearch}
+            onChange={(e) => {
+              setFilterSearch(e.target.value);
+              setCurrentPage(1);
+            }}
+            className="w-full rounded border border-gray-300 bg-white px-3 py-2 text-gray-800 placeholder:text-gray-400 dark:border-gray-700 dark:bg-gray-900 dark:text-white/90 dark:placeholder:text-gray-500"
+          />
+        </div>
 
         {(filterDate || filterService || filterSearch) && (
           <button
@@ -229,55 +295,41 @@ export default function TaarifaZaIbada() {
               setFilterSearch('');
               setCurrentPage(1);
             }}
-            className="rounded border border-gray-300 px-3 py-2 text-sm hover:bg-gray-50 dark:border-gray-700 dark:hover:bg-white/[0.04]"
+            className="self-end rounded border border-gray-300 px-3 py-2 text-sm hover:bg-gray-50 dark:border-gray-700 dark:hover:bg-white/[0.04]"
           >
             Ondoa vichujio
           </button>
         )}
-
-        {/* SERVICE */}
-        <select
-          value={filterService}
-          onChange={(e) => {
-            setFilterService(e.target.value);
-            setCurrentPage(1);
-          }}
-          className="rounded border border-gray-300 bg-white px-3 py-2 text-gray-800 dark:border-gray-700 dark:bg-gray-900 dark:text-white/90"
-        >
-          <option value="">Ibada Zote</option>
-          <option value="Ibada ya kimataifa">Ibada ya kimataifa</option>
-          <option value="Ibada ya Pili">Ibada ya Pili</option>
-          <option value="Ibada ya Tatu">Ibada ya Tatu</option>
-          <option value="Ibada ya Vijana">Ibada ya Vijana</option>
-          <option value="Ibada ya wanawake">Ibada ya wanawake</option>
-          <option value="Ibada ya Neno la Mungu">Ibada ya Neno la Mungu</option>
-        </select>
-
-        {/* SEARCH */}
-        <input
-          type="text"
-          placeholder="Tafuta huduma au mhubiri..."
-          value={filterSearch}
-          onChange={(e) => {
-            setFilterSearch(e.target.value);
-            setCurrentPage(1);
-          }}
-          className="flex-1 rounded border border-gray-300 bg-white px-3 py-2 text-gray-800 placeholder:text-gray-400 dark:border-gray-700 dark:bg-gray-900 dark:text-white/90 dark:placeholder:text-gray-500"
-        />
       </div>
 
       {/* SUMMARY */}
-      <div className="flex gap-4 mb-6">
+      <div className="mb-6 grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-4">
 
-        <div className="flex flex-1 flex-col items-center rounded border border-gray-200 p-4 dark:border-gray-800 dark:bg-white/[0.02]">
+        <div className="flex flex-col items-center rounded border border-gray-200 p-4 dark:border-gray-800 dark:bg-white/[0.02]">
           <FaUsers className="text-xl text-green-600" />
-          <p className="text-gray-500 text-sm">Jumla ya Washirika</p>
+          <p className="text-gray-500 text-sm">Jumla ya Mahudhurio</p>
           <p className="text-xl font-bold">
-            {loading ? '...' : totalMembers}
+            {loading ? '...' : totalMembers.toLocaleString()}
           </p>
         </div>
 
-        <div className="flex flex-1 flex-col items-center rounded border border-gray-200 p-4 dark:border-gray-800 dark:bg-white/[0.02]">
+        <div className="flex flex-col items-center rounded border border-gray-200 p-4 dark:border-gray-800 dark:bg-white/[0.02]">
+          <FaChurch className="text-xl text-purple-600" />
+          <p className="text-gray-500 text-sm">Jumla ya Ibada</p>
+          <p className="text-xl font-bold">
+            {loading ? '...' : totalServices.toLocaleString()}
+          </p>
+        </div>
+
+        <div className="flex flex-col items-center rounded border border-gray-200 p-4 dark:border-gray-800 dark:bg-white/[0.02]">
+          <FaChartLine className="text-xl text-orange-500" />
+          <p className="text-gray-500 text-sm">Wastani wa Mahudhurio</p>
+          <p className="text-xl font-bold">
+            {loading ? '...' : averageAttendance.toLocaleString()}
+          </p>
+        </div>
+
+        <div className="flex flex-col items-center rounded border border-gray-200 p-4 dark:border-gray-800 dark:bg-white/[0.02]">
           <FaMoneyBillWave className="text-xl text-blue-600" />
           <p className="text-gray-500 text-sm">Jumla ya Sadaka</p>
           <p className="text-xl font-bold">
@@ -308,9 +360,9 @@ export default function TaarifaZaIbada() {
           <tbody>
             {paginatedData.map(item => {
               const total =
-                item.attendance_children +
-                item.attendance_women +
-                item.attendance_men;
+                toNumber(item.attendance_children) +
+                toNumber(item.attendance_women) +
+                toNumber(item.attendance_men);
 
               return (
                 <tr key={item.id} className="border-t border-gray-100 hover:bg-gray-50 dark:border-gray-800 dark:hover:bg-white/[0.04]">
@@ -319,9 +371,9 @@ export default function TaarifaZaIbada() {
                   </td>
                   <td className="px-3 py-2">{getServiceName(item)}</td>
                   <td className="px-3 py-2">{item.preacher}</td>
-                  <td className="px-3 py-2 text-center">{item.attendance_children}</td>
-                  <td className="px-3 py-2 text-center">{item.attendance_women}</td>
-                  <td className="px-3 py-2 text-center">{item.attendance_men}</td>
+                  <td className="px-3 py-2 text-center">{toNumber(item.attendance_children)}</td>
+                  <td className="px-3 py-2 text-center">{toNumber(item.attendance_women)}</td>
+                  <td className="px-3 py-2 text-center">{toNumber(item.attendance_men)}</td>
                   <td className="px-3 py-2 text-center font-semibold">{total}</td>
                   <td className="px-3 py-2 text-right">
                     {Number(item.total_offerings).toLocaleString()}
