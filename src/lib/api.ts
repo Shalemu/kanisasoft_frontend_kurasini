@@ -161,6 +161,8 @@ export async function apiFetch(endpoint: string, options: ApiOptions = {}) {
         expiresAt: Date.now() + GET_CACHE_TTL_MS,
         data,
       });
+    } else if (method !== "GET") {
+      getRequestCache.delete(cacheKey);
     }
 
     return data;

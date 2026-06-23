@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { apiFetch } from "@/lib/api";
+import { AUTH_USER_UPDATED_EVENT } from "@/lib/session";
 
 type User = {
   id?: number;
@@ -21,11 +22,43 @@ export function useAuthUser() {
   const [user, setUser] = useState<User | null>(null);
 
   useEffect(() => {
+    const readStoredUser = () => {
+      const stored = localStorage.getItem("user");
+
+      if (!stored || stored === "undefined") {
+        localStorage.removeItem("user");
+        setUser(null);
+        return;
+      }
+
+      try {
+        setUser(JSON.parse(stored));
+      } catch (error) {
+        console.error("Invalid user in localStorage:", error);
+        localStorage.removeItem("user");
+        setUser(null);
+      }
+    };
+
+    const handleUserUpdated = (event: Event) => {
+      setUser((event as CustomEvent<User>).detail);
+    };
+
+    const handleStorage = (event: StorageEvent) => {
+      if (event.key === "user") readStoredUser();
+    };
+
+    window.addEventListener(AUTH_USER_UPDATED_EVENT, handleUserUpdated);
+    window.addEventListener("storage", handleStorage);
+
     const stored = localStorage.getItem("user");
 
     if (!stored || stored === "undefined") {
       localStorage.removeItem("user");
-      return;
+      return () => {
+        window.removeEventListener(AUTH_USER_UPDATED_EVENT, handleUserUpdated);
+        window.removeEventListener("storage", handleStorage);
+      };
     }
 
     try {
@@ -34,7 +67,10 @@ export function useAuthUser() {
     } catch (error) {
       console.error("Invalid user in localStorage:", error);
       localStorage.removeItem("user");
-      return;
+      return () => {
+        window.removeEventListener(AUTH_USER_UPDATED_EVENT, handleUserUpdated);
+        window.removeEventListener("storage", handleStorage);
+      };
     }
 
     async function refreshProfile() {
@@ -58,6 +94,11 @@ export function useAuthUser() {
     }
 
     refreshProfile();
+
+    return () => {
+      window.removeEventListener(AUTH_USER_UPDATED_EVENT, handleUserUpdated);
+      window.removeEventListener("storage", handleStorage);
+    };
   }, []);
 
   return user;

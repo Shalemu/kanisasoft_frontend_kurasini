@@ -3,6 +3,8 @@
 import React, { useEffect, useMemo, useState } from "react";
 import Button from "@/components/ui/button/Button";
 import { apiFetch } from "@/lib/api";
+import { getProfilePictureUrl } from "@/lib/profilePicture";
+import { updateStoredUser } from "@/lib/session";
 import Swal from "sweetalert2";
 import {
   Bell,
@@ -276,7 +278,7 @@ export default function AdminProfilePage() {
   const [supportHistoryLoading, setSupportHistoryLoading] = useState(false);
   const [supportSaving, setSupportSaving] = useState(false);
 
-  const imageSrc = previewUrl || profile?.profile_picture_url || "";
+  const imageSrc = previewUrl || getProfilePictureUrl(profile);
   const settingsPatch = useMemo(() => changedSettings(settings, savedSettings), [settings, savedSettings]);
   const hasSettingsChanges = Object.keys(settingsPatch).length > 0;
 
@@ -437,20 +439,7 @@ export default function AdminProfilePage() {
 
       setProfile(nextProfile);
       setProfileName(nextProfile.full_name || profileName.trim());
-      const storedUser = localStorage.getItem("user");
-      if (storedUser && storedUser !== "undefined") {
-        try {
-          localStorage.setItem(
-            "user",
-            JSON.stringify({
-              ...JSON.parse(storedUser),
-              ...nextProfile,
-            })
-          );
-        } catch {
-          localStorage.setItem("user", JSON.stringify(nextProfile));
-        }
-      }
+      updateStoredUser(nextProfile);
       setProfileFile(null);
       if (previewUrl) {
         URL.revokeObjectURL(previewUrl);

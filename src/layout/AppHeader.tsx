@@ -5,15 +5,16 @@ import UserDropdown from "@/components/header/UserDropdown";
 import { useSidebar } from "@/context/SidebarContext";
 import Image from "next/image";
 import Link from "next/link";
-import React, { useState, useEffect, useRef } from "react";
+import React from "react";
 import { useAuthUser } from "@/hooks/useAuthUser";
+import { getProfilePictureUrl } from "@/lib/profilePicture";
 
 const AppHeader: React.FC = () => {
   const { isMobileOpen, toggleSidebar, toggleMobileSidebar } = useSidebar();
 
 
   const user = useAuthUser();
-  const profilePictureUrl = user?.profile_picture_url;
+  const profilePictureUrl = getProfilePictureUrl(user);
 
   const handleToggle = () => {
     if (window.innerWidth >= 1024) {
@@ -22,20 +23,6 @@ const AppHeader: React.FC = () => {
       toggleMobileSidebar();
     }
   };
-
-  const inputRef = useRef<HTMLInputElement>(null);
-
-  useEffect(() => {
-    const handleKeyDown = (event: KeyboardEvent) => {
-      if ((event.metaKey || event.ctrlKey) && event.key === "k") {
-        event.preventDefault();
-        inputRef.current?.focus();
-      }
-    };
-
-    document.addEventListener("keydown", handleKeyDown);
-    return () => document.removeEventListener("keydown", handleKeyDown);
-  }, []);
 
   return (
     <header className="sticky top-0 flex w-full bg-white border-gray-200 z-99999 dark:border-gray-800 dark:bg-gray-900 lg:border-b">
@@ -66,22 +53,21 @@ const AppHeader: React.FC = () => {
             />
           </Link>
 
-          <div className="lg:hidden">
+          <div className="flex items-center gap-1 lg:hidden">
             <ThemeToggleButton />
-          </div>
-
-          {/* SEARCH */}
-          <div className="hidden lg:block">
-            <form>
-              <div className="relative">
-                <input
-                  ref={inputRef}
-                  type="text"
-                  placeholder="Tafuta Hapa..."
-                  className="h-11 w-full rounded-lg border px-4 text-sm"
+            <div className="flex h-9 w-9 items-center justify-center overflow-hidden rounded-full bg-[#f0ce32] font-bold text-black">
+              {profilePictureUrl ? (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img
+                  src={profilePictureUrl}
+                  alt={user?.full_name || "Profile"}
+                  className="h-full w-full object-cover"
                 />
-              </div>
-            </form>
+              ) : (
+                user?.full_name?.charAt(0)?.toUpperCase() || "U"
+              )}
+            </div>
+            <UserDropdown />
           </div>
         </div>
 
