@@ -1,6 +1,6 @@
 import { Metadata } from "next";
 import PageBreadcrumb from "@/components/common/PageBreadCrumb";
-import MatukioYaliyopita  from "@/components/matukio/matukio-yaliyopita/matukio-yaliyopita";
+import Matukio from "@/components/matukio/matukio-yaliyopo/matukio";
 
 
 export const metadata: Metadata = {
@@ -20,7 +20,7 @@ export default function Page() {
 
       {/* Main Content */}
       <div className="max-w-7xl mx-auto">
-        <MatukioYaliyopita />
+        <Matukio scope="past" />
       </div>
 
     </div>

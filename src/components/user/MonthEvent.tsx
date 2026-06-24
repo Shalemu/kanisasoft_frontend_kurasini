@@ -1,198 +1,82 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useMemo } from "react";
 import dynamic from "next/dynamic";
 import { ApexOptions } from "apexcharts";
-import flatpickr from "flatpickr";
-import { CalenderIcon } from "../../icons";
-import { ApiAuthError, apiFetch } from "@/lib/api";
+import { EventRecord } from "@/components/matukio/event-utils";
 
 const Chart = dynamic(() => import("react-apexcharts"), { ssr: false });
 
-type EventRecord = {
-  date?: string;
-  start_date?: string;
-};
-
-function countEventsByMonth(events: EventRecord[]) {
-  const monthlyCounts = Array(12).fill(0);
+function countByMonth(events: EventRecord[], type: string) {
+  const counts = Array(12).fill(0);
 
   events.forEach((event) => {
-    const eventDate = event.start_date ?? event.date;
-    if (!eventDate) return;
+    if (event.type !== type || !event.start_date) return;
 
-    const date = new Date(eventDate);
-    if (Number.isNaN(date.getTime())) return;
-
-    monthlyCounts[date.getMonth()] += 1;
+    const date = new Date(event.start_date);
+    if (!Number.isNaN(date.getTime())) counts[date.getMonth()] += 1;
   });
 
-  return monthlyCounts;
+  return counts;
 }
 
-export default function EventsStatisticsChart() {
-  const datePickerRef = useRef<HTMLInputElement>(null);
-
-  const [series, setSeries] = useState([
-    {
-      name: "Matukio",
-      data: Array(12).fill(0),
-    },
-  ]);
-
-  const [categories] = useState([
-    "Jan","Feb","Mar","Apr","May","Jun",
-    "Jul","Aug","Sep","Oct","Nov","Dec",
-  ]);
-
- 
-  useEffect(() => {
-    async function fetchEvents() {
-      try {
-        const [upcomingRes, pastRes] = await Promise.all([
-          apiFetch("/events"),
-          apiFetch("/events/past"),
-        ]);
-
-        const events = [
-          ...(upcomingRes?.events ?? []),
-          ...(pastRes?.events ?? []),
-        ];
-
-        setSeries([
-          {
-            name: "Matukio",
-            data: countEventsByMonth(events),
-          },
-        ]);
-      } catch (err) {
-        if (err instanceof ApiAuthError) return;
-
-        console.error("Failed to load events stats", err);
-      }
-    }
-
-    fetchEvents();
-  }, []);
-
-  // 📅 Flatpickr (keep same UI)
-  useEffect(() => {
-    if (!datePickerRef.current) return;
-
-    const today = new Date();
-    const sevenDaysAgo = new Date();
-    sevenDaysAgo.setDate(today.getDate() - 6);
-
-    const fp = flatpickr(datePickerRef.current, {
-      mode: "range",
-      static: true,
-      monthSelectorType: "static",
-      dateFormat: "M d",
-      defaultDate: [sevenDaysAgo, today],
-      clickOpens: true,
-    });
-
-    return () => {
-      if (!Array.isArray(fp)) fp.destroy();
-    };
-  }, []);
+export default function EventsStatisticsChart({ events }: { events: EventRecord[] }) {
+  const series = useMemo(
+    () => [
+      { name: "Matangazo", data: countByMonth(events, "Tangazo") },
+      { name: "Matukio", data: countByMonth(events, "Tukio") },
+    ],
+    [events]
+  );
 
   const options: ApexOptions = {
-    legend: {
-      show: false,
-    },
-    colors: ["#10B981"], // green for events
+    legend: { show: true, position: "top", horizontalAlign: "right" },
+    colors: ["#6366F1", "#10B981"],
     chart: {
       fontFamily: "Outfit, sans-serif",
       height: 310,
       type: "area",
-      toolbar: {
-        show: false,
-      },
+      toolbar: { show: false },
     },
-    stroke: {
-      curve: "smooth",
-      width: 2,
-    },
+    stroke: { curve: "smooth", width: 2 },
     fill: {
       type: "gradient",
-      gradient: {
-        opacityFrom: 0.4,
-        opacityTo: 0,
-      },
+      gradient: { opacityFrom: 0.35, opacityTo: 0 },
     },
-    markers: {
-      size: 0,
-    },
-    grid: {
-      yaxis: {
-        lines: {
-          show: true,
-        },
-      },
-    },
-    dataLabels: {
-      enabled: false,
-    },
-    tooltip: {
-      x: {
-        format: "MMM",
-      },
-      y: {
-        formatter: (val: number) => `${val} tukio`,
-      },
-    },
+    markers: { size: 0 },
+    grid: { yaxis: { lines: { show: true } } },
+    dataLabels: { enabled: false },
+    tooltip: { y: { formatter: (value: number) => `${value}` } },
     xaxis: {
       type: "category",
-      categories,
+      categories: ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Ago", "Sep", "Okt", "Nov", "Des"],
       axisBorder: { show: false },
       axisTicks: { show: false },
     },
     yaxis: {
+      min: 0,
+      forceNiceScale: true,
       labels: {
-        style: {
-          fontSize: "12px",
-          colors: ["#6B7280"],
-        },
+        formatter: (value) => Math.round(value).toString(),
+        style: { fontSize: "12px", colors: ["#6B7280"] },
       },
     },
   };
 
   return (
     <div className="rounded-2xl border border-gray-200 bg-white px-5 pb-5 pt-5 dark:border-gray-800 dark:bg-white/3 sm:px-6 sm:pt-6">
-
-      {/* HEADER */}
-      <div className="flex flex-col gap-5 mb-6 sm:flex-row sm:justify-between">
-        <div>
-          <h3 className="text-lg font-semibold text-gray-800 dark:text-white/90">
-            Matukio ya Mwezi (Events Statistics)
-          </h3>
-          <p className="mt-1 text-gray-500 text-sm dark:text-gray-400">
-            Idadi ya matukio yaliyopangwa kila mwezi
-          </p>
-        </div>
-
-        <div className="flex items-center gap-3">
-          <div className="relative inline-flex items-center">
-            <CalenderIcon className="absolute left-3 text-gray-500" />
-            <input
-              ref={datePickerRef}
-              className="h-10 w-40 pl-10 pr-3 rounded-lg border border-gray-200 bg-white text-sm text-gray-700 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-300 cursor-pointer"
-              placeholder="Chagua tarehe"
-            />
-          </div>
-        </div>
+      <div className="mb-6">
+        <h3 className="text-lg font-semibold text-gray-800 dark:text-white/90">
+          Matangazo na Matukio kwa Mwezi
+        </h3>
+        <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
+          Idadi ya matangazo na matukio kulingana na tarehe ya kuanza
+        </p>
       </div>
 
-      {/* CHART */}
       <div className="max-w-full overflow-x-auto custom-scrollbar">
         <div className="min-w-250 xl:min-w-full">
-          <Chart
-            options={options}
-            series={series}
-            type="area"
-            height={310}
-          />
+          <Chart options={options} series={series} type="area" height={310} />
         </div>
       </div>
     </div>

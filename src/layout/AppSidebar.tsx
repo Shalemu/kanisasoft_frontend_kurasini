@@ -119,8 +119,8 @@ const othersItems: NavItem[] = [
     name: "Matangazo & Matukio",
     subItems: [
       { name: "Matangazo & Matukio", path: "/matukio", pro: false },
-      //  { name: "matukio", path: "/matukio", pro: false },
       { name: "Matangazo & Matukio yaliyopita", path: "/matukio/matukio-yaliyopita", pro: false },
+      { name: "Ripoti ya Matangazo & Matukio", path: "/matukio/ripoti", pro: false },
      
     ],
   },

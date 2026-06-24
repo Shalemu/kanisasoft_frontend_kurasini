@@ -8,6 +8,7 @@ import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
 import { FaFileExcel, FaFilePdf, FaChartBar } from "react-icons/fa";
 import { apiFetch } from "@/lib/api";
+import MonthlySadakaChart from "@/components/user/OfferingDashboard";
 
 const ReactApexChart = dynamic(() => import("react-apexcharts"), {
   ssr: false,
@@ -381,6 +382,8 @@ export default function FedhaRipoti() {
           )}
         </div>
       </section>
+
+      <MonthlySadakaChart />
 
       {/* Data Table */}
       <section className="rounded-xl border border-gray-200 bg-white p-5 shadow-md dark:border-gray-800 dark:bg-white/[0.03]">

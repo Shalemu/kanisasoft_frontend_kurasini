@@ -5,7 +5,6 @@ import SadakaTab from "./SadakaTab";
 import ZakaTab from "./ZakaTab";
 import MichangoTab from "./MichangoTab";
 import AnkaraTab from "./AnkaraTab";
-import MonthlySadakaChart from "@/components/user/OfferingDashboard";
 import { FaChurch, FaHandHoldingUsd, FaMoneyBillWave, FaFileInvoiceDollar } from "react-icons/fa";
 
 type Tab = "sadaka" | "zaka" | "michango" | "ankara";
@@ -51,8 +50,6 @@ export default function FedhaPage() {
         <StatCard title="Zaka Mwezi Huu" value={stats.zaka} color="text-blue-600 dark:text-blue-400" />
         <StatCard title="Michango Mwezi Huu" value={stats.michango} color="text-emerald-700 dark:text-emerald-400" />
       </div>
-
-      <MonthlySadakaChart />
 
       {/* Tabs */}
       <div className="flex flex-wrap gap-2 border-b border-gray-200 dark:border-gray-700 pb-0">

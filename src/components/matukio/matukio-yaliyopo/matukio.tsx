@@ -12,23 +12,16 @@ import Swal from "sweetalert2";
 import { Dialog } from "@headlessui/react";
 import { Card, CardContent } from "@/components/ui/card";
 import { apiFetch } from "@/lib/api";
+import {
+  EventRecord,
+  getEventRecords,
+  getLocalDateKey,
+  isPastEvent,
+} from "@/components/matukio/event-utils";
 
 interface Group {
   id: number;
   name: string;
-}
-
-interface EventRecord {
-  id: number;
-  title: string;
-  type: "Tangazo" | "Tukio" | string;
-  description?: string | null;
-  start_date: string;
-  end_date?: string | null;
-  start_time?: string | null;
-  location?: string | null;
-  audience_groups?: Group[];
-  audience_group_ids?: number[];
 }
 
 interface EventForm {
@@ -65,10 +58,7 @@ function normalizeTime(value?: string | null) {
 }
 
 function getRecords(response: any): EventRecord[] {
-  const payload = response?.data ?? response ?? {};
-  const records = payload.events ?? payload.data ?? response?.events ?? [];
-
-  return Array.isArray(records) ? records : [];
+  return getEventRecords(response);
 }
 
 function getGroups(response: any): Group[] {
@@ -107,17 +97,37 @@ function buildPayload(form: EventForm) {
   };
 }
 
-export default function Matukio() {
+type EventScope = "current" | "past";
+
+function eventOverlapsRange(
+  event: EventRecord,
+  dateFrom: string,
+  dateTo: string
+) {
+  if (!dateFrom && !dateTo) return true;
+
+  const eventStart = normalizeDate(event.start_date);
+  const eventEnd = normalizeDate(event.end_date) || eventStart;
+
+  if (!eventStart) return false;
+
+  return (!dateFrom || eventEnd >= dateFrom) && (!dateTo || eventStart <= dateTo);
+}
+
+export default function Matukio({ scope = "current" }: { scope?: EventScope }) {
   const [events, setEvents] = useState<EventRecord[]>([]);
   const [groups, setGroups] = useState<Group[]>([]);
   const [search, setSearch] = useState("");
   const [selectedType, setSelectedType] = useState("All");
+  const [dateFrom, setDateFrom] = useState("");
+  const [dateTo, setDateTo] = useState("");
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [deletingId, setDeletingId] = useState<number | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingEvent, setEditingEvent] = useState<EventRecord | null>(null);
   const [form, setForm] = useState<EventForm>(emptyForm);
+  const [today, setToday] = useState(getLocalDateKey);
 
   const fetchGroups = async () => {
     const response = await apiFetch("/groups");
@@ -148,24 +158,33 @@ export default function Matukio() {
     void loadData();
   }, []);
 
+  useEffect(() => {
+    const timer = window.setInterval(() => setToday(getLocalDateKey()), 60_000);
+
+    return () => window.clearInterval(timer);
+  }, []);
+
   const filteredEvents = useMemo(() => {
     const query = search.trim().toLowerCase();
 
     return events
       .filter((event) => {
+        const belongsToScope =
+          scope === "past" ? isPastEvent(event, today) : !isPastEvent(event, today);
         const groupNames = event.audience_groups?.map((group) => group.name).join(" ") ?? "";
         const matchesSearch = [event.title, event.description, event.location, groupNames]
           .filter(Boolean)
           .some((value) => String(value).toLowerCase().includes(query));
         const matchesType = selectedType === "All" || event.type === selectedType;
+        const matchesDateRange = eventOverlapsRange(event, dateFrom, dateTo);
 
-        return matchesSearch && matchesType;
+        return belongsToScope && matchesSearch && matchesType && matchesDateRange;
       })
       .sort(
         (a, b) =>
           new Date(b.start_date).getTime() - new Date(a.start_date).getTime()
       );
-  }, [events, search, selectedType]);
+  }, [dateFrom, dateTo, events, scope, search, selectedType, today]);
 
   const openCreateModal = () => {
     setEditingEvent(null);
@@ -276,19 +295,21 @@ export default function Matukio() {
     <div className="p-6 text-gray-800 dark:text-white/90">
       <div className="mb-4 flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
         <h2 className="flex items-center gap-2 text-xl font-bold text-gray-800 dark:text-white/90">
-          <FaCalendarAlt /> Matangazo & Matukio
+          <FaCalendarAlt /> {scope === "past" ? "Matangazo & Matukio Yaliyopita" : "Matangazo & Matukio"}
         </h2>
 
-        <button
-          type="button"
-          onClick={openCreateModal}
-          className="rounded-lg bg-indigo-600 px-4 py-2 text-white transition hover:bg-indigo-700"
-        >
-          + Ongeza
-        </button>
+        {scope === "current" && (
+          <button
+            type="button"
+            onClick={openCreateModal}
+            className="rounded-lg bg-indigo-600 px-4 py-2 text-white transition hover:bg-indigo-700"
+          >
+            + Ongeza
+          </button>
+        )}
       </div>
 
-      <div className="mb-6 grid grid-cols-1 gap-3 md:grid-cols-[1fr_180px]">
+      <div className="mb-6 grid grid-cols-1 items-end gap-3 md:grid-cols-2 xl:grid-cols-[minmax(0,1fr)_160px_170px_170px_auto]">
         <div className="relative">
           <FaSearch className="absolute left-3 top-3 text-gray-400" />
           <input
@@ -308,13 +329,53 @@ export default function Matukio() {
           <option value="Tangazo">Tangazo</option>
           <option value="Tukio">Tukio</option>
         </select>
+
+        <label className="block">
+          <span className="mb-1 block text-xs font-medium text-gray-600 dark:text-gray-400">
+            Kuanzia tarehe
+          </span>
+          <input
+            type="date"
+            value={dateFrom}
+            max={dateTo || undefined}
+            onChange={(event) => setDateFrom(event.target.value)}
+            className="w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-gray-800 dark:border-gray-700 dark:bg-gray-900 dark:text-white/90"
+          />
+        </label>
+
+        <label className="block">
+          <span className="mb-1 block text-xs font-medium text-gray-600 dark:text-gray-400">
+            Mpaka tarehe
+          </span>
+          <input
+            type="date"
+            value={dateTo}
+            min={dateFrom || undefined}
+            onChange={(event) => setDateTo(event.target.value)}
+            className="w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-gray-800 dark:border-gray-700 dark:bg-gray-900 dark:text-white/90"
+          />
+        </label>
+
+        <button
+          type="button"
+          onClick={() => {
+            setDateFrom("");
+            setDateTo("");
+          }}
+          disabled={!dateFrom && !dateTo}
+          className="rounded-lg border border-gray-300 px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-50 dark:border-gray-700 dark:text-gray-300 dark:hover:bg-white/[0.05]"
+        >
+          Futa tarehe
+        </button>
       </div>
 
       {loading ? (
         <p className="text-gray-500 dark:text-gray-400">Inapakia...</p>
       ) : filteredEvents.length === 0 ? (
         <p className="text-center text-gray-500 dark:text-gray-400">
-          Hakuna matangazo au matukio.
+          {scope === "past"
+            ? "Hakuna matangazo au matukio yaliyopita."
+            : "Hakuna matangazo au matukio yanayoendelea au yajayo."}
         </p>
       ) : (
         <div className="grid gap-6 md:grid-cols-2 xl:grid-cols-3">
@@ -392,11 +453,11 @@ export default function Matukio() {
         </div>
       )}
 
-      <Dialog open={isModalOpen} onClose={closeModal} className="relative z-50">
-        <div className="fixed inset-0 bg-black/40" aria-hidden="true" />
-        <div className="fixed inset-0 overflow-y-auto p-4">
+      <Dialog open={isModalOpen} onClose={closeModal} className="relative z-999999">
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm" aria-hidden="true" />
+        <div className="fixed inset-0 overflow-y-auto p-4 sm:p-6">
           <div className="flex min-h-full items-center justify-center">
-            <Dialog.Panel className="w-full max-w-2xl rounded-lg bg-white p-6 text-gray-800 shadow-xl dark:bg-gray-900 dark:text-white/90">
+            <Dialog.Panel className="max-h-[calc(100dvh-2rem)] w-full max-w-2xl overflow-y-auto rounded-2xl bg-white p-5 text-gray-800 shadow-2xl dark:bg-gray-900 dark:text-white/90 sm:max-h-[calc(100dvh-3rem)] sm:p-6">
               <Dialog.Title className="mb-4 text-xl font-bold">
                 {editingEvent ? "Hariri Tangazo / Tukio" : "Ongeza Tangazo / Tukio"}
               </Dialog.Title>
