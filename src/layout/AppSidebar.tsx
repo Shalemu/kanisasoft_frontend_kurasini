@@ -3,7 +3,7 @@ import React, { useCallback, useEffect, useMemo, useRef, useState } from "react"
 import Link from "next/link";
 import Image from "next/image";
 import { usePathname } from "next/navigation";
-import { Quote } from "lucide-react";
+import { BookOpen, HandCoins, Quote } from "lucide-react";
 import { useSidebar } from "../context/SidebarContext";
 import {
   BoxCubeIcon,
@@ -114,6 +114,16 @@ const othersItems: NavItem[] = [
     name: "Rasilimali",
     path: "/rasilimali",
   },
+{
+  icon: <HandCoins />,
+  name: "Utoaji",
+  path: "/utoaji",
+},
+{
+  icon: <BookOpen />,
+  name: "Mahubiri",
+  path: "/mahubiri",
+},
   {
     icon: <CalenderIcon />,
     name: "Matangazo & Matukio",
@@ -124,6 +134,8 @@ const othersItems: NavItem[] = [
      
     ],
   },
+  
+  
   {
     icon: <GridIcon />,
     name: "Makundi",
@@ -132,6 +144,14 @@ const othersItems: NavItem[] = [
       // { name: "Avatar", path: "/alerts", pro: false },
     ],
   },
+  
+  {
+  icon: <HandCoins />,
+  name: "Taarifa za kanisa",
+  path: "/taarifa-za-kanisa",
+},
+
+
 ];
 
 const AppSidebar: React.FC = () => {

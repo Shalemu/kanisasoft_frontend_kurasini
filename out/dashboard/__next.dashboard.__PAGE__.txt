@@ -1,8 +1,0 @@
-1:"$Sreact.fragment"
-2:I[47634,["8500","static/chunks/8500-330f262eb4bb79e9.js","8133","static/chunks/8133-4e2685bc4b7f53ac.js","5771","static/chunks/5771-16025b76386c2292.js","5105","static/chunks/app/dashboard/page-9ceeb2a57da122d3.js"],"UserCard"]
-3:I[51480,["8500","static/chunks/8500-330f262eb4bb79e9.js","8133","static/chunks/8133-4e2685bc4b7f53ac.js","5771","static/chunks/5771-16025b76386c2292.js","5105","static/chunks/app/dashboard/page-9ceeb2a57da122d3.js"],"default"]
-4:I[68752,["8500","static/chunks/8500-330f262eb4bb79e9.js","8133","static/chunks/8133-4e2685bc4b7f53ac.js","5771","static/chunks/5771-16025b76386c2292.js","5105","static/chunks/app/dashboard/page-9ceeb2a57da122d3.js"],"default"]
-5:I[90484,[],"OutletBoundary"]
-6:"$Sreact.suspense"
-0:{"rsc":["$","$1","c",{"children":[["$","div",null,{"className":"grid grid-cols-12 gap-4 md:gap-6","children":[["$","div",null,{"className":"col-span-12","children":["$","$L2",null,{}]}],["$","div",null,{"className":"col-span-12","children":["$","$L3",null,{}]}],["$","div",null,{"className":"col-span-12 xl:col-span-12","children":["$","$L4",null,{}]}]]}],null,["$","$L5",null,{"children":["$","$6",null,{"name":"Next.MetadataOutlet","children":"$@7"}]}]]}],"isPartial":false,"staleTime":300,"varyParams":null,"buildId":"YgpyOlCmcpWkBtKNc4VNz"}
-7:null

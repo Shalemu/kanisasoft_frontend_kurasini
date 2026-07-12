@@ -1,8 +1,0 @@
-1:"$Sreact.fragment"
-2:I[45338,["8320","static/chunks/41ade5dc-716d85a2757e44a6.js","8437","static/chunks/8437-92810abdf6f75ee2.js","622","static/chunks/622-d5e7e27220e339de.js","5689","static/chunks/app/(admin)/profile/page-2c9a1a2a9851c378.js"],"default"]
-3:I[4333,["8320","static/chunks/41ade5dc-716d85a2757e44a6.js","8437","static/chunks/8437-92810abdf6f75ee2.js","622","static/chunks/622-d5e7e27220e339de.js","5689","static/chunks/app/(admin)/profile/page-2c9a1a2a9851c378.js"],"default"]
-4:I[76787,["8320","static/chunks/41ade5dc-716d85a2757e44a6.js","8437","static/chunks/8437-92810abdf6f75ee2.js","622","static/chunks/622-d5e7e27220e339de.js","5689","static/chunks/app/(admin)/profile/page-2c9a1a2a9851c378.js"],"default"]
-5:I[90484,[],"OutletBoundary"]
-6:"$Sreact.suspense"
-0:{"rsc":["$","$1","c",{"children":[["$","div",null,{"children":["$","div",null,{"className":"rounded-2xl border border-gray-200 bg-white p-5 dark:border-gray-800 dark:bg-white/3 lg:p-6","children":[["$","h3",null,{"className":"mb-5 text-lg font-semibold text-gray-800 dark:text-white/90 lg:mb-7","children":"Profile"}],["$","div",null,{"className":"space-y-6","children":[["$","$L2",null,{}],["$","$L3",null,{}],["$","$L4",null,{}]]}]]}]}],null,["$","$L5",null,{"children":["$","$6",null,{"name":"Next.MetadataOutlet","children":"$@7"}]}]]}],"isPartial":false,"staleTime":300,"varyParams":null,"buildId":"YgpyOlCmcpWkBtKNc4VNz"}
-7:null
