@@ -50,6 +50,14 @@ export default function PreachingList({
   });
 };
 
+  const getPdfUrl = (item: Preaching) => {
+    if (item.pdf_url) return item.pdf_url;
+    if (item.pdf_file) {
+      return `${process.env.NEXT_PUBLIC_API_BASE_URL?.replace(/\/api$/, "")}/storage/${item.pdf_file}`;
+    }
+    return null;
+  };
+
   const handleDelete = async (id: number) => {
 
   const result = await Swal.fire({
@@ -101,7 +109,7 @@ export default function PreachingList({
 };
   if (loading) {
     return (
-      <div className="bg-white rounded-xl shadow p-8 text-center">
+      <div className="bg-white rounded-xl shadow p-8 text-center dark:bg-white/3 dark:text-gray-300">
         Inapakia Mahubiri...
       </div>
     );
@@ -109,7 +117,7 @@ export default function PreachingList({
 
   if (filtered.length === 0) {
     return (
-      <div className="bg-white rounded-xl shadow p-10 text-center text-gray-500">
+      <div className="bg-white rounded-xl shadow p-10 text-center text-gray-500 dark:bg-white/3 dark:text-gray-400">
         Hakuna mahubiri yaliyopatikana.
       </div>
     );
@@ -117,19 +125,22 @@ export default function PreachingList({
 
   return (
     <div className="space-y-5">
-      {filtered.map((item: Preaching) => (
+      {filtered.map((item: Preaching) => {
+        const pdfUrl = getPdfUrl(item);
+
+        return (
         <div
           key={item.id}
-          className="bg-white rounded-xl shadow border p-6"
+          className="bg-white rounded-xl shadow border p-6 dark:bg-white/3 dark:border-gray-800"
         >
           {/* Header */}
           <div className="flex justify-between items-start">
             <div>
-              <h2 className="text-xl font-semibold text-gray-900">
+              <h2 className="text-xl font-semibold text-gray-900 dark:text-white/90">
                 {item.title}
               </h2>
 
-              <div className="flex flex-wrap gap-6 mt-3 text-sm text-gray-600">
+              <div className="flex flex-wrap gap-6 mt-3 text-sm text-gray-600 dark:text-gray-400">
                 <div className="flex items-center gap-2">
                   <User size={16} />
                   <span>{item.preacher_name}</span>
@@ -146,7 +157,7 @@ export default function PreachingList({
               <div className="flex gap-2">
                 <button
                   onClick={() => onEdit?.(item)}
-                  className="h-10 w-10 rounded-lg border hover:bg-blue-50 text-blue-600 flex items-center justify-center transition"
+                  className="h-10 w-10 rounded-lg border hover:bg-blue-50 text-blue-600 flex items-center justify-center transition dark:border-gray-800 dark:hover:bg-blue-500/10"
                 >
                   <Pencil size={18} />
                 </button>
@@ -154,7 +165,7 @@ export default function PreachingList({
                 <button
                   onClick={() => handleDelete(item.id)}
                   disabled={deletingId === item.id}
-                  className="h-10 w-10 rounded-lg border hover:bg-red-50 text-red-600 flex items-center justify-center transition disabled:opacity-50"
+                  className="h-10 w-10 rounded-lg border hover:bg-red-50 text-red-600 flex items-center justify-center transition disabled:opacity-50 dark:border-gray-800 dark:hover:bg-red-500/10"
                 >
                   {deletingId === item.id ? (
                     <span className="text-xs">...</span>
@@ -169,7 +180,7 @@ export default function PreachingList({
           {/* Description */}
           {item.description && (
             <div className="mt-5">
-              <p className="text-gray-700 leading-7">
+              <p className="text-gray-700 leading-7 dark:text-gray-300">
                 {item.description}
               </p>
             </div>
@@ -177,12 +188,12 @@ export default function PreachingList({
 
           {/* Files */}
           <div className="mt-6 flex flex-wrap gap-3">
-            {item.pdf_url && (
+            {pdfUrl && (
               <a
-                href={item.pdf_url}
+                href={pdfUrl}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="inline-flex items-center gap-2 bg-red-50 text-red-700 px-4 py-2 rounded-lg hover:bg-red-100 transition"
+                className="inline-flex items-center gap-2 bg-red-50 text-red-700 px-4 py-2 rounded-lg hover:bg-red-100 transition dark:bg-red-500/15 dark:text-red-400 dark:hover:bg-red-500/25"
               >
                 <FileText size={18} />
                 Fungua PDF
@@ -208,15 +219,16 @@ export default function PreachingList({
             <span
               className={`inline-flex rounded-full px-3 py-1 text-xs font-medium ${
                 item.is_active
-                  ? "bg-green-100 text-green-700"
-                  : "bg-red-100 text-red-700"
+                  ? "bg-green-100 text-green-700 dark:bg-green-500/15 dark:text-green-400"
+                  : "bg-red-100 text-red-700 dark:bg-red-500/15 dark:text-red-400"
               }`}
             >
               {item.is_active ? "Active" : "Inactive"}
             </span>
           </div>
         </div>
-      ))}
+        );
+      })}
     </div>
   );
 }

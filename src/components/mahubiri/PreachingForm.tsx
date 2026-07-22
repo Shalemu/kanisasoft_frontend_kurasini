@@ -13,6 +13,9 @@ interface Props {
   onCancel: () => void;
 }
 
+const MAX_PDF_SIZE_MB = 5;
+const MAX_PDF_SIZE_BYTES = MAX_PDF_SIZE_MB * 1024 * 1024;
+
 export default function PreachingForm({
   preaching,
   onSuccess,
@@ -50,6 +53,15 @@ export default function PreachingForm({
   e: React.FormEvent
 ) => {
   e.preventDefault();
+
+  if (pdfFile && pdfFile.size > MAX_PDF_SIZE_BYTES) {
+    Swal.fire({
+      icon: "warning",
+      title: "Faili ni kubwa mno!",
+      text: `Ukubwa wa PDF usizidi MB ${MAX_PDF_SIZE_MB}.`,
+    });
+    return;
+  }
 
   try {
     setLoading(true);
@@ -124,8 +136,8 @@ export default function PreachingForm({
   }
 };
   return (
-    <div className="bg-white rounded-xl shadow p-6">
-      <h2 className="text-xl font-semibold mb-6">
+    <div className="bg-white rounded-xl shadow p-6 dark:bg-white/3">
+      <h2 className="text-xl font-semibold mb-6 text-gray-800 dark:text-white/90">
         {editing
           ? "Hariri Mahubiri"
           : "Ongeza Mahubiri"}
@@ -140,7 +152,7 @@ export default function PreachingForm({
           name="date"
           value={form.date}
           onChange={handleChange}
-          className="w-full border rounded-lg px-4 py-2"
+          className="w-full border rounded-lg px-4 py-2 bg-white text-gray-900 dark:border-gray-700 dark:bg-gray-900 dark:text-white/90"
           required
         />
 
@@ -150,7 +162,7 @@ export default function PreachingForm({
           value={form.preacher_name}
           onChange={handleChange}
           placeholder="Jina la Mhubiri"
-          className="w-full border rounded-lg px-4 py-2"
+          className="w-full border rounded-lg px-4 py-2 bg-white text-gray-900 dark:border-gray-700 dark:bg-gray-900 dark:text-white/90"
           required
         />
 
@@ -160,7 +172,7 @@ export default function PreachingForm({
           value={form.title}
           onChange={handleChange}
           placeholder="Kichwa cha Mahubiri"
-          className="w-full border rounded-lg px-4 py-2"
+          className="w-full border rounded-lg px-4 py-2 bg-white text-gray-900 dark:border-gray-700 dark:bg-gray-900 dark:text-white/90"
           required
         />
 
@@ -170,28 +182,47 @@ export default function PreachingForm({
           onChange={handleChange}
           rows={5}
           placeholder="Maelezo ya mahubiri..."
-          className="w-full border rounded-lg px-4 py-2"
+          className="w-full border rounded-lg px-4 py-2 bg-white text-gray-900 dark:border-gray-700 dark:bg-gray-900 dark:text-white/90"
         />
 
         <div>
-          <label className="block mb-2 text-sm font-medium">
+          <label className="block mb-2 text-sm font-medium text-gray-800 dark:text-gray-200">
             PDF ya Mahubiri
           </label>
 
           <input
             type="file"
             accept=".pdf"
-            onChange={(e) =>
-              setPdfFile(
-                e.target.files?.[0] ?? null
-              )
-            }
-            className="w-full border rounded-lg px-4 py-2"
+            onChange={(e) => {
+              const file = e.target.files?.[0] ?? null;
+
+              if (file && file.size > MAX_PDF_SIZE_BYTES) {
+                Swal.fire({
+                  icon: "warning",
+                  title: "Faili ni kubwa mno!",
+                  text: `Ukubwa wa PDF usizidi MB ${MAX_PDF_SIZE_MB}. Faili ulilochagua ni MB ${(
+                    file.size /
+                    (1024 * 1024)
+                  ).toFixed(1)}.`,
+                });
+
+                e.target.value = "";
+                setPdfFile(null);
+                return;
+              }
+
+              setPdfFile(file);
+            }}
+            className="w-full border rounded-lg px-4 py-2 text-gray-800 dark:border-gray-700 dark:text-gray-200"
           />
+
+          <p className="text-xs text-gray-500 mt-1 dark:text-gray-400">
+            Kiwango cha juu: PDF hadi MB {MAX_PDF_SIZE_MB}.
+          </p>
 
           {editing &&
             preaching?.pdf_file && (
-              <p className="text-sm text-gray-500 mt-2">
+              <p className="text-sm text-gray-500 mt-2 dark:text-gray-400">
                 PDF tayari ipo.
               </p>
             )}
@@ -203,10 +234,10 @@ export default function PreachingForm({
           value={form.video_link}
           onChange={handleChange}
           placeholder="https://youtube.com/..."
-          className="w-full border rounded-lg px-4 py-2"
+          className="w-full border rounded-lg px-4 py-2 bg-white text-gray-900 dark:border-gray-700 dark:bg-gray-900 dark:text-white/90"
         />
 
-        <label className="flex items-center gap-3">
+        <label className="flex items-center gap-3 text-gray-800 dark:text-gray-200">
           <input
             type="checkbox"
             checked={form.is_active}
@@ -237,7 +268,7 @@ export default function PreachingForm({
           <button
             type="button"
             onClick={onCancel}
-            className="border px-6 py-2 rounded-lg"
+            className="border px-6 py-2 rounded-lg text-gray-800 dark:border-gray-700 dark:text-gray-200"
           >
             Cancel
           </button>

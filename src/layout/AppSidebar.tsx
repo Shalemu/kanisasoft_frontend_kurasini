@@ -3,11 +3,12 @@ import React, { useCallback, useEffect, useMemo, useRef, useState } from "react"
 import Link from "next/link";
 import Image from "next/image";
 import { usePathname } from "next/navigation";
-import { BookOpen, HandCoins, Quote } from "lucide-react";
+import { BookOpen, Building2, HandCoins, Quote } from "lucide-react";
 import { useSidebar } from "../context/SidebarContext";
 import {
   BoxCubeIcon,
   CalenderIcon,
+  ChatIcon,
   ChevronDownIcon,
   FolderIcon,
   GridIcon,
@@ -114,16 +115,16 @@ const othersItems: NavItem[] = [
     name: "Rasilimali",
     path: "/rasilimali",
   },
-{
-  icon: <HandCoins />,
-  name: "Utoaji",
-  path: "/utoaji",
-},
-{
-  icon: <BookOpen />,
-  name: "Mahubiri",
-  path: "/mahubiri",
-},
+  {
+    icon: <HandCoins />,
+    name: "Utoaji",
+    path: "/utoaji",
+  },
+  {
+    icon: <BookOpen />,
+    name: "Mahubiri",
+    path: "/mahubiri",
+  },
   {
     icon: <CalenderIcon />,
     name: "Matangazo & Matukio",
@@ -131,27 +132,28 @@ const othersItems: NavItem[] = [
       { name: "Matangazo & Matukio", path: "/matukio", pro: false },
       { name: "Matangazo & Matukio yaliyopita", path: "/matukio/matukio-yaliyopita", pro: false },
       { name: "Ripoti ya Matangazo & Matukio", path: "/matukio/ripoti", pro: false },
-     
     ],
   },
-  
-  
   {
     icon: <GridIcon />,
     name: "Makundi",
     subItems: [
       { name: "Orodha ya Makundi", path: "/makundi", pro: false },
-      // { name: "Avatar", path: "/alerts", pro: false },
     ],
   },
-  
   {
-  icon: <HandCoins />,
-  name: "Taarifa za kanisa",
-  path: "/taarifa-za-kanisa",
-},
+    icon: <Building2 />,
+    name: "Taarifa za kanisa",
+    path: "/taarifa-za-kanisa",
+  },
+];
 
-
+const bottomItems: NavItem[] = [
+  {
+    icon: <ChatIcon />,
+    name: "Pata Usaidizi",
+    path: "/pata-usaidizi",
+  },
 ];
 
 const AppSidebar: React.FC = () => {
@@ -161,12 +163,25 @@ const AppSidebar: React.FC = () => {
   const canManageDailyWords = ["admin", "mchungaji"].includes(
     String(user?.role ?? "").toLowerCase()
   );
+  const isAdmin = ["admin", "super_admin", "mchungaji"].includes(
+    String(user?.role ?? "").toLowerCase()
+  );
   const visibleNavItems = useMemo(
     () =>
       canManageDailyWords
         ? navItems
         : navItems.filter((item) => item.path !== "/neno-la-siku"),
     [canManageDailyWords]
+  );
+
+  const visibleOthersItems = useMemo(() => othersItems, []);
+
+  const visibleBottomItems = useMemo(
+    () =>
+      isAdmin
+        ? bottomItems
+        : bottomItems.filter((item) => item.path !== "/pata-usaidizi"),
+    [isAdmin]
   );
 
   const renderMenuItems = (
@@ -300,6 +315,37 @@ const AppSidebar: React.FC = () => {
   </ul>
 );
 
+  const renderBottomItems = (items: NavItem[]) =>
+    items.length === 0 ? null : (
+      <ul className="flex flex-col gap-4 mt-auto pt-4 border-t border-slate-700">
+        {items.map((nav) => (
+          <li key={nav.name}>
+            {nav.path && (
+              <Link
+                href={nav.path}
+                className={`menu-item group transition-colors duration-200 ${
+                  isActive(nav.path)
+                    ? "bg-[#334155] text-[#f0ce32]"
+                    : "text-white hover:bg-[#334155]"
+                }`}
+              >
+                <span
+                  className={`${
+                    isActive(nav.path) ? "text-[#f0ce32]" : "text-white"
+                  }`}
+                >
+                  {nav.icon}
+                </span>
+                {(isExpanded || isHovered || isMobileOpen) && (
+                  <span className="text-white font-medium">{nav.name}</span>
+                )}
+              </Link>
+            )}
+          </li>
+        ))}
+      </ul>
+    );
+
   const [openSubmenu, setOpenSubmenu] = useState<{
     type: "main" | "others";
     index: number;
@@ -319,8 +365,13 @@ const AppSidebar: React.FC = () => {
   useEffect(() => {
     // Check if the current path matches any submenu item
     let submenuMatched = false;
-    ["main", "others"].forEach((menuType) => {
-      const items = menuType === "main" ? visibleNavItems : othersItems;
+    ["main", "others", "bottom"].forEach((menuType) => {
+      const items =
+        menuType === "main"
+          ? visibleNavItems
+          : menuType === "others"
+          ? visibleOthersItems
+          : visibleBottomItems;
       items.forEach((nav, index) => {
         if (nav.subItems) {
           nav.subItems.forEach((subItem) => {
@@ -340,7 +391,7 @@ const AppSidebar: React.FC = () => {
     if (!submenuMatched) {
       setOpenSubmenu(null);
     }
-  }, [pathname,isActive, visibleNavItems]);
+  }, [pathname, isActive, visibleNavItems, visibleOthersItems, visibleBottomItems]);
 
   useEffect(() => {
     // Set the height of the submenu items when the submenu is opened
@@ -411,12 +462,13 @@ const AppSidebar: React.FC = () => {
         )}
       </Link>
       </div>
-      <div className="flex flex-col overflow-y-auto duration-300 ease-linear no-scrollbar">
-        <nav className="mb-6">
+      <div className="flex flex-col flex-1 overflow-y-auto duration-300 ease-linear no-scrollbar">
+        <nav className="flex flex-col flex-1 mb-6">
           <div className="flex flex-col gap-4">
             {renderMenuItems(visibleNavItems, "main")}
-            {renderMenuItems(othersItems, "others")}
+            {renderMenuItems(visibleOthersItems, "others")}
           </div>
+          {renderBottomItems(visibleBottomItems)}
         </nav>
       </div>
     </aside>

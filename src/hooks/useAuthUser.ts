@@ -10,6 +10,8 @@ type User = {
   email?: string;
   phone?: string;
   role?: string;
+  church?: string | null;
+  church_name?: string | null;
   profile_picture_url?: string | null;
   profile_picture_path?: string | null;
 };

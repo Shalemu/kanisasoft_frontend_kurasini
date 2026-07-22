@@ -199,10 +199,12 @@ rounded-xl
 shadow
 border
 p-6
+dark:bg-white/3
+dark:border-gray-800
 ">
 
 <div className="mb-6">
-<h2 className="text-xl font-bold text-gray-800">
+<h2 className="text-xl font-bold text-gray-800 dark:text-white/90">
 
 {
 church
@@ -213,7 +215,7 @@ church
 }
 
 </h2>
-<p className="text-sm text-gray-500 mt-1">
+<p className="text-sm text-gray-500 mt-1 dark:text-gray-400">
 Taarifa hizi zitaonekana kwa wageni wanaosharewa link ya kanisa
 </p>
 </div>
@@ -463,6 +465,7 @@ justify-end
 gap-3
 pt-5
 border-t
+dark:border-gray-800
 ">
 <button
 type="button"
@@ -473,6 +476,7 @@ px-5
 py-2.5
 border
 rounded-lg
+dark:border-gray-700
 "
 >
 Ghairi

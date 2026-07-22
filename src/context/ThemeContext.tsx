@@ -8,6 +8,8 @@ type Theme = "light" | "dark";
 type ThemeContextType = {
   theme: Theme;
   toggleTheme: () => void;
+  setTheme: (theme: Theme) => void;
+  applySystemTheme: () => void;
 };
 
 const ThemeContext = createContext<ThemeContextType | undefined>(undefined);
@@ -33,7 +35,7 @@ const applyTheme = (theme: Theme) => {
 export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({
   children,
 }) => {
-  const [theme, setTheme] = useState<Theme>(getInitialTheme);
+  const [theme, setThemeState] = useState<Theme>(getInitialTheme);
 
   useEffect(() => {
     applyTheme(theme);
@@ -41,11 +43,20 @@ export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({
   }, [theme]);
 
   const toggleTheme = () => {
-    setTheme((prevTheme) => (prevTheme === "light" ? "dark" : "light"));
+    setThemeState((prevTheme) => (prevTheme === "light" ? "dark" : "light"));
+  };
+
+  const applySystemTheme = () => {
+    const prefersDark =
+      typeof window !== "undefined" &&
+      window.matchMedia("(prefers-color-scheme: dark)").matches;
+    setThemeState(prefersDark ? "dark" : "light");
   };
 
   return (
-    <ThemeContext.Provider value={{ theme, toggleTheme }}>
+    <ThemeContext.Provider
+      value={{ theme, toggleTheme, setTheme: setThemeState, applySystemTheme }}
+    >
       {children}
     </ThemeContext.Provider>
   );

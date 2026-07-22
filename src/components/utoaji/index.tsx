@@ -35,6 +35,8 @@ export default function Utoaji() {
         flex
         items-center
         gap-4
+        dark:bg-white/3
+        dark:border-gray-800
       ">
         <div className="relative flex-1">
           <FaSearch
@@ -57,8 +59,14 @@ export default function Utoaji() {
               border
               rounded-lg
               outline-none
+              bg-white
+              text-gray-900
               focus:ring-2
               focus:ring-blue-500
+              dark:bg-gray-900
+              dark:text-white/90
+              dark:border-gray-700
+              dark:placeholder-gray-500
             "
           />
         </div>

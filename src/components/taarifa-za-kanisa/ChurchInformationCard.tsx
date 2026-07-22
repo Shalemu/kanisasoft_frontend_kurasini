@@ -22,7 +22,7 @@ export default function ChurchInformationCard({
 }:Props){
 if(!church){
 return (
-<div className="bg-white rounded-xl shadow p-6 text-gray-500">
+<div className="bg-white rounded-xl shadow p-6 text-gray-500 dark:bg-white/3 dark:text-gray-400">
 Hakuna taarifa za kanisa zilizowekwa.
 </div>
 );
@@ -38,6 +38,8 @@ shadow
 border
 p-6
 space-y-8
+dark:bg-white/3
+dark:border-gray-800
 ">
 {/* Header */}
 
@@ -47,6 +49,7 @@ items-center
 gap-4
 border-b
 pb-5
+dark:border-gray-800
 ">
 
 <div className="
@@ -58,6 +61,8 @@ flex
 items-center
 justify-center
 text-blue-600
+dark:bg-blue-500/15
+dark:text-blue-400
 ">
 <FaChurch size={26}/>
 </div>
@@ -67,12 +72,13 @@ text-blue-600
 text-2xl
 font-bold
 text-gray-900
+dark:text-white/90
 ">
 
 {church.church_name}
 </h2>
 
-<p className="text-gray-500">
+<p className="text-gray-500 dark:text-gray-400">
 Taarifa za Kanisa
 </p>
 
@@ -96,6 +102,7 @@ Taarifa za Kanisa
       bg-gray-50
       rounded-lg
       p-5
+      dark:bg-white/5
     "
   >
 
@@ -105,6 +112,7 @@ Taarifa za Kanisa
         font-semibold
         mb-2
         text-gray-800
+        dark:text-white/90
       "
     >
       Kuhusu Kanisa
@@ -115,6 +123,7 @@ Taarifa za Kanisa
       className="
         text-gray-600
         leading-7
+        dark:text-gray-400
       "
     >
       {church.about || "Hakuna maelezo"}
@@ -130,6 +139,7 @@ Taarifa za Kanisa
           bg-gray-50
           rounded-lg
           p-5
+          dark:bg-white/5
         "
       >
 
@@ -139,6 +149,7 @@ Taarifa za Kanisa
             font-semibold
             mb-2
             text-gray-800
+            dark:text-white/90
           "
         >
           Historia
@@ -147,6 +158,7 @@ Taarifa za Kanisa
           className="
             text-gray-600
             leading-7
+            dark:text-gray-400
           "
         >
           {church.history}
@@ -164,6 +176,7 @@ text-lg
 font-semibold
 mb-4
 text-gray-800
+dark:text-white/90
 ">
 Mawasiliano
 </h3>
@@ -182,13 +195,14 @@ gap-3
 bg-gray-50
 rounded-lg
 p-4
+dark:bg-white/5
 ">
 <FaMapMarkerAlt className="text-red-500"/>
 <div>
 <p className="text-xs text-gray-400">
 Anwani
 </p>
-<p className="text-gray-700">
+<p className="text-gray-700 dark:text-gray-300">
 {church.address}
 </p>
 </div>
@@ -205,13 +219,14 @@ gap-3
 bg-gray-50
 rounded-lg
 p-4
+dark:bg-white/5
 ">
 <FaPhone className="text-green-600"/>
 <div>
 <p className="text-xs text-gray-400">
 Simu
 </p>
-<p className="text-gray-700">
+<p className="text-gray-700 dark:text-gray-300">
 {church.phone}
 </p>
 </div>
@@ -227,13 +242,14 @@ gap-3
 bg-gray-50
 rounded-lg
 p-4
+dark:bg-white/5
 ">
 <FaEnvelope className="text-blue-600"/>
 <div>
 <p className="text-xs text-gray-400">
 Email
 </p>
-<p className="text-gray-700 break-all">
+<p className="text-gray-700 break-all dark:text-gray-300">
 {church.email}
 </p>
 </div>
@@ -250,13 +266,14 @@ gap-3
 bg-gray-50
 rounded-lg
 p-4
+dark:bg-white/5
 ">
 <FaWhatsapp className="text-green-500"/>
 <div>
 <p className="text-xs text-gray-400">
 WhatsApp
 </p>
-<p className="text-gray-700">
+<p className="text-gray-700 dark:text-gray-300">
 {church.whatsapp}
 </p>
 </div>

@@ -197,12 +197,12 @@ export default function PaymentAccountForm({
 
   return (
 
-    <div className="bg-white rounded-xl shadow p-6">
+    <div className="bg-white rounded-xl shadow p-6 dark:bg-white/3">
 
 
       <div className="flex justify-between items-center mb-6">
 
-        <h3 className="text-xl font-semibold text-gray-800">
+        <h3 className="text-xl font-semibold text-gray-800 dark:text-white/90">
 
           {account
             ? "Hariri Account ya Malipo"
@@ -214,7 +214,7 @@ export default function PaymentAccountForm({
 
         {account && (
 
-          <span className="text-sm bg-blue-100 text-blue-700 px-3 py-1 rounded-full">
+          <span className="text-sm bg-blue-100 text-blue-700 px-3 py-1 rounded-full dark:bg-blue-500/15 dark:text-blue-400">
 
             Editing
 
@@ -238,12 +238,12 @@ export default function PaymentAccountForm({
 
         <div>
 
-          <label className="block text-sm font-medium mb-2">
+          <label className="block text-sm font-medium mb-2 text-gray-800 dark:text-gray-200">
             Logo ya Account
           </label>
 
           <div className="flex items-center gap-5">
-            <div className="h-24 w-24 rounded-xl border bg-gray-50 flex items-center justify-center overflow-hidden">
+            <div className="h-24 w-24 rounded-xl border bg-gray-50 flex items-center justify-center overflow-hidden dark:border-gray-800 dark:bg-white/5">
 
               {preview ? (
 
@@ -271,7 +271,7 @@ export default function PaymentAccountForm({
               type="file"
               accept="image/*"
               onChange={handleLogoChange}
-              className="border rounded-lg px-4 py-2"
+              className="border rounded-lg px-4 py-2 text-gray-800 dark:border-gray-700 dark:text-gray-200"
             />
 
 
@@ -285,7 +285,7 @@ export default function PaymentAccountForm({
             value={form.name}
             onChange={handleChange}
             placeholder="Jina la benki / wallet"
-            className="border rounded-lg px-4 py-2.5"
+            className="border rounded-lg px-4 py-2.5 bg-white text-gray-900 dark:border-gray-700 dark:bg-gray-900 dark:text-white/90"
             required
           />
           <input
@@ -293,7 +293,7 @@ export default function PaymentAccountForm({
             value={form.account_name}
             onChange={handleChange}
             placeholder="Jina la account"
-            className="border rounded-lg px-4 py-2.5"
+            className="border rounded-lg px-4 py-2.5 bg-white text-gray-900 dark:border-gray-700 dark:bg-gray-900 dark:text-white/90"
             required
           />
           <input
@@ -301,14 +301,14 @@ export default function PaymentAccountForm({
             value={form.account_number}
             onChange={handleChange}
             placeholder="Namba ya account"
-            className="border rounded-lg px-4 py-2.5"
+            className="border rounded-lg px-4 py-2.5 bg-white text-gray-900 dark:border-gray-700 dark:bg-gray-900 dark:text-white/90"
             required
           />
           <select
             name="type"
             value={form.type}
             onChange={handleChange}
-            className="border rounded-lg px-4 py-2.5"
+            className="border rounded-lg px-4 py-2.5 bg-white text-gray-900 dark:border-gray-700 dark:bg-gray-900 dark:text-white/90"
           >
 
             <option value="bank">
@@ -335,7 +335,7 @@ export default function PaymentAccountForm({
           onChange={handleChange}
           placeholder="Maelekezo ya malipo"
           rows={4}
-          className="w-full border rounded-lg px-4 py-3"
+          className="w-full border rounded-lg px-4 py-3 bg-white text-gray-900 dark:border-gray-700 dark:bg-gray-900 dark:text-white/90"
 
         />
         <div className="flex items-center gap-3">
@@ -350,7 +350,7 @@ export default function PaymentAccountForm({
             }
             className="h-4 w-4"
           />
-          <span className="text-sm">
+          <span className="text-sm text-gray-800 dark:text-gray-200">
             Account Active
           </span>
         </div>
@@ -373,7 +373,7 @@ export default function PaymentAccountForm({
           <button
             type="button"
             onClick={onCancel}
-            className="border px-6 py-2.5 rounded-lg"
+            className="border px-6 py-2.5 rounded-lg text-gray-800 dark:border-gray-700 dark:text-gray-200"
           >
             Cancel
           </button>

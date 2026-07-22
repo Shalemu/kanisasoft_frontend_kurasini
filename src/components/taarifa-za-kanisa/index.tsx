@@ -34,7 +34,7 @@ export default function TaarifaZaKanisa() {
     if(loading){
 
         return (
-            <div className="bg-white rounded-xl shadow p-8 text-center">
+            <div className="bg-white rounded-xl shadow p-8 text-center dark:bg-white/3 dark:text-gray-300">
                 Inapakia taarifa za kanisa...
             </div>
         );
@@ -54,9 +54,9 @@ export default function TaarifaZaKanisa() {
 
                 <div>
 
-                 
 
-                    <p className="text-gray-500">
+
+                    <p className="text-gray-500 dark:text-gray-400">
                         Kuhusu kanisa, eneo na mawasiliano
                     </p>
 
@@ -130,9 +130,11 @@ export default function TaarifaZaKanisa() {
 
 
 
-            <ChurchShareButtons
-                church={church}
-            />
+            {church && (
+                <ChurchShareButtons
+                    church={church}
+                />
+            )}
 
 
 

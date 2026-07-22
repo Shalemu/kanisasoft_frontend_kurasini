@@ -62,19 +62,6 @@ export default function UserDropdown() {
         >
           <ul className="flex flex-col gap-1">
 
-            {/* PROFILE */}
-            <li>
-              <DropdownItem
-                onItemClick={closeDropdown}
-                tag="a"
-                href="/profile"
-                className={itemClass}
-              >
-                <IconUser />
-                Edit Profile
-              </DropdownItem>
-            </li>
-
             {/* SETTINGS */}
             <li>
               <DropdownItem
@@ -93,7 +80,7 @@ export default function UserDropdown() {
               <DropdownItem
                 onItemClick={closeDropdown}
                 tag="a"
-                href="/support"
+                href="/pata-usaidizi"
                 className={itemClass}
               >
                 <IconHelp />
@@ -139,18 +126,6 @@ export default function UserDropdown() {
 }
 
 
-
-function IconUser() {
-  return (
-    <svg className="w-5 h-5 text-gray-500" viewBox="0 0 24 24" fill="none">
-      <path
-        d="M12 12c2.2 0 4-1.8 4-4s-1.8-4-4-4-4 1.8-4 4 1.8 4 4 4zM4 20c0-3.3 3.6-6 8-6s8 2.7 8 6"
-        stroke="currentColor"
-        strokeWidth="1.5"
-      />
-    </svg>
-  );
-}
 
 function IconSettings() {
   return (

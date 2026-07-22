@@ -17,13 +17,13 @@ if(!church?.map_url){
 
 }
 return (
-<div className="bg-white rounded-xl shadow border p-6">
+<div className="bg-white rounded-xl shadow border p-6 dark:bg-white/3 dark:border-gray-800">
 <div className="flex items-center gap-3 mb-4">
 <FaMapMarkedAlt
 className="text-red-600"
 size={22}
 />
-<h2 className="text-lg font-semibold">
+<h2 className="text-lg font-semibold text-gray-800 dark:text-white/90">
 Ramani na Mahali
 </h2>
 </div>
@@ -33,6 +33,7 @@ h-72
 rounded-lg
 overflow-hidden
 border
+dark:border-gray-800
 ">
 <iframe
 src={church.map_url}
@@ -46,7 +47,7 @@ allowFullScreen
 </div>
 {
 church.direction && (
-<p className="mt-4 text-gray-600">
+<p className="mt-4 text-gray-600 dark:text-gray-400">
 <strong>
 Maelekezo:
 </strong>

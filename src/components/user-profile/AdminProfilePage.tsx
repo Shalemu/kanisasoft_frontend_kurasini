@@ -5,23 +5,20 @@ import Button from "@/components/ui/button/Button";
 import { apiFetch } from "@/lib/api";
 import { getProfilePictureUrl } from "@/lib/profilePicture";
 import { updateStoredUser } from "@/lib/session";
+import { useTheme } from "@/context/ThemeContext";
+import { useSidebar } from "@/context/SidebarContext";
 import Swal from "sweetalert2";
 import {
   Bell,
   CalendarDays,
-  ChevronLeft,
-  ChevronRight,
   HelpCircle,
   ImagePlus,
   LayoutDashboard,
-  Mail,
   MonitorCog,
   Shield,
   SlidersHorizontal,
   Upload,
 } from "lucide-react";
-
-type ActiveSection = "profile" | "settings" | "support";
 
 type AdminProfile = {
   id?: number | string;
@@ -70,41 +67,6 @@ type AccountSettings = {
   };
 };
 
-type SupportPayload = {
-  channels?: unknown[];
-  categories?: unknown[];
-  priorities?: unknown[];
-  recent_requests?: SupportRequest[];
-  system?: Record<string, unknown>;
-};
-
-type SupportRequest = {
-  id?: number | string;
-  category?: string;
-  priority?: string;
-  subject?: string;
-  message?: string;
-  status?: string;
-  created_at?: string;
-  updated_at?: string;
-};
-
-type SupportHistory = {
-  data: SupportRequest[];
-  currentPage: number;
-  lastPage: number;
-  total?: number;
-};
-
-type SupportForm = {
-  category: "account" | "members" | "contributions" | "events" | "groups" | "reports" | "technical" | "general";
-  priority: "low" | "normal" | "high" | "urgent";
-  subject: string;
-  message: string;
-  contact_email: string;
-  contact_phone: string;
-};
-
 const defaultSettings: AccountSettings = {
   appearance: {
     theme: "system",
@@ -142,32 +104,8 @@ const defaultSettings: AccountSettings = {
   },
 };
 
-const categoryOptions: Array<{ value: SupportForm["category"]; label: string }> = [
-  { value: "account", label: "Account" },
-  { value: "members", label: "Members" },
-  { value: "contributions", label: "Contributions" },
-  { value: "events", label: "Events" },
-  { value: "groups", label: "Groups" },
-  { value: "reports", label: "Reports" },
-  { value: "technical", label: "Technical" },
-  { value: "general", label: "General" },
-];
-
-const priorityOptions: Array<{ value: SupportForm["priority"]; label: string }> = [
-  { value: "low", label: "Low" },
-  { value: "normal", label: "Normal" },
-  { value: "high", label: "High" },
-  { value: "urgent", label: "Urgent" },
-];
-
 const fieldClass =
   "w-full rounded-xl border border-gray-300 bg-white px-4 py-3 text-sm text-gray-900 shadow-sm outline-none transition focus:border-brand-500 focus:ring-4 focus:ring-brand-500/10 dark:border-gray-700 dark:bg-gray-900 dark:text-white/90";
-
-const sectionTabs: Array<{ key: ActiveSection; label: string }> = [
-  { key: "profile", label: "Edit Profile" },
-  { key: "settings", label: "Account Settings" },
-  { key: "support", label: "Support" },
-];
 
 function unwrap<T>(response: any, key: string, fallback: T): T {
   return response?.[key] ?? response?.data?.[key] ?? response?.data ?? fallback;
@@ -206,42 +144,9 @@ function changedSettings(current: AccountSettings, original: AccountSettings) {
   return patch;
 }
 
-function normalizeHistory(response: any, fallbackPage: number): SupportHistory {
-  const source = response?.requests ?? response?.data?.requests ?? response?.data ?? response;
-  const data = Array.isArray(source) ? source : source?.data ?? [];
-
-  return {
-    data: Array.isArray(data) ? data : [],
-    currentPage: Number(source?.current_page ?? response?.current_page ?? fallbackPage),
-    lastPage: Number(source?.last_page ?? response?.last_page ?? fallbackPage),
-    total: source?.total ?? response?.total,
-  };
-}
-
-function formatDate(value?: string) {
-  if (!value) return "-";
-  const date = new Date(value);
-  if (Number.isNaN(date.getTime())) return value;
-  return date.toLocaleString();
-}
-
-function displayList(items?: unknown[]) {
-  if (!items || items.length === 0) return "No data";
-
-  return items
-    .map((item) => {
-      if (typeof item === "string") return item;
-      if (item && typeof item === "object") {
-        const value = item as Record<string, unknown>;
-        return String(value.label ?? value.name ?? value.title ?? value.value ?? JSON.stringify(value));
-      }
-      return String(item);
-    })
-    .join(", ");
-}
-
 export default function AdminProfilePage() {
-  const [activeSection, setActiveSection] = useState<ActiveSection>("profile");
+  const { theme, setTheme, applySystemTheme } = useTheme();
+  const { isExpanded, setIsExpanded } = useSidebar();
 
   const [profile, setProfile] = useState<AdminProfile | null>(null);
   const [profileName, setProfileName] = useState("");
@@ -257,27 +162,6 @@ export default function AdminProfilePage() {
   const [settingsLoading, setSettingsLoading] = useState(false);
   const [settingsSaving, setSettingsSaving] = useState(false);
 
-  const [support, setSupport] = useState<SupportPayload | null>(null);
-  const [supportHistory, setSupportHistory] = useState<SupportHistory>({
-    data: [],
-    currentPage: 1,
-    lastPage: 1,
-  });
-  const [supportError, setSupportError] = useState<string | null>(null);
-  const [historyPage, setHistoryPage] = useState(1);
-  const [supportForm, setSupportForm] = useState<SupportForm>({
-    category: "general",
-    priority: "normal",
-    subject: "",
-    message: "",
-    contact_email: "",
-    contact_phone: "",
-  });
-  const [supportLoaded, setSupportLoaded] = useState(false);
-  const [supportLoading, setSupportLoading] = useState(false);
-  const [supportHistoryLoading, setSupportHistoryLoading] = useState(false);
-  const [supportSaving, setSupportSaving] = useState(false);
-
   const imageSrc = previewUrl || getProfilePictureUrl(profile);
   const settingsPatch = useMemo(() => changedSettings(settings, savedSettings), [settings, savedSettings]);
   const hasSettingsChanges = Object.keys(settingsPatch).length > 0;
@@ -289,7 +173,7 @@ export default function AdminProfilePage() {
   }, [previewUrl]);
 
   useEffect(() => {
-    if (activeSection !== "profile" || profileLoaded || profileLoading) return;
+    if (profileLoaded || profileLoading) return;
 
     async function loadProfile() {
       try {
@@ -308,16 +192,20 @@ export default function AdminProfilePage() {
     }
 
     loadProfile();
-  }, [activeSection, profileLoaded, profileLoading]);
+  }, [profileLoaded, profileLoading]);
 
   useEffect(() => {
-    if (activeSection !== "settings" || settingsLoaded || settingsLoading) return;
+    if (settingsLoaded || settingsLoading) return;
 
     async function loadSettings() {
       try {
         setSettingsLoading(true);
         const response = await apiFetch("/admin/account-settings");
         const nextSettings = mergeSettings(unwrap<Partial<AccountSettings>>(response, "settings", {}));
+        // Reflect the theme/sidebar state actually applied to the app right now,
+        // instead of a possibly stale value saved earlier on the backend.
+        nextSettings.appearance.theme = theme;
+        nextSettings.appearance.sidebar_collapsed = !isExpanded;
         setSettings(nextSettings);
         setSavedSettings(nextSettings);
         setSettingsLoaded(true);
@@ -330,56 +218,7 @@ export default function AdminProfilePage() {
     }
 
     loadSettings();
-  }, [activeSection, settingsLoaded, settingsLoading]);
-
-  useEffect(() => {
-    if (activeSection !== "support" || supportLoaded || supportLoading) return;
-
-    async function loadSupport() {
-      try {
-        setSupportLoading(true);
-        const response = await apiFetch("/admin/support");
-        const nextSupport = unwrap<SupportPayload | null>(response, "support", null);
-        setSupport(nextSupport);
-        setSupportError(null);
-        setSupportLoaded(true);
-      } catch {
-        setSupport(null);
-        setSupportError("Support is unavailable because the backend support requests table is missing.");
-        setSupportLoaded(true);
-      } finally {
-        setSupportLoading(false);
-      }
-    }
-
-    loadSupport();
-  }, [activeSection, supportLoaded, supportLoading]);
-
-  useEffect(() => {
-    if (activeSection !== "support") return;
-
-    async function loadHistory() {
-      try {
-        setSupportHistoryLoading(true);
-        const response = await apiFetch(`/admin/support/requests?page=${historyPage}`, {
-          signal: new AbortController().signal,
-        });
-        setSupportHistory(normalizeHistory(response, historyPage));
-        setSupportError(null);
-      } catch {
-        setSupportHistory({
-          data: [],
-          currentPage: historyPage,
-          lastPage: historyPage,
-        });
-        setSupportError("Support request history is unavailable because the backend support requests table is missing.");
-      } finally {
-        setSupportHistoryLoading(false);
-      }
-    }
-
-    loadHistory();
-  }, [activeSection, historyPage]);
+  }, [settingsLoaded, settingsLoading]);
 
   const updateSetting = <TSection extends keyof AccountSettings, TKey extends keyof AccountSettings[TSection]>(
     section: TSection,
@@ -476,80 +315,8 @@ export default function AdminProfilePage() {
     }
   };
 
-  const submitSupportRequest = async () => {
-    if (supportError) {
-      Swal.fire("Support unavailable", supportError, "warning");
-      return;
-    }
-
-    if (!supportForm.subject.trim() || !supportForm.message.trim()) {
-      Swal.fire("Tahadhari", "Subject na message zinahitajika.", "warning");
-      return;
-    }
-
-    try {
-      setSupportSaving(true);
-      const payload = {
-        category: supportForm.category,
-        priority: supportForm.priority,
-        subject: supportForm.subject.trim(),
-        message: supportForm.message.trim(),
-        ...(supportForm.contact_email.trim() ? { contact_email: supportForm.contact_email.trim() } : {}),
-        ...(supportForm.contact_phone.trim() ? { contact_phone: supportForm.contact_phone.trim() } : {}),
-      };
-
-      await apiFetch("/admin/support/requests", {
-        method: "POST",
-        body: payload,
-      });
-
-      setSupportForm({
-        category: "general",
-        priority: "normal",
-        subject: "",
-        message: "",
-        contact_email: "",
-        contact_phone: "",
-      });
-      setHistoryPage(1);
-      const response = await apiFetch("/admin/support/requests?page=1", {
-        signal: new AbortController().signal,
-      });
-      setSupportHistory(normalizeHistory(response, 1));
-      Swal.fire("Imefanikiwa", "Ombi la support limetumwa.", "success");
-    } catch (error: any) {
-      Swal.fire("Error", error?.message || "Imeshindikana kutuma ombi la support.", "error");
-    } finally {
-      setSupportSaving(false);
-    }
-  };
-
   return (
     <div className="space-y-6">
-      <div className="rounded-2xl border border-gray-200 bg-white p-2 dark:border-gray-800 dark:bg-white/3">
-        <div className="grid gap-2 sm:grid-cols-3">
-          {sectionTabs.map((tab) => {
-            const selected = activeSection === tab.key;
-
-            return (
-              <button
-                key={tab.key}
-                type="button"
-                onClick={() => setActiveSection(tab.key)}
-                className={`rounded-xl px-4 py-3 text-sm font-medium transition ${
-                  selected
-                    ? "bg-[#1e293b] text-white shadow-sm dark:bg-white dark:text-gray-900"
-                    : "text-gray-600 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-white/5"
-                }`}
-              >
-                {tab.label}
-              </button>
-            );
-          })}
-        </div>
-      </div>
-
-      {activeSection === "profile" && (
       <section className="rounded-2xl border border-gray-200 bg-white p-5 dark:border-gray-800 dark:bg-white/3 lg:p-6">
         <div className="mb-6 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
           <div>
@@ -595,9 +362,7 @@ export default function AdminProfilePage() {
         </div>
         )}
       </section>
-      )}
 
-      {activeSection === "settings" && (
       <section className="rounded-2xl border border-gray-200 bg-white p-5 dark:border-gray-800 dark:bg-white/3 lg:p-6">
         <div className="mb-6 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
           <div>
@@ -622,10 +387,25 @@ export default function AdminProfilePage() {
                 ["dark", "Dark"],
                 ["system", "System"],
               ]}
-              onChange={(value) => updateSetting("appearance", "theme", value as AccountSettings["appearance"]["theme"])}
+              onChange={(value) => {
+                const nextTheme = value as AccountSettings["appearance"]["theme"];
+                updateSetting("appearance", "theme", nextTheme);
+                if (nextTheme === "system") {
+                  applySystemTheme();
+                } else {
+                  setTheme(nextTheme);
+                }
+              }}
             />
             <Toggle label="Compact Mode" checked={settings.appearance.compact_mode} onChange={(value) => updateSetting("appearance", "compact_mode", value)} />
-            <Toggle label="Sidebar Collapsed" checked={settings.appearance.sidebar_collapsed} onChange={(value) => updateSetting("appearance", "sidebar_collapsed", value)} />
+            <Toggle
+              label="Sidebar Collapsed"
+              checked={settings.appearance.sidebar_collapsed}
+              onChange={(value) => {
+                updateSetting("appearance", "sidebar_collapsed", value);
+                setIsExpanded(!value);
+              }}
+            />
           </SettingsGroup>
 
           <SettingsGroup icon={<CalendarDays size={18} />} title="Localization">
@@ -728,120 +508,6 @@ export default function AdminProfilePage() {
         </div>
         )}
       </section>
-      )}
-
-      {activeSection === "support" && (
-      <section className="rounded-2xl border border-gray-200 bg-white p-5 dark:border-gray-800 dark:bg-white/3 lg:p-6">
-        <div className="mb-6">
-          <h3 className="text-lg font-semibold text-gray-800 dark:text-white/90">Support</h3>
-          <p className="text-sm text-gray-500 dark:text-gray-400">Submit a request and review support information.</p>
-        </div>
-
-        {supportLoading ? (
-          <SectionLoading message="Inapakia support..." />
-        ) : (
-        <>
-        {supportError && (
-          <div className="mb-6 rounded-xl border border-yellow-200 bg-yellow-50 px-4 py-3 text-sm text-yellow-800 dark:border-yellow-500/30 dark:bg-yellow-500/10 dark:text-yellow-200">
-            {supportError}
-          </div>
-        )}
-
-        <div className="mb-6 grid gap-4 lg:grid-cols-4">
-          <SupportSummary title="Channels" value={displayList(support?.channels)} />
-          <SupportSummary title="Categories" value={displayList(support?.categories)} />
-          <SupportSummary title="Priorities" value={displayList(support?.priorities)} />
-          <SupportSummary title="System" value={support?.system ? JSON.stringify(support.system) : "No data"} />
-        </div>
-
-        {support?.recent_requests && support.recent_requests.length > 0 && (
-          <div className="mb-6">
-            <h4 className="mb-3 text-base font-semibold text-gray-800 dark:text-white/90">Recent Requests</h4>
-            <RequestList requests={support.recent_requests} />
-          </div>
-        )}
-
-        <div className="grid gap-6 xl:grid-cols-[1fr_1.2fr]">
-          <div className="rounded-xl border border-gray-200 p-4 dark:border-gray-800">
-            <h4 className="mb-4 text-base font-semibold text-gray-800 dark:text-white/90">New Support Request</h4>
-            <div className="space-y-4">
-              <SelectField
-                label="Category"
-                value={supportForm.category}
-                options={categoryOptions.map((option) => [option.value, option.label])}
-                onChange={(value) => setSupportForm((prev) => ({ ...prev, category: value as SupportForm["category"] }))}
-              />
-              <SelectField
-                label="Priority"
-                value={supportForm.priority}
-                options={priorityOptions.map((option) => [option.value, option.label])}
-                onChange={(value) => setSupportForm((prev) => ({ ...prev, priority: value as SupportForm["priority"] }))}
-              />
-              <Field label="Subject">
-                <input className={fieldClass} value={supportForm.subject} onChange={(event) => setSupportForm((prev) => ({ ...prev, subject: event.target.value }))} />
-              </Field>
-              <Field label="Message">
-                <textarea
-                  className={`${fieldClass} min-h-28 resize-y`}
-                  value={supportForm.message}
-                  onChange={(event) => setSupportForm((prev) => ({ ...prev, message: event.target.value }))}
-                />
-              </Field>
-              <Field label="Contact Email">
-                <input
-                  className={fieldClass}
-                  type="email"
-                  value={supportForm.contact_email}
-                  onChange={(event) => setSupportForm((prev) => ({ ...prev, contact_email: event.target.value }))}
-                />
-              </Field>
-              <Field label="Contact Phone">
-                <input className={fieldClass} value={supportForm.contact_phone} onChange={(event) => setSupportForm((prev) => ({ ...prev, contact_phone: event.target.value }))} />
-              </Field>
-              <Button onClick={submitSupportRequest} disabled={supportSaving || Boolean(supportError)} startIcon={<Mail size={16} />} className="w-full">
-                {supportSaving ? "Sending..." : "Submit Request"}
-              </Button>
-            </div>
-          </div>
-
-          <div className="rounded-xl border border-gray-200 p-4 dark:border-gray-800">
-            <div className="mb-4 flex items-center justify-between gap-3">
-              <h4 className="text-base font-semibold text-gray-800 dark:text-white/90">Request History</h4>
-              <div className="flex items-center gap-2">
-                <button
-                  type="button"
-                  disabled={historyPage <= 1}
-                  onClick={() => setHistoryPage((page) => Math.max(1, page - 1))}
-                  className="rounded-lg border border-gray-300 p-2 text-gray-600 disabled:opacity-40 dark:border-gray-700 dark:text-gray-300"
-                  aria-label="Previous page"
-                >
-                  <ChevronLeft size={16} />
-                </button>
-                <span className="text-sm text-gray-500">
-                  {supportHistory.currentPage} / {supportHistory.lastPage}
-                </span>
-                <button
-                  type="button"
-                  disabled={historyPage >= supportHistory.lastPage}
-                  onClick={() => setHistoryPage((page) => Math.min(supportHistory.lastPage, page + 1))}
-                  className="rounded-lg border border-gray-300 p-2 text-gray-600 disabled:opacity-40 dark:border-gray-700 dark:text-gray-300"
-                  aria-label="Next page"
-                >
-                  <ChevronRight size={16} />
-                </button>
-              </div>
-            </div>
-            {supportHistoryLoading ? (
-              <SectionLoading message="Inapakia request history..." />
-            ) : (
-              <RequestList requests={supportHistory.data} />
-            )}
-          </div>
-        </div>
-        </>
-        )}
-      </section>
-      )}
     </div>
   );
 }
@@ -917,44 +583,4 @@ function SettingsGroup({ icon, title, children }: { icon: React.ReactNode; title
       <div className="grid gap-4">{children}</div>
     </div>
   );
-}
-
-function SupportSummary({ title, value }: { title: string; value: string }) {
-  return (
-    <div className="rounded-xl border border-gray-200 p-4 dark:border-gray-800">
-      <p className="mb-2 text-sm font-semibold text-gray-800 dark:text-white/90">{title}</p>
-      <p className="line-clamp-4 text-sm text-gray-500 dark:text-gray-400">{value}</p>
-    </div>
-  );
-}
-
-function RequestList({ requests }: { requests: SupportRequest[] }) {
-  if (requests.length === 0) {
-    return <p className="rounded-xl border border-dashed border-gray-300 p-4 text-sm text-gray-500 dark:border-gray-700">No support requests found.</p>;
-  }
-
-  return (
-    <div className="space-y-3">
-      {requests.map((request, index) => (
-        <div key={request.id ?? `${request.subject}-${index}`} className="rounded-xl border border-gray-200 p-4 dark:border-gray-800">
-          <div className="mb-2 flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
-            <div>
-              <p className="font-medium text-gray-800 dark:text-white/90">{request.subject || "Untitled request"}</p>
-              <p className="text-xs text-gray-500">{formatDate(request.created_at)}</p>
-            </div>
-            <div className="flex flex-wrap gap-2 text-xs">
-              {request.category && <Badge>{request.category}</Badge>}
-              {request.priority && <Badge>{request.priority}</Badge>}
-              {request.status && <Badge>{request.status}</Badge>}
-            </div>
-          </div>
-          {request.message && <p className="text-sm text-gray-500 dark:text-gray-400">{request.message}</p>}
-        </div>
-      ))}
-    </div>
-  );
-}
-
-function Badge({ children }: { children: React.ReactNode }) {
-  return <span className="rounded-full bg-gray-100 px-3 py-1 text-gray-600 dark:bg-white/10 dark:text-gray-300">{children}</span>;
 }

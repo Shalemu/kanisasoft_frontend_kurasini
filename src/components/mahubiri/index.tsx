@@ -40,6 +40,8 @@ export default function Mahubiri() {
         flex
         gap-4
         items-center
+        dark:bg-white/3
+        dark:border-gray-800
       ">
 
         <div className="relative flex-1">
@@ -64,8 +66,14 @@ export default function Mahubiri() {
               border
               rounded-lg
               outline-none
+              bg-white
+              text-gray-900
               focus:ring-2
               focus:ring-blue-500
+              dark:bg-gray-900
+              dark:text-white/90
+              dark:border-gray-700
+              dark:placeholder-gray-500
             "
           />
 

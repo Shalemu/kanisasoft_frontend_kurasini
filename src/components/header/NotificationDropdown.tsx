@@ -13,6 +13,10 @@ interface PendingUser {
   membership_status?: string | null;
 }
 
+function isFetchNetworkError(error: unknown) {
+  return error instanceof TypeError && error.message === "Failed to fetch";
+}
+
 export default function NotificationDropdown() {
   const [isOpen, setIsOpen] = useState(false);
   const [pendingUsers, setPendingUsers] = useState<PendingUser[]>([]);
@@ -20,11 +24,11 @@ export default function NotificationDropdown() {
   useEffect(() => {
     async function loadPendingUsers() {
       try {
-        const response = await apiFetch("/users");
+        const response = await apiFetch("/users", { throwOnError: false });
         const users = response?.users ?? response?.data?.users ?? [];
         setPendingUsers(users.filter((user: PendingUser) => user.role !== "mchungaji" && user.membership_status === "pending"));
       } catch (error) {
-        if (error instanceof ApiAuthError) return;
+        if (error instanceof ApiAuthError || isFetchNetworkError(error)) return;
 
         console.error("Failed to load pending registrations", error);
       }

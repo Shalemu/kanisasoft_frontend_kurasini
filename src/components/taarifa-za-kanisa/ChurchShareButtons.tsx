@@ -1,180 +1,126 @@
 "use client";
 
-import {
-  FaWhatsapp,
-  FaFacebook,
-  FaCopy
-} from "react-icons/fa";
-
+import { FaWhatsapp, FaFacebook, FaCopy } from "react-icons/fa";
 import Swal from "sweetalert2";
 
-
-export default function ChurchShareButtons({
-  church
-}:any){
-
-
-const link = 
-typeof window !== "undefined"
-? `${window.location.origin}/church/${church?.slug}`
-: "";
-
-
-
-const whatsapp = ()=>{
-
-window.open(
-`https://wa.me/?text=${encodeURIComponent(link)}`,
-"_blank"
-);
-
+type Props = {
+  church: {
+    slug?: string;
+  };
 };
 
+export default function ChurchShareButtons({ church }: Props) {
+  const link =
+    typeof window !== "undefined"
+      ? `${window.location.origin}/church/${church?.slug}`
+      : "";
 
+  const whatsapp = () => {
+    window.open(
+      `https://wa.me/?text=${encodeURIComponent(link)}`,
+      "_blank",
+      "noopener,noreferrer"
+    );
+  };
 
-const facebook = ()=>{
+  const facebook = () => {
+    window.open(
+      `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(link)}`,
+      "_blank",
+      "noopener,noreferrer"
+    );
+  };
 
-window.open(
-`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(link)}`,
-"_blank"
-);
+  const copyLink = async () => {
+    try {
+      await navigator.clipboard.writeText(link);
 
-};
+      Swal.fire({
+        icon: "success",
+        title: "Link imenakiliwa",
+        timer: 1500,
+        showConfirmButton: false,
+      });
+    } catch (error) {
+      console.error(error);
 
+      Swal.fire({
+        icon: "error",
+        title: "Imeshindikana",
+        text: "Browser hairuhusu kunakili link.",
+      });
+    }
+  };
 
+  return (
+    <div
+      className="
+        bg-white
+        dark:bg-white/5
+        border
+        dark:border-gray-800
+        rounded-xl
+        shadow-sm
+        p-6
+      "
+    >
+      <h2 className="mb-4 text-lg font-semibold text-gray-800 dark:text-white">
+        Shirikisha Wengine
+      </h2>
 
-const copyLink = async()=>{
+      <div className="flex flex-wrap gap-3">
+        <button
+          onClick={whatsapp}
+          className="
+            flex items-center gap-2
+            rounded-lg
+            bg-green-600
+            px-4 py-2
+            text-white
+            transition
+            hover:bg-green-700
+          "
+        >
+          <FaWhatsapp size={18} />
+          <span>WhatsApp</span>
+        </button>
 
-try{
+        <button
+          onClick={facebook}
+          className="
+            flex items-center gap-2
+            rounded-lg
+            bg-blue-600
+            px-4 py-2
+            text-white
+            transition
+            hover:bg-blue-700
+          "
+        >
+          <FaFacebook size={18} />
+          <span>Facebook</span>
+        </button>
 
-await navigator.clipboard.writeText(link);
-
-
-Swal.fire({
-
-icon:"success",
-title:"Link imenakiliwa",
-timer:1500,
-showConfirmButton:false
-
-});
-
-
-}catch(error){
-
-console.error(error);
-
-
-Swal.fire({
-
-icon:"error",
-title:"Imeshindikana",
-text:"Browser hairuhusu kunakili link"
-
-});
-
-}
-
-};
-
-
-
-return (
-
-<div className="
-bg-white
-rounded-xl
-shadow
-border
-p-6
-">
-
-
-<h2 className="font-semibold mb-4">
-Shirikisha Wengine
-</h2>
-
-
-
-<div className="
-flex
-flex-wrap
-gap-3
-">
-
-
-<button
-onClick={whatsapp}
-className="
-bg-green-600
-text-white
-px-4
-py-2
-rounded-lg
-flex
-items-center
-gap-2
-"
->
-
-<FaWhatsapp size={18}/>
-WhatsApp
-
-</button>
-
-
-
-
-
-<button
-onClick={facebook}
-className="
-bg-blue-600
-text-white
-px-4
-py-2
-rounded-lg
-flex
-items-center
-gap-2
-"
->
-
-<FaFacebook size={18}/>
-Facebook
-
-</button>
-
-
-
-
-
-<button
-onClick={copyLink}
-className="
-border
-px-4
-py-2
-rounded-lg
-flex
-items-center
-gap-2
-hover:bg-gray-50
-"
->
-
-<FaCopy/>
-Copy Link
-
-</button>
-
-
-
-</div>
-
-
-</div>
-
-);
-
+        <button
+          onClick={copyLink}
+          className="
+            flex items-center gap-2
+            rounded-lg
+            border
+            border-gray-300
+            dark:border-gray-700
+            px-4 py-2
+            text-gray-700
+            dark:text-white
+            transition
+            hover:bg-gray-100
+            dark:hover:bg-white/10
+          "
+        >
+          <FaCopy size={16} />
+          <span>Copy Link</span>
+        </button>
+      </div>
+    </div>
+  );
 }
