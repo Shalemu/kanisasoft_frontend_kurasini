@@ -261,8 +261,8 @@ export default function RegisterPage() {
             <Field label="Mtaa Unapoishi *" name="residentialStreet" value={form.residentialStreet} onChange={handleChange} />
 
             {/* Zone - dropdown with new values */}
-            <Select label="Mtaa *" name="zone" value={form.zone} onChange={handleChange}
-              options={['MURUBOMBO', 'MURUSI B', 'KIGANAMO', 'MURUSI A', 'KUMUNYIKA B', 'KAGUNGA C', 'KUMUNYIKA A', 'KAGANGA B', 'MURUBONA A', 'KAGUNGA A']}
+            <Select label="zone *" name="zone" value={form.zone} onChange={handleChange}
+              options={['Kigamboni','Kizuiani','Mtongani','Yerusalem','Tandika','Kijichi','Mgeninani','Keko & Kurasini','Kinondoni','Kongowe','Mbande','Kingugi']}
             />
 
             <Select label="Hali ya ndoa *" name="maritalStatus" value={form.maritalStatus} onChange={handleChange}
