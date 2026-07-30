@@ -227,11 +227,19 @@ case 0:
   value={form.zone}
   onChange={handleChange}
   options={[
-    { value: "MURUBOMBO", label: "MURUBOMBO" },
-    { value: "MURUSI B", label: "MURUSI B" },
-    { value: "KIGANAMO", label: "KIGANAMO" },
-    { value: "MURUSI A", label: "MURUSI A" },
-    { value: "KUMUNYIKA B", label: "KUMUNYIKA B" },
+    { value: "Kigamboni", label: "Kigamboni" },
+    { value: "Kizuiani", label: "Kizuiani" },
+    { value: "Mtongani", label: "Mtongani" },
+    { value: "Yerusalem", label: "Yerusalem" },
+    { value: "Tandika", label: "Tandika" },
+    { value: "Tandika", label: "Tandika" },
+    { value: "Kijichi", label: "Kijichi" },
+    { value: "Mgeninani", label: "Mgeninani" },
+    { value: "Keko & Kurasini", label: "Keko & Kurasini" },
+    { value: "Kinondoni", label: "Kinondoni" },
+    { value: "Kongowe", label: "Kongowe" },
+    { value: "Mbande", label: "Mbande" },
+    { value: "Kingugi", label: "Kingugi" },
   ]}
 />
       </div>
