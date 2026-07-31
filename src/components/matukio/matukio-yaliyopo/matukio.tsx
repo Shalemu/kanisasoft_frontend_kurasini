@@ -33,6 +33,7 @@ interface EventForm {
   start_time: string;
   location: string;
   audience_group_ids: number[];
+  audience_all: boolean;
 }
 
 const emptyForm: EventForm = {
@@ -44,6 +45,7 @@ const emptyForm: EventForm = {
   start_time: "",
   location: "",
   audience_group_ids: [],
+  audience_all: false,
 };
 
 const fieldClass =
@@ -81,6 +83,7 @@ function eventToForm(event: EventRecord): EventForm {
       event.audience_group_ids ??
       event.audience_groups?.map((group) => group.id) ??
       [],
+    audience_all: event.audience_all ?? false,
   };
 }
 
@@ -93,7 +96,8 @@ function buildPayload(form: EventForm) {
     end_date: form.end_date,
     start_time: form.start_time,
     location: form.location.trim(),
-    audience_group_ids: form.audience_group_ids,
+    audience_group_ids: form.audience_all ? [] : form.audience_group_ids,
+    audience_all: form.audience_all,
   };
 }
 
@@ -171,7 +175,9 @@ export default function Matukio({ scope = "current" }: { scope?: EventScope }) {
       .filter((event) => {
         const belongsToScope =
           scope === "past" ? isPastEvent(event, today) : !isPastEvent(event, today);
-        const groupNames = event.audience_groups?.map((group) => group.name).join(" ") ?? "";
+        const groupNames = event.audience_all
+          ? "washirika wote"
+          : event.audience_groups?.map((group) => group.name).join(" ") ?? "";
         const matchesSearch = [event.title, event.description, event.location, groupNames]
           .filter(Boolean)
           .some((value) => String(value).toLowerCase().includes(query));
@@ -210,6 +216,14 @@ export default function Matukio({ scope = "current" }: { scope?: EventScope }) {
       audience_group_ids: current.audience_group_ids.includes(groupId)
         ? current.audience_group_ids.filter((id) => id !== groupId)
         : [...current.audience_group_ids, groupId],
+    }));
+  };
+
+  const toggleAudienceAll = () => {
+    setForm((current) => ({
+      ...current,
+      audience_all: !current.audience_all,
+      audience_group_ids: current.audience_all ? current.audience_group_ids : [],
     }));
   };
 
@@ -289,7 +303,9 @@ export default function Matukio({ scope = "current" }: { scope?: EventScope }) {
   };
 
   const audienceNames = (event: EventRecord) =>
-    event.audience_groups?.map((group) => group.name).join(", ") || "—";
+    event.audience_all
+      ? "Washirika Wote"
+      : event.audience_groups?.map((group) => group.name).join(", ") || "—";
 
   return (
     <div className="p-6 text-gray-800 dark:text-white/90">
@@ -561,7 +577,22 @@ export default function Matukio({ scope = "current" }: { scope?: EventScope }) {
 
                 <div>
                   <label className="mb-2 block text-sm font-medium">Wahusika</label>
-                  <div className="max-h-44 overflow-y-auto rounded-lg border border-gray-200 p-3 dark:border-gray-700">
+
+                  <label className="mb-2 flex items-center gap-2 rounded-md border border-indigo-200 bg-indigo-50 px-2 py-1.5 text-sm font-medium text-indigo-700 dark:border-indigo-500/20 dark:bg-indigo-500/10 dark:text-indigo-300">
+                    <input
+                      type="checkbox"
+                      checked={form.audience_all}
+                      onChange={toggleAudienceAll}
+                      className="rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"
+                    />
+                    <span>Washirika Wote</span>
+                  </label>
+
+                  <div
+                    className={`max-h-44 overflow-y-auto rounded-lg border border-gray-200 p-3 dark:border-gray-700 ${
+                      form.audience_all ? "pointer-events-none opacity-50" : ""
+                    }`}
+                  >
                     {groups.length === 0 ? (
                       <p className="text-sm text-gray-500 dark:text-gray-400">
                         Hakuna makundi yaliyopatikana.
@@ -577,6 +608,7 @@ export default function Matukio({ scope = "current" }: { scope?: EventScope }) {
                               type="checkbox"
                               checked={form.audience_group_ids.includes(group.id)}
                               onChange={() => toggleGroup(group.id)}
+                              disabled={form.audience_all}
                               className="rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"
                             />
                             <span>{group.name}</span>

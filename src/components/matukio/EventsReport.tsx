@@ -17,7 +17,9 @@ import {
 } from "@/components/matukio/event-utils";
 
 function audienceNames(event: EventRecord) {
-  return event.audience_groups?.map((group) => group.name).join(", ") || "-";
+  return event.audience_all
+    ? "Washirika Wote"
+    : event.audience_groups?.map((group) => group.name).join(", ") || "-";
 }
 
 export default function EventsReport() {

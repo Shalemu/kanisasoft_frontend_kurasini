@@ -124,14 +124,14 @@ export default function PreachingList({
   }
 
   return (
-    <div className="space-y-5">
+    <div className="grid grid-cols-1 gap-5 md:grid-cols-2">
       {filtered.map((item: Preaching) => {
         const pdfUrl = getPdfUrl(item);
 
         return (
         <div
           key={item.id}
-          className="bg-white rounded-xl shadow border p-6 dark:bg-white/3 dark:border-gray-800"
+          className="flex flex-col bg-white rounded-xl shadow border p-6 dark:bg-white/3 dark:border-gray-800"
         >
           {/* Header */}
           <div className="flex justify-between items-start">
@@ -180,51 +180,53 @@ export default function PreachingList({
           {/* Description */}
           {item.description && (
             <div className="mt-5">
-              <p className="text-gray-700 leading-7 dark:text-gray-300">
+              <p className="line-clamp-4 text-gray-700 leading-7 dark:text-gray-300">
                 {item.description}
               </p>
             </div>
           )}
 
-          {/* Files */}
-          <div className="mt-6 flex flex-wrap gap-3">
-            {pdfUrl && (
-              <a
-                href={pdfUrl}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="inline-flex items-center gap-2 bg-red-50 text-red-700 px-4 py-2 rounded-lg hover:bg-red-100 transition dark:bg-red-500/15 dark:text-red-400 dark:hover:bg-red-500/25"
-              >
-                <FileText size={18} />
-                Fungua PDF
-              </a>
-            )}
+          <div className="mt-auto">
+            {/* Files */}
+            <div className="mt-6 flex flex-wrap gap-3">
+              {pdfUrl && (
+                <a
+                  href={pdfUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center gap-2 bg-red-50 text-red-700 px-4 py-2 rounded-lg hover:bg-red-100 transition dark:bg-red-500/15 dark:text-red-400 dark:hover:bg-red-500/25"
+                >
+                  <FileText size={18} />
+                  Fungua PDF
+                </a>
+              )}
 
-            {item.video_link && (
-              <a
-                href={item.video_link}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="inline-flex items-center gap-2 bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700 transition"
-              >
-                <PlayCircle size={18} />
-                Tazama Video
-                <ExternalLink size={15} />
-              </a>
-            )}
-          </div>
+              {item.video_link && (
+                <a
+                  href={item.video_link}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center gap-2 bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700 transition"
+                >
+                  <PlayCircle size={18} />
+                  Tazama Video
+                  <ExternalLink size={15} />
+                </a>
+              )}
+            </div>
 
-          {/* Status */}
-          <div className="mt-5">
-            <span
-              className={`inline-flex rounded-full px-3 py-1 text-xs font-medium ${
-                item.is_active
-                  ? "bg-green-100 text-green-700 dark:bg-green-500/15 dark:text-green-400"
-                  : "bg-red-100 text-red-700 dark:bg-red-500/15 dark:text-red-400"
-              }`}
-            >
-              {item.is_active ? "Active" : "Inactive"}
-            </span>
+            {/* Status */}
+            <div className="mt-5">
+              <span
+                className={`inline-flex rounded-full px-3 py-1 text-xs font-medium ${
+                  item.is_active
+                    ? "bg-green-100 text-green-700 dark:bg-green-500/15 dark:text-green-400"
+                    : "bg-red-100 text-red-700 dark:bg-red-500/15 dark:text-red-400"
+                }`}
+              >
+                {item.is_active ? "Active" : "Inactive"}
+              </span>
+            </div>
           </div>
         </div>
         );
