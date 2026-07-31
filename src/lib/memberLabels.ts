@@ -42,12 +42,12 @@ export function isMarriedStatus(maritalStatus: string) {
 export type MembershipStatusLabels = Partial<Record<string, string>>;
 
 export const DEFAULT_MEMBERSHIP_STATUS_LABELS: Record<string, string> = {
-  active: "Active",
-  pending: "Pending",
-  left: "Amehama",
+  active: "Washirika",
+  pending: "Wasioidhinishwa",
+  left: "Walio hama",
   lost: "Waliopoteza ushirika",
-  deceased: "Amefariki",
-  detained: "Ametegwa ushirika",
+  deceased: "Wamefariki",
+  detained: "Watengwa ushirika",
   rejected: "Waliokataliwa",
 };
 

@@ -4,7 +4,7 @@ import { useEffect, useState, useCallback, useRef } from "react";
 import { apiFetch } from "@/lib/api";
 import { useAuthUser } from "@/hooks/useAuthUser";
 import Swal from "sweetalert2";
-import { FaFilePdf, FaDownload, FaTrash, FaUpload, FaFileInvoiceDollar, FaEye, FaSearch, FaReceipt } from "react-icons/fa";
+import { FaFilePdf, FaDownload, FaTrash, FaFileInvoiceDollar, FaEye, FaSearch, FaReceipt } from "react-icons/fa";
 import PdfViewerModal from "@/components/common/PdfViewerModal";
 
 interface Invoice {
@@ -104,19 +104,9 @@ export default function AnkaraTab() {
 
   const [invoices, setInvoices] = useState<Invoice[]>([]);
   const [loading, setLoading] = useState(true);
-  const [uploading, setUploading] = useState(false);
-  const [title, setTitle] = useState("");
-  const [invoiceNumber, setInvoiceNumber] = useState("");
-  const [invoiceDate, setInvoiceDate] = useState(new Date().toISOString().slice(0, 10));
-  const [dueDate, setDueDate] = useState("");
-  const [invoiceTotal, setInvoiceTotal] = useState("");
-  const [invoiceStatus, setInvoiceStatus] = useState("paid");
-  const [file, setFile] = useState<File | null>(null);
-  const [showForm, setShowForm] = useState(false);
   const [showBillingForm, setShowBillingForm] = useState(false);
   const [billingForm, setBillingForm] = useState<BillingForm>(emptyBilling);
   const [savingBilling, setSavingBilling] = useState(false);
-  const fileRef = useRef<HTMLInputElement>(null);
 
   const [viewModalOpen, setViewModalOpen] = useState(false);
   const [viewModalUrl, setViewModalUrl] = useState("");
@@ -136,35 +126,6 @@ export default function AnkaraTab() {
   }, []);
 
   useEffect(() => { fetch_(); }, [fetch_]);
-
-  const handleUpload = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!title.trim() || !file) {
-      Swal.fire("Tahadhari", "Weka kichwa cha ankara na chagua faili (PDF).", "warning");
-      return;
-    }
-    setUploading(true);
-    try {
-      const formData = new FormData();
-      formData.append("title", title.trim());
-      formData.append("file", file);
-      if (invoiceNumber.trim()) formData.append("invoice_number", invoiceNumber.trim());
-      if (invoiceDate) formData.append("invoice_date", invoiceDate);
-      if (dueDate) formData.append("due_date", dueDate);
-      if (invoiceTotal && Number(invoiceTotal) > 0) formData.append("total", invoiceTotal);
-      formData.append("status", invoiceStatus);
-      await apiFetch("/invoices", { method: "POST", body: formData });
-      Swal.fire("Imefanikiwa!", "Ankara imepakiwa.", "success");
-      setTitle(""); setFile(null); setInvoiceNumber(""); setInvoiceDate(new Date().toISOString().slice(0, 10)); setDueDate(""); setInvoiceTotal(""); setInvoiceStatus("paid");
-      if (fileRef.current) fileRef.current.value = "";
-      setShowForm(false);
-      await fetch_();
-    } catch (err: any) {
-      Swal.fire("Hitilafu", err?.message || "Imeshindikana kupakia ankara.", "error");
-    } finally {
-      setUploading(false);
-    }
-  };
 
   const handleDelete = async (id: number, invoiceTitle: string) => {
     const res = await Swal.fire({
@@ -227,92 +188,6 @@ export default function AnkaraTab() {
 
   return (
     <div className="space-y-5">
-      {/* Upload form — admin only */}
-      {isAdmin && (
-        <div>
-          <button
-            onClick={() => setShowForm((p) => !p)}
-            className="flex items-center gap-2 px-5 py-2.5 bg-[#1e293b] text-white rounded-lg hover:bg-[#334155] transition-colors font-medium text-sm"
-          >
-            <FaUpload />
-            {showForm ? "Funga Fomu" : "Pakia Ankara Mpya"}
-          </button>
-
-          {showForm && (
-            <form onSubmit={handleUpload} className="mt-4 rounded-2xl border border-gray-200 bg-white p-5 shadow-sm dark:border-gray-800 dark:bg-white/[0.03]">
-              <h3 className="font-semibold text-base mb-4 flex items-center gap-2">
-                <FaFileInvoiceDollar className="text-[#1e293b] dark:text-yellow-400" />
-                Pakia Ankara ya Kanisasoft
-              </h3>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                {/* Kichwa — full width */}
-                <div className="sm:col-span-2">
-                  <label className="mb-1.5 block text-sm font-medium">Kichwa cha Ankara *</label>
-                  <input type="text" value={title} onChange={(e) => setTitle(e.target.value)}
-                    placeholder="mfano: Ankara ya Juni 2026"
-                    className="w-full rounded-xl border border-gray-300 bg-white px-4 py-3 text-sm outline-none focus:border-blue-500 focus:ring-4 focus:ring-blue-100 dark:border-gray-700 dark:bg-gray-900 dark:text-white" />
-                </div>
-                {/* Namba ya Ankara */}
-                <div>
-                  <label className="mb-1.5 block text-sm font-medium">Namba ya Ankara</label>
-                  <input type="text" value={invoiceNumber} onChange={(e) => setInvoiceNumber(e.target.value)}
-                    placeholder="mfano: 471753"
-                    className="w-full rounded-xl border border-gray-300 bg-white px-4 py-3 text-sm outline-none focus:border-blue-500 focus:ring-4 focus:ring-blue-100 dark:border-gray-700 dark:bg-gray-900 dark:text-white" />
-                </div>
-                {/* Jumla */}
-                <div>
-                  <label className="mb-1.5 block text-sm font-medium">Jumla (TZS)</label>
-                  <input type="number" min="0" value={invoiceTotal} onChange={(e) => setInvoiceTotal(e.target.value)}
-                    placeholder="0"
-                    className="w-full rounded-xl border border-gray-300 bg-white px-4 py-3 text-sm outline-none focus:border-blue-500 focus:ring-4 focus:ring-blue-100 dark:border-gray-700 dark:bg-gray-900 dark:text-white" />
-                </div>
-                {/* Tarehe ya Ankara */}
-                <div>
-                  <label className="mb-1.5 block text-sm font-medium">Tarehe ya Ankara</label>
-                  <input type="date" value={invoiceDate} onChange={(e) => setInvoiceDate(e.target.value)}
-                    className="w-full rounded-xl border border-gray-300 bg-white px-4 py-3 text-sm outline-none focus:border-blue-500 focus:ring-4 focus:ring-blue-100 dark:border-gray-700 dark:bg-gray-900 dark:text-white" />
-                </div>
-                {/* Tarehe ya Mwisho */}
-                <div>
-                  <label className="mb-1.5 block text-sm font-medium">Tarehe ya Mwisho</label>
-                  <input type="date" value={dueDate} onChange={(e) => setDueDate(e.target.value)}
-                    className="w-full rounded-xl border border-gray-300 bg-white px-4 py-3 text-sm outline-none focus:border-blue-500 focus:ring-4 focus:ring-blue-100 dark:border-gray-700 dark:bg-gray-900 dark:text-white" />
-                </div>
-                {/* Hali */}
-                <div className="sm:col-span-2">
-                  <label className="mb-1.5 block text-sm font-medium">Hali ya Ankara</label>
-                  <select value={invoiceStatus} onChange={(e) => setInvoiceStatus(e.target.value)}
-                    className="w-full rounded-xl border border-gray-300 bg-white px-4 py-3 text-sm outline-none focus:border-blue-500 focus:ring-4 focus:ring-blue-100 dark:border-gray-700 dark:bg-gray-900 dark:text-white">
-                    <option value="paid">Imelipwa</option>
-                    <option value="unpaid">Haijalipwa</option>
-                    <option value="overdue">Imechelewa</option>
-                  </select>
-                </div>
-                {/* Faili — full width */}
-                <div className="sm:col-span-2">
-                  <label className="mb-1.5 block text-sm font-medium">Faili ya Ankara (PDF) *</label>
-                  <label className="flex items-center gap-2 cursor-pointer px-4 py-3 border border-dashed border-gray-300 dark:border-gray-600 rounded-xl hover:border-[#1e293b] transition-colors text-sm text-gray-500">
-                    <FaUpload />
-                    {file ? file.name : "Chagua Faili PDF..."}
-                    <input ref={fileRef} type="file" accept=".pdf" className="hidden" onChange={(e) => setFile(e.target.files?.[0] ?? null)} />
-                  </label>
-                </div>
-              </div>
-              <div className="flex gap-3 mt-4">
-                <button type="submit" disabled={uploading}
-                  className="flex-1 rounded-xl bg-[#1e293b] py-3 text-sm font-semibold text-white hover:bg-[#334155] disabled:opacity-60">
-                  {uploading ? "Inapakia..." : "Pakia Ankara"}
-                </button>
-                <button type="button" onClick={() => setShowForm(false)}
-                  className="rounded-xl border border-gray-300 px-4 py-3 text-sm text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800">
-                  Ghairi
-                </button>
-              </div>
-            </form>
-          )}
-        </div>
-      )}
-
       {/* Table */}
       <div className="rounded-2xl border border-gray-200 bg-white shadow-sm dark:border-gray-800 dark:bg-white/[0.03]">
         {/* Header */}
