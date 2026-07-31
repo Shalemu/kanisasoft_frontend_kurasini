@@ -14,6 +14,7 @@ export interface EventRecord {
   location?: string | null;
   audience_groups?: EventGroup[];
   audience_group_ids?: number[];
+  audience_all?: boolean;
 }
 
 export function normalizeEventDate(value?: string | null) {

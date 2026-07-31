@@ -35,6 +35,7 @@ type EventRecord = {
   start_time?: string | null;
   location?: string | null;
   audience_groups?: AudienceGroup[];
+  audience_all?: boolean;
 };
 
 function getEventRecords(response: any): EventRecord[] {
@@ -310,19 +311,25 @@ export default function DashboardHome() {
                   </p>
                 </div>
 
-                {featuredEvent.audience_groups?.length ? (
+                {featuredEvent.audience_all || featuredEvent.audience_groups?.length ? (
                   <div className="mt-5 flex flex-wrap items-center gap-2">
                     <span className="text-xs font-semibold text-gray-700 dark:text-gray-300">
                       Wahusika:
                     </span>
-                    {featuredEvent.audience_groups.map((group) => (
-                      <span
-                        key={group.id}
-                        className="rounded-full bg-gray-100 px-2.5 py-1 text-xs font-semibold text-gray-700 dark:bg-gray-800 dark:text-gray-300"
-                      >
-                        {group.name}
+                    {featuredEvent.audience_all ? (
+                      <span className="rounded-full bg-gray-100 px-2.5 py-1 text-xs font-semibold text-gray-700 dark:bg-gray-800 dark:text-gray-300">
+                        Washirika Wote
                       </span>
-                    ))}
+                    ) : (
+                      featuredEvent.audience_groups?.map((group) => (
+                        <span
+                          key={group.id}
+                          className="rounded-full bg-gray-100 px-2.5 py-1 text-xs font-semibold text-gray-700 dark:bg-gray-800 dark:text-gray-300"
+                        >
+                          {group.name}
+                        </span>
+                      ))
+                    )}
                   </div>
                 ) : null}
 
