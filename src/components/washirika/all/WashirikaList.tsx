@@ -13,7 +13,8 @@ import {
   FaSms,
   FaCheck,
   FaTimes,
-  FaUsers, 
+  FaUsers,
+  FaArrowRight, 
 } from "react-icons/fa";
 import { useWashirikaExport } from "@/hooks/useWashirikaExport";
 import {
@@ -614,20 +615,37 @@ const totalPending = filteredMembers.filter(
         </div>
       </div>
 
-      {/* PENDING */}
-      <div className="bg-white border border-gray-200 rounded-md shadow-sm p-4 dark:border-gray-800 dark:bg-white/[0.03]">
-        <div className="flex justify-between items-center">
-          <div>
-            <p className="text-sm text-gray-500 dark:text-gray-400">Wanaosubiri</p>
-            <h2 className="text-2xl font-bold mt-1 text-gray-800 dark:text-white/90">
-              {loading ? "..." : totalPending}
-            </h2>
+   
+        {/* PENDING */}
+        <Link
+          href="/washirika/wanaosubiri"
+          className="block bg-white border border-gray-200 rounded-md shadow-sm p-4 
+                    hover:shadow-md hover:border-yellow-300 transition-all duration-200
+                    dark:border-gray-800 dark:bg-white/[0.03]"
+        >
+          <div className="flex justify-between items-center">
+            
+            <div>
+              <p className="text-sm text-gray-500 dark:text-gray-400">
+                Wanaosubiri
+              </p>
+
+              <h2 className="text-2xl font-bold mt-1 text-gray-800 dark:text-white/90">
+                {loading ? "..." : totalPending}
+              </h2>
+
+              <div className="flex items-center gap-1 mt-2 text-sm text-yellow-600">
+                <span>Angalia orodha</span>
+                <FaArrowRight className="text-xs" />
+              </div>
+            </div>
+
+            <div className="w-12 h-12 bg-yellow-50 text-yellow-600 flex items-center justify-center rounded dark:bg-yellow-500/10">
+              <FaUsers />
+            </div>
+
           </div>
-          <div className="w-12 h-12 bg-yellow-50 text-yellow-600 flex items-center justify-center rounded dark:bg-yellow-500/10">
-            <FaUsers />
-          </div>
-        </div>
-      </div>
+        </Link>
 
     </div>
 
