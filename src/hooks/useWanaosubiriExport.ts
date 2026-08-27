@@ -41,7 +41,7 @@ export const useWanaosubiriExport = () => {
 
   const doc = new jsPDF();
 
-  doc.text("Ripoti ya Washirika Hai", 14, 15);
+  doc.text("Ripoti ya Washirika Wanaosubiri Kuidhinishwa", 14, 15);
 
   const tableData = pendingMembers.map((m, index) => [
     index + 1,
