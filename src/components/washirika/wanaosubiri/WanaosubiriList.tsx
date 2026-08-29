@@ -3,6 +3,9 @@
 import { useEffect, useState, useMemo } from "react";
 import { apiFetch } from "@/lib/api";
 import Swal from "sweetalert2";
+import AssignGroupModal from "@/components/modals/AssignGroupModal";
+import LeaderModal from "@/components/modals/LeaderModal";
+import  ReasonModal from "@/components/modals/ReasonModal";
 import Link from "next/link";
 import {
   FaUserPlus,
@@ -10,17 +13,20 @@ import {
   FaSms,
   FaCheck,
   FaTimes,
-  FaUsers, 
+  FaUsers,
+  FaArrowRight, 
 } from "react-icons/fa";
-import { useWashirikaExport } from "@/hooks/useWashirikaExport";
+import { useWanaosubiriExport } from "@/hooks/useWanaosubiriExport";
 import {
   getMembershipStatusLabel,
   type MembershipStatusLabels,
 } from "@/lib/memberLabels";
-import { useWanaosubiriExport } from "@/hooks/useWanaosubiriExport";
 
 
-
+interface Group {
+  id: number;
+  name: string;
+}
 
 interface User {
   id: number;
@@ -34,7 +40,7 @@ interface User {
   membership_number?: string | null;
   membership_status?: string | null;
   created_at: string;
- 
+  groups?: Group[];
 }
 
 interface Role {
@@ -47,6 +53,7 @@ interface Role {
 interface Props {
   searchTerm: string;
   selectedMonth?: string;
+  selectedGroup?: string;
   fromDate?: string;
   toDate?: string;
   statusFilter?: string;
@@ -55,6 +62,7 @@ interface Props {
 export default function WanaosubiriList({
   searchTerm,
   selectedMonth = "",
+  selectedGroup = "",
   fromDate = "",
   toDate = "",
   statusFilter = "",
@@ -62,12 +70,22 @@ export default function WanaosubiriList({
   const [members, setMembers] = useState<User[]>([]);
   const [statusLabels, setStatusLabels] = useState<MembershipStatusLabels | null>(null);
   const [loading, setLoading] = useState(true);
-
+  const [sendingSms, setSendingSms] = useState(false);
 
   const [roles, setRoles] = useState<Role[]>([]); 
 
   const [selectedMembers, setSelectedMembers] = useState<number[]>([]);
+  const [groupDialogOpen, setGroupDialogOpen] = useState(false);
+  const [groups, setGroups] = useState<Group[]>([]);
 
+  const [isLeaderModalOpen, setIsLeaderModalOpen] = useState(false);
+  const [selectedMemberForLeader, setSelectedMemberForLeader] =
+    useState<User | null>(null);
+
+  const [reasonModalOpen, setReasonModalOpen] = useState(false);
+  const [selectedActionUser, setSelectedActionUser] = useState<number | null>(null);
+  const [actionType, setActionType] =
+  useState<"reject" | "deactivate" | null>(null);
 
   //export
   const { exportToExcel, exportToPDF } = useWanaosubiriExport();
@@ -87,6 +105,41 @@ export default function WanaosubiriList({
     fetchMembers();
   }, []);
 
+  useEffect(() => {
+  fetchRoles();
+}, []);
+
+useEffect(() => {
+  fetchGroups();
+}, []);
+
+const fetchRoles = async () => {
+  try {
+    const data: { roles: any[] } = await apiFetch(
+      '/leadership-roles'
+    );
+
+    if (data?.roles) {
+      setRoles(data.roles);
+    }
+  } catch (err) {
+    console.error('Error fetching roles:', err);
+  }
+};
+
+const fetchGroups = async () => {
+  try {
+    const data: { groups: any[] } = await apiFetch(
+      '/groups'
+    );
+
+    if (data?.groups) {
+      setGroups(data.groups);
+    }
+  } catch (err) {
+    console.error('Error fetching groups:', err);
+  }
+};
 
 function normalizeDate(value?: string | null) {
   return value ? value.slice(0, 10) : "";
@@ -114,12 +167,13 @@ function normalizeDate(value?: string | null) {
             : null,
         membership_status: u.membership_status ?? "pending",
         created_at: u.created_at,
+        groups: u.groups ?? u.member_groups ?? u.assigned_groups ?? [],
       }));
 
       // Filter washirika
       const washirika = users.filter(
         (u) =>
-          // u.membership_status === MEMBERSHIP_STATUS.ACTIVE ||
+       
           u.membership_status === MEMBERSHIP_STATUS.PENDING ||
           u.membership_status === null
       );
@@ -134,7 +188,7 @@ function normalizeDate(value?: string | null) {
 
 const filteredMembers = useMemo(() => {
   const query = searchTerm.trim().toLowerCase();
- 
+  const groupQuery = selectedGroup.trim().toLowerCase();
 
   const normalizeNumber = (value?: string | null) => {
     if (!value) return "";
@@ -148,7 +202,8 @@ const filteredMembers = useMemo(() => {
     const createdDate = normalizeDate(m.created_at);
     const createdMonth = createdDate.slice(0, 7);
 
-
+    const groupNames =
+      m.groups?.map((group) => group.name).join(" ") ?? "";
 
     const membershipNumber = String(m.membership_number ?? "");
 
@@ -173,6 +228,9 @@ const filteredMembers = useMemo(() => {
     const matchesDateTo =
       !toDate || createdDate <= toDate;
 
+    const matchesGroup =
+      !groupQuery ||
+      groupNames.toLowerCase().includes(groupQuery);
 
     const matchesStatus =
       !statusFilter ||
@@ -183,6 +241,7 @@ const filteredMembers = useMemo(() => {
       matchesMonth &&
       matchesDateFrom &&
       matchesDateTo &&
+      matchesGroup &&
       matchesStatus
     );
   });
@@ -211,6 +270,7 @@ const filteredMembers = useMemo(() => {
   members,
   searchTerm,
   selectedMonth,
+  selectedGroup,
   fromDate,
   toDate,
   statusFilter,
@@ -219,7 +279,7 @@ const filteredMembers = useMemo(() => {
 useEffect(() => {
   setCurrentPage(1);
   setSelectedMembers([]);
-}, [searchTerm, selectedMonth,fromDate, toDate, statusFilter]);
+}, [searchTerm, selectedMonth, selectedGroup, fromDate, toDate, statusFilter]);
 
   // PAGINATION
   const totalPages = Math.ceil(filteredMembers.length / rowsPerPage);
@@ -312,7 +372,9 @@ const toggleSelectAll = () => {
 
   //  REJECT
 const handleReject = (userId: number) => {
-
+  setSelectedActionUser(userId);
+  setActionType("reject");
+  setReasonModalOpen(true);
 };
 const isAdminSelected = selectedMembers.some((memberId) => {
   const user = members.find((m) => m.id === memberId);
@@ -327,7 +389,8 @@ const handleDeactivate = () => {
     return;
   }
 
-
+  setActionType("deactivate");
+  setReasonModalOpen(true);
 };
 
 const getMemberId = async (userId: number) => {
@@ -339,8 +402,171 @@ const getMemberId = async (userId: number) => {
   return data?.member?.id ?? data?.member?.member_id;
 };
 
+const handleSendSms = async () => {
+  if (sendingSms) return;
 
+  const recipients = members.filter((member) => selectedMembers.includes(member.id));
 
+  if (recipients.length === 0) {
+    Swal.fire("Tahadhari", "Chagua mshirika kwanza", "warning");
+    return;
+  }
+
+  const result = await Swal.fire({
+    title: "Tuma SMS",
+    input: "textarea",
+    inputPlaceholder: "Andika ujumbe...",
+    showCancelButton: true,
+    confirmButtonText: "Tuma",
+    cancelButtonText: "Ghairi",
+    confirmButtonColor: "#2563eb",
+    inputValidator: (value) => (!value?.trim() ? "Andika ujumbe kwanza" : null),
+  });
+
+  if (!result.isConfirmed || !result.value?.trim()) return;
+
+  setSendingSms(true);
+
+  try {
+    const message = result.value.trim();
+    const memberIds = (
+      await Promise.all(recipients.map((member) => getMemberId(member.id)))
+    ).filter(Boolean);
+
+    if (memberIds.length !== recipients.length) {
+      Swal.fire("Hitilafu", "Baadhi ya washirika hawajapatikana.", "error");
+      return;
+    }
+
+    const payload =
+      memberIds.length === 1
+        ? {
+            type: "mshiriki",
+            member_id: memberIds[0],
+            message,
+          }
+        : {
+            type: "members",
+            member_ids: memberIds,
+            message,
+          };
+
+    const response = await apiFetch("/send-sms", {
+      method: "POST",
+      body: payload,
+    });
+
+    if (response?.status === "success" || !response?.error) {
+      Swal.fire("Imefanikiwa", "SMS imetumwa kwa washirika waliochaguliwa.", "success");
+      setSelectedMembers([]);
+    } else {
+      Swal.fire("Hitilafu", response?.message || "Imeshindikana kutuma SMS.", "error");
+    }
+  } catch (error) {
+    Swal.fire(
+      "Hitilafu",
+      error instanceof Error ? error.message : "Imeshindikana kutuma SMS.",
+      "error"
+    );
+  } finally {
+    setSendingSms(false);
+  }
+};
+
+const handleConfirmReason = async (reason: string) => {
+  if (!selectedActionUser && actionType === "reject") return;
+
+  try {
+    let status = "lost";
+
+    if (reason === "Amehama") status = "left";
+    if (reason === "Amefariki") status = "deceased";
+    if (reason === "Ametegwa ushirika") status = "detained";
+    if (reason === "Amepotea") status = "lost";
+    if (reason === "Amejisajiri kimakosa") status = "lost";
+
+    if (actionType === "reject") {
+      const response = await apiFetch(`/users/${selectedActionUser}/reject`, {
+        method: "POST",
+        body: JSON.stringify({ reason, status }),
+      });
+
+      if (response.status === "success") {
+        setMembers((prev) =>
+          prev.map((m) =>
+            m.id === selectedActionUser
+              ? { ...m, membership_status: status, deactivation_reason: reason }
+              : m
+          )
+        );
+
+        Swal.fire("Imekataliwa", "Mshirika amekataliwa", "warning");
+      }
+    }
+
+    if (actionType === "deactivate") {
+      const confirm = await Swal.fire({
+        title: "Deactivate washirika?",
+        text: `${selectedMembers.length} washirika wataondolewa kwenye hali ya active.`,
+        icon: "warning",
+        showCancelButton: true,
+        confirmButtonText: "Ndiyo, deactivate",
+        cancelButtonText: "Ghairi",
+        confirmButtonColor: "#d97706",
+      });
+
+      if (!confirm.isConfirmed) return;
+
+      let successCount = 0;
+
+      for (const id of selectedMembers) {
+        const memberId = await getMemberId(id);
+
+        if (!memberId) {
+          console.warn("Missing member id for user:", id);
+          continue;
+        }
+
+        const response = await apiFetch(`/members/${memberId}/deactivate`, {
+          method: "POST",
+          body: { reason, status },
+        });
+
+        if (response.status === "success") {
+          successCount++;
+
+          setMembers((prev) =>
+            prev.map((m) =>
+              m.id === id
+                ? {
+                    ...m,
+                    membership_status: status,
+                    deactivation_reason: reason,
+                  }
+                : m
+            )
+          );
+        }
+      }
+
+      Swal.fire({
+        title: "Imefanikiwa",
+        text: `${successCount} washirika wameondolewa kwenye hali ya active`,
+        icon: "success",
+        confirmButtonColor: "#f0ce32",
+      });
+
+      setSelectedMembers([]);
+    }
+  } catch (error: any) {
+    Swal.fire("Error", error?.message || "Hitilafu imetokea", "error");
+  } finally {
+    setReasonModalOpen(false);
+    setSelectedActionUser(null);
+    setActionType(null);
+  }
+};
+ 
 
   const totalMembers = filteredMembers.length;
 
@@ -355,15 +581,73 @@ const totalPending = filteredMembers.filter(
   return (
 
     <div className="space-y-5">
+        {/*  BULK ACTION BAR */}
+    {selectedMembers.length > 0 && (
+      <div className="bg-white border border-blue-200 px-4 sm:px-6 py-3 rounded shadow-sm flex flex-col gap-3 dark:border-blue-500/20 dark:bg-blue-500/10 sm:flex-row sm:items-center sm:justify-between">
+        <p className="text-sm font-medium text-gray-600 dark:text-gray-200">
+          {selectedMembers.length} washirika wamechaguliwa
+        </p>
+
+        <div className="flex flex-wrap gap-3">
+
+          {/* ➕ Ongeza Kiongozi */}
+          <button
+            onClick={() => {
+          if (selectedMembers.length !== 1) {
+            Swal.fire("Tahadhari", "Chagua mshirika mmoja tu", "warning");
+            return;
+          }
+
+          const member = members.find(m => m.id === selectedMembers[0]);
+          if (!member) return;
+
+          setSelectedMemberForLeader(member);
+          setIsLeaderModalOpen(true);
+        }}
+            className="bg-blue-600 text-white px-4 py-2 rounded flex items-center gap-2"
+          >
+            <FaUserPlus /> Ongeza Kiongozi
+          </button>
+
+          {/* 👥 Weka Kundi */}
+          <button
+            onClick={() => setGroupDialogOpen(true)}
+            className="bg-blue-500 text-white px-4 py-2 rounded flex items-center gap-2"
+          >
+            <FaUsers /> Weka Kundi
+          </button>
+
+          {/* SMS */}
+          <button
+            onClick={handleSendSms}
+            disabled={sendingSms}
+            className="bg-indigo-600 text-white px-4 py-2 rounded flex items-center gap-2 disabled:cursor-not-allowed disabled:opacity-60"
+          >
+            <FaSms /> {sendingSms ? "Inatuma..." : "Tuma SMS"}
+          </button>
+
+          {/* Deactivate */}
+          <button
+            onClick={handleDeactivate}
+            disabled={isAdminSelected}
+            className="bg-yellow-500 text-white px-4 py-2 rounded flex items-center gap-2 disabled:cursor-not-allowed disabled:opacity-60"
+          >
+            Deactivate
+          </button>
+
+        </div>
+      </div>
+    )}
 
     <div className="bg-white border border-gray-200 rounded-md shadow-sm overflow-hidden dark:border-gray-800 dark:bg-gray-900">
 
      {/* HEADER */}
-   <div className="px-6 py-4 border-b border-gray-200 flex flex-col gap-3 dark:border-gray-800 md:flex-row md:items-center md:justify-between">
+<div className="px-6 py-4 border-b border-gray-200 flex flex-col gap-3 dark:border-gray-800 md:flex-row md:items-center md:justify-between">
   
-   <h2 className="text-xl font-bold text-gray-800 dark:text-white/90">Orodha ya Washirika</h2>
+  <h2 className="text-xl font-bold text-gray-800 dark:text-white/90">Orodha ya Washirika</h2>
 
-   <div className="flex gap-3">
+  <div className="flex gap-3">
+    
       <span className="px-3 py-2 bg-yellow-50 text-yellow-700 rounded-md text-sm font-medium dark:bg-yellow-500/10 dark:text-yellow-300">
       {totalPending} Wanasubiri
       </span>
@@ -390,7 +674,13 @@ const totalPending = filteredMembers.filter(
         <table className="w-full text-sm text-gray-700 dark:text-gray-300">
           <thead>
             <tr className="bg-[#1e293b] text-white">
-              <th className="px-4 py-3 text-left">Na.</th>
+              <th className="px-4 py-3">
+              <input
+                type="checkbox"
+                checked={allSelected}
+                onChange={toggleSelectAll}
+              />
+              </th>
               <th className="px-4 py-3 text-left">Jina</th>
               <th className="px-4 py-3 text-left">Simu</th>
               <th className="px-4 py-3 text-left">Zone</th>
@@ -510,6 +800,41 @@ const totalPending = filteredMembers.filter(
           Next
         </button>
       </div>
+<AssignGroupModal
+  isOpen={groupDialogOpen}
+  onClose={() => setGroupDialogOpen(false)}
+  groups={groups}
+  selectedMembers={selectedMembers}
+  members={members}
+  onSuccess={() => {
+    setSelectedMembers([]);
+  }}
+/>
+
+<LeaderModal
+  isOpen={isLeaderModalOpen}
+  setIsOpen={setIsLeaderModalOpen}
+  roles={roles}
+  members={members}
+  selectedMember={selectedMemberForLeader}
+  onSaved={async () => {
+    Swal.fire("Success", "Kiongozi ameongezwa", "success");
+    setIsLeaderModalOpen(false);
+    setSelectedMemberForLeader(null);
+  }}
+/>
+
+<ReasonModal
+  isOpen={reasonModalOpen}
+  onClose={() => {
+    setReasonModalOpen(false);
+    setSelectedActionUser(null);
+    setActionType(null);
+  }}
+  onConfirm={handleConfirmReason}
+  actionType={actionType}
+/>
+
     </div>
     </div>
   );

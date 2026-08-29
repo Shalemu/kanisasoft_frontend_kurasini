@@ -888,11 +888,16 @@ const totalPending = filteredMembers.filter(
   }}
 />
 
-<ReasonModal
-  isOpen={reasonModalOpen}
-  onClose={() => setReasonModalOpen(false)}
-  onConfirm={handleConfirmReason}
-/>
+  <ReasonModal
+    isOpen={reasonModalOpen}
+    onClose={() => {
+      setReasonModalOpen(false);
+      setSelectedActionUser(null);
+      setActionType(null);
+    }}
+    onConfirm={handleConfirmReason}
+    actionType={actionType}
+  />
 
     </div>
     </div>
